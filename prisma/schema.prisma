@@ -1,0 +1,262 @@
+// --------------------------------------------------------
+// CONFIGURACIÓN
+// --------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// --------------------------------------------------------
+// ENUMS
+// --------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  RECEPCION
+  TECNICO
+  MEDICO
+}
+
+enum OrderStatus {
+  CREADA
+  EN_ESPERA
+  EN_ATENCION
+  PROCESANDO
+  LISTO_PARA_ENTREGA
+  ENTREGADA
+  ANULADA
+  ENVIADA_DIGITAL
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA_DEBITO
+  TARJETA_CREDITO
+  TRANSFERENCIA
+  MERCADOPAGO
+  CUENTA_CORRIENTE
+  OTRO
+}
+
+// --------------------------------------------------------
+// MODELOS
+// --------------------------------------------------------
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  
+  users     User[]
+  orders    Order[]
+  equipments Equipment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(RECEPCION)
+  
+  branchId  String?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Equipment {
+  id        String   @id @default(cuid())
+  name      String
+  type      String?
+  
+  branchId  String
+  branch    Branch   @relation(fields: [branchId], references: [id])
+
+  orderItems OrderItem[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, name])
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  dni       String   @unique
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  birthDate DateTime?
+  
+  defaultObraSocialId String?
+  
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([dni])
+  @@index([lastName])
+}
+
+model Dentist {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  matricula    String?
+  email        String?
+  phone        String?
+  
+  preferences  Json?
+
+  orders       Order[]
+
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model ObraSocial {
+  id          String   @id @default(cuid())
+  name        String
+  code        String?  @unique
+  
+  priceListId String?
+  priceList   PriceList? @relation(fields: [priceListId], references: [id])
+
+  orders      Order[]
+
+  isActive    Boolean @default(true)
+}
+
+model Procedure {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  category    String?
+  
+  prices      Price[]
+  orderItems  OrderItem[]
+
+  isActive    Boolean @default(true)
+}
+
+model PriceList {
+  id          String   @id @default(cuid())
+  name        String
+  
+  obrasSociales ObraSocial[]
+  prices        Price[]
+
+  isActive    Boolean @default(true)
+}
+
+model Price {
+  id          String    @id @default(cuid())
+  amount      Float
+  
+  priceListId String
+  priceList   PriceList @relation(fields: [priceListId], references: [id])
+  
+  procedureId String
+  procedure   Procedure @relation(fields: [procedureId], references: [id])
+
+  @@unique([priceListId, procedureId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  dailyId       Int         @default(autoincrement())
+  code          String?     @unique
+
+  branchId      String
+  branch        Branch      @relation(fields: [branchId], references: [id])
+
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+
+  dentistId     String
+  dentist       Dentist     @relation(fields: [dentistId], references: [id])
+
+  obraSocialId  String?
+  obraSocial    ObraSocial? @relation(fields: [obraSocialId], references: [id])
+
+  status        OrderStatus @default(CREADA)
+  createdAt     DateTime    @default(now())
+  attendedAt    DateTime?
+  completedAt   DateTime?
+  deliveredAt   DateTime?
+
+  totalAmount   Float       @default(0)
+  paidAmount    Float       @default(0)
+  
+  items         OrderItem[]
+  payments      Payment[]
+  history       OrderHistory[]
+
+  notes         String?
+  updatedAt     DateTime    @updatedAt
+
+  @@index([branchId, status])
+  @@index([patientId])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String    @id @default(cuid())
+  
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  procedureId   String
+  procedure     Procedure @relation(fields: [procedureId], references: [id])
+
+  equipmentId   String?
+  equipment     Equipment? @relation(fields: [equipmentId], references: [id])
+
+  price         Float
+  details       Json?
+  status        OrderStatus @default(CREADA)
+
+  createdAt     DateTime  @default(now())
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  amount        Float
+  method        PaymentMethod
+  notes         String?
+
+  createdAt     DateTime      @default(now())
+}
+
+model OrderHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  userId    String?
+  action    String
+  oldStatus OrderStatus?
+  newStatus OrderStatus?
+  details   String?
+
+  createdAt DateTime @default(now())
+}
