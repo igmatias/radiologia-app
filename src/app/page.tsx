@@ -417,16 +417,38 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* BOTÓN FLOTANTE DE WHATSAPP (Apunta al número principal / Quilmes) */}
-      <a 
-        href="https://wa.me/5491133333333" 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 z-50 flex items-center justify-center"
-        title="Contactanos por WhatsApp"
-      >
-        <MessageCircle size={32} />
-      </a>
+      {/* MENÚ FLOTANTE DE WHATSAPP MULTI-SUCURSAL */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end group">
+        
+        {/* Opciones (Se muestran al pasar el mouse por encima) */}
+        <div className="flex-col gap-3 mb-4 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 translate-y-4 group-hover:translate-y-0 flex">
+          
+          <a href="https://wa.me/5491133333333" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+            <span className="font-bold text-neutral-700 text-sm">Quilmes</span>
+            <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
+          </a>
+
+          <a href="https://wa.me/5491155559999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+            <span className="font-bold text-neutral-700 text-sm">Avellaneda</span>
+            <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
+          </a>
+
+          <a href="https://wa.me/5491166669999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+            <span className="font-bold text-neutral-700 text-sm">Lomas de Zamora</span>
+            <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
+          </a>
+
+        </div>
+
+        {/* Botón Principal Flotante */}
+        <button 
+          className="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl transition-transform duration-300 flex items-center justify-center group-hover:shadow-green-500/50"
+          title="Contactanos por WhatsApp"
+        >
+          <MessageCircle size={32} />
+        </button>
+
+      </div>
       
     </div>
   )
