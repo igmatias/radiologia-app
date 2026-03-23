@@ -43,16 +43,7 @@ export default function Home() {
                 src="/logo.png" 
                 alt="I-R Dental Logo" 
                 className="h-14 w-auto object-contain"
-                onError={(e) => {
-                  // Fallback visual por si el logo tarda en cargar o no se encuentra en modo desarrollo
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
               />
-              <div className="hidden flex-col">
-                <span className="text-3xl font-black text-red-600 tracking-tight">I-R DENTAL</span>
-                <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Servicio de Imágenes</span>
-              </div>
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-8">
