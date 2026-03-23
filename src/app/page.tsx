@@ -10,7 +10,8 @@ import {
   User, 
   Stethoscope,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Scan
 } from "lucide-react"
 
 export default function Home() {
