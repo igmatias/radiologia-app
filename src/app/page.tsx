@@ -10,7 +10,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Scan,
-  MessageCircle
+  MessageCircle,
+  CheckCircle2,
+  HelpCircle
 } from "lucide-react"
 
 // Forzamos el título de la pestaña del navegador
@@ -40,7 +42,7 @@ const ToothIcon = ({ size = 24, className = "" }) => (
 export default function Home() {
   return (
     <div 
-      className="min-h-screen bg-neutral-50 flex flex-col" 
+      className="min-h-screen bg-neutral-50 flex flex-col relative" 
       style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
     >
       
@@ -84,9 +86,9 @@ export default function Home() {
       {/* SECCIÓN HERO (PORTADA PRINCIPAL) */}
       <main className="flex-grow">
         <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[600px] flex items-center">
-          {/* Fondo Premium Fotográfico */}
+          {/* Fondo Premium Fotográfico (Consultorio Odontológico / Monitor) */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-40 mix-blend-luminosity" 
+            className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-30 mix-blend-luminosity" 
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')" }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-transparent z-0"></div>
@@ -122,40 +124,55 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SECCIÓN INFORMACIÓN GENERAL */}
-        <section className="py-16 bg-white">
+        {/* NUEVA SECCIÓN: OBRAS SOCIALES (COBERTURAS) */}
+        <section className="py-12 bg-white border-b border-neutral-200 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-neutral-800 uppercase mb-8 pb-2 border-b-2 border-neutral-100">
+            <p className="text-center text-sm font-bold text-neutral-400 uppercase tracking-widest mb-8">Trabajamos con las principales coberturas médicas</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+              <span className="text-2xl font-black text-neutral-800">OSDE</span>
+              <span className="text-2xl font-black text-neutral-800">SWISS MEDICAL</span>
+              <span className="text-2xl font-black text-neutral-800">GALENO</span>
+              <span className="text-2xl font-black text-neutral-800">IOMA</span>
+              <span className="text-2xl font-black text-neutral-800">MEDICUS</span>
+              <span className="text-2xl font-black text-neutral-800">SANCOR SALUD</span>
+            </div>
+          </div>
+        </section>
+
+        {/* SECCIÓN INFORMACIÓN GENERAL */}
+        <section className="py-16 bg-neutral-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-neutral-800 uppercase mb-8 pb-2 border-b-2 border-neutral-200">
               Información Importante
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div>
-                <h4 className="font-bold text-neutral-800 mb-2 flex items-center gap-2">
-                  <Clock className="text-red-600" size={20} /> Sin Turno Previo
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+                <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
+                  <Clock className="text-red-600" size={24} /> Sin Turno Previo
                 </h4>
                 <p className="text-sm text-neutral-600">
                   No es necesario solicitar turno. Los estudios se realizan en cualquiera de nuestras sedes por orden de llegada.
                 </p>
               </div>
-              <div>
-                <h4 className="font-bold text-neutral-800 mb-2 flex items-center gap-2">
-                  <Activity className="text-red-600" size={20} /> Preparación
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+                <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
+                  <Activity className="text-red-600" size={24} /> Preparación
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Los estudios que realizamos no requieren ninguna consideración o preparación especial previa.
                 </p>
               </div>
-              <div>
-                <h4 className="font-bold text-neutral-800 mb-2 flex items-center gap-2">
-                  <FileText className="text-red-600" size={20} /> Entrega de Resultados
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+                <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
+                  <FileText className="text-red-600" size={24} /> Entrega
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Se entregan en el momento, salvo las Tomografías en 3D y los trazados Cefalométricos que demoran 48 horas.
                 </p>
               </div>
-              <div>
-                <h4 className="font-bold text-neutral-800 mb-2 flex items-center gap-2">
-                  <ShieldCheck className="text-red-600" size={20} /> Obras Sociales
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+                <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
+                  <ShieldCheck className="text-red-600" size={24} /> Obras Sociales
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Ofrecemos una amplia cobertura. Tenemos descuentos para todas las obras sociales, aún aquellas que no estén en la lista.
@@ -165,11 +182,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SECCIÓN TECNOLOGÍA SIRONA AXEOS (NUEVA - CHETA) */}
+        {/* SECCIÓN TECNOLOGÍA SIRONA AXEOS */}
         <section id="tecnologia" className="py-24 bg-neutral-900 text-white relative overflow-hidden">
-          {/* Imagen de fondo desvanecida */}
+          {/* Imagen de RX Panorámica */}
           <div className="absolute inset-0 opacity-20">
-            <img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover mix-blend-luminosity" alt="RX Panorámica y Tecnología" />
+            <img src="https://images.unsplash.com/photo-1570625686884-3c8115663ec4?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover mix-blend-luminosity" alt="RX Panorámica Dental" />
           </div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-16">
@@ -182,24 +199,24 @@ export default function Home() {
                 Elevamos el estándar del diagnóstico por imágenes. El sistema <strong>AXEOS</strong> ofrece volúmenes de campo de visión (FOV) flexibles y una calidad de imagen 2D panorámica y 3D excepcional. Todo esto logrando una dosis de radiación significativamente menor para la máxima tranquilidad y seguridad de sus pacientes.
               </p>
               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
-                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
-                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
+                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
+                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
+                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
               </ul>
             </div>
             <div className="lg:w-1/2 relative">
-               {/* Resplandor rojo detrás de la imagen para darle el look moderno */}
                <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
+               {/* Imagen representativa de un escáner/tecnología médica */}
                <img 
-                 src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800" 
+                 src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800" 
                  className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[500px]" 
-                 alt="Sirona Axeos Scanner" 
+                 alt="Tecnología Médica Scanner" 
                />
             </div>
           </div>
         </section>
 
-        {/* SECCIÓN SERVICIOS (AHORA CON FOTOS PREMIUM) */}
+        {/* SECCIÓN SERVICIOS */}
         <section id="servicios" className="py-20 bg-neutral-50 border-t border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 border-b-2 border-neutral-200 inline-block">
@@ -210,7 +227,7 @@ export default function Home() {
               {/* Servicio 1 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
+                  <img src="https://images.unsplash.com/photo-1606282845347-75e11409da7d?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Activity size={32} />
@@ -225,7 +242,7 @@ export default function Home() {
               {/* Servicio 2 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
+                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Scan size={32} />
@@ -240,7 +257,7 @@ export default function Home() {
               {/* Servicio 3 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1582560475093-ba66accbc424?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
+                  <img src="https://images.unsplash.com/photo-1599304609802-bd921bf3a5ec?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <FileText size={32} />
@@ -255,7 +272,7 @@ export default function Home() {
               {/* Servicio 4 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1598331668826-20cefac91e06?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
+                  <img src="https://images.unsplash.com/photo-1588776813677-77ade49edab2?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Camera size={32} />
@@ -270,7 +287,7 @@ export default function Home() {
               {/* Servicio 5 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col lg:col-span-2">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-top" alt="Análisis Cefalométricos" />
+                  <img src="https://images.unsplash.com/photo-1598331668826-20cefac91e06?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <ToothIcon size={32} />
@@ -286,16 +303,39 @@ export default function Home() {
           </div>
         </section>
 
+        {/* NUEVA SECCIÓN: PREGUNTAS FRECUENTES (FAQ) */}
+        <section className="py-20 bg-white border-t border-neutral-200">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 text-center flex items-center justify-center gap-3">
+              <HelpCircle className="text-red-600" size={32} /> Preguntas Frecuentes
+            </h2>
+            <div className="space-y-6">
+              <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
+                <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Necesito llevar la orden médica impresa?</h4>
+                <p className="text-sm text-neutral-600">Aceptamos tanto órdenes impresas como órdenes médicas digitales (en formato PDF o foto clara) enviadas por WhatsApp al momento de presentarse en la recepción.</p>
+              </div>
+              <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
+                <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Atienden urgencias?</h4>
+                <p className="text-sm text-neutral-600">Sí, todos nuestros estudios radiográficos convencionales se realizan sin turno previo por orden de llegada, facilitando la atención de urgencias dentales.</p>
+              </div>
+              <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
+                <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Cómo recibe mi odontólogo los resultados?</h4>
+                <p className="text-sm text-neutral-600">Su odontólogo puede acceder a todos sus estudios (imágenes 2D, tomografías 3D e informes) en alta resolución a través de nuestro <strong>Portal Profesional</strong> exclusivo de forma inmediata.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SECCIÓN SEDES */}
-        <section id="sedes" className="py-20 bg-white border-t border-neutral-200">
+        <section id="sedes" className="py-20 bg-neutral-100 border-t border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 border-b-2 border-neutral-100 inline-block">
+            <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 border-b-2 border-neutral-200 inline-block">
               Nuestras Sedes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Sede Quilmes */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Olavarria%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -317,7 +357,7 @@ export default function Home() {
               </div>
 
               {/* Sede Avellaneda */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=9%20de%20Julio%2064,%20Avellaneda&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -339,7 +379,7 @@ export default function Home() {
               </div>
 
               {/* Sede Lomas de Zamora */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Espa%C3%B1a%20156,%20Lomas%20de%20Zamora&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -366,7 +406,7 @@ export default function Home() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-red-600">
+      <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-red-600 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
             <img src="/logo.png?v=1" alt="I-R Dental" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity" />
@@ -376,6 +416,18 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* BOTÓN FLOTANTE DE WHATSAPP (Apunta al número principal / Quilmes) */}
+      <a 
+        href="https://wa.me/5491133333333" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 z-50 flex items-center justify-center"
+        title="Contactanos por WhatsApp"
+      >
+        <MessageCircle size={32} />
+      </a>
+      
     </div>
   )
 }
