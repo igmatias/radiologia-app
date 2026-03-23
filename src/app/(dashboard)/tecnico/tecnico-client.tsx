@@ -123,7 +123,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
       const res = await getPresignedUrl(file.name, file.type, orderId);
       if (!res.success) throw new Error(res.error);
 
-      const uploadRes = await fetch(res.signedUrl, {
+      const uploadRes = await fetch(res.signedUrl as string, {
         method: "PUT",
         body: file,
         headers: { "Content-Type": file.type }
