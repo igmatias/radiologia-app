@@ -49,7 +49,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-8">
             <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
             <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
-            <Link href="/login" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded text-sm font-bold transition-all shadow-md">
+            <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded text-sm font-bold transition-all shadow-md">
               ONLINE REPORTING
             </Link>
           </div>
@@ -70,8 +70,8 @@ export default function Home() {
               </p>
             </div>
 
-            {/* ACCESOS DIRECTOS AL SISTEMA (Sin Pacientes) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 max-w-4xl">
+            {/* ACCESOS DIRECTOS AL SISTEMA */}
+            <div className="mt-8 max-w-md">
               
               {/* Portal Profesionales */}
               <div className="bg-white rounded-lg p-8 shadow-xl border-t-4 border-red-600 hover:-translate-y-1 transition-transform">
@@ -84,24 +84,8 @@ export default function Home() {
                 <p className="text-neutral-600 text-sm mb-8 h-10">
                   Acceso exclusivo a estudios derivados, tomografías 3D e informes detallados.
                 </p>
-                <Link href="/login" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-sm">
+                <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-sm">
                   PORTAL MÉDICO <ChevronRight size={20} />
-                </Link>
-              </div>
-
-              {/* Acceso Personal */}
-              <div className="bg-neutral-800 rounded-lg p-8 shadow-xl border-t-4 border-neutral-500 hover:-translate-y-1 transition-transform">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-neutral-700 p-3 rounded-full text-neutral-300">
-                    <ShieldCheck size={32} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white">Personal IRD</h3>
-                </div>
-                <p className="text-neutral-400 text-sm mb-8 h-10">
-                  Acceso seguro al sistema de gestión para Recepción y Técnicos.
-                </p>
-                <Link href="/login" className="flex items-center justify-between w-full bg-neutral-700 hover:bg-neutral-600 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-sm">
-                  INGRESAR AL SISTEMA <ChevronRight size={20} />
                 </Link>
               </div>
 
@@ -202,30 +186,69 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
-              <div className="bg-neutral-50 p-6 rounded border border-neutral-200 hover:border-red-200 transition-colors">
-                <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Quilmes</h3>
-                <ul className="space-y-3 text-sm text-neutral-700">
-                  <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Olavarría 88 – Quilmes</li>
-                  <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4257.1222</li>
-                  <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> quilmes@irdental.com.ar</li>
-                </ul>
+              {/* Sede Quilmes */}
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+                <iframe 
+                  src="https://maps.google.com/maps?q=Olavarr%C3%ADa%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="250" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="bg-neutral-200"
+                ></iframe>
+                <div className="p-6 flex-grow">
+                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Quilmes</h3>
+                  <ul className="space-y-3 text-sm text-neutral-700">
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Olavarría 88 – Quilmes</li>
+                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4257.1222</li>
+                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> quilmes@irdental.com.ar</li>
+                  </ul>
+                </div>
               </div>
 
-              <div className="bg-neutral-50 p-6 rounded border border-neutral-200 hover:border-red-200 transition-colors">
-                <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Avellaneda</h3>
-                <ul className="space-y-3 text-sm text-neutral-700">
-                  <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 9 de Julio 64 P.2 º A – Avellaneda</li>
-                  <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4222.5553</li>
-                  <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> avellaneda@irdental.com.ar</li>
-                </ul>
+              {/* Sede Avellaneda */}
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+                <iframe 
+                  src="https://maps.google.com/maps?q=9%20de%20Julio%2064,%20Avellaneda&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="250" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="bg-neutral-200"
+                ></iframe>
+                <div className="p-6 flex-grow">
+                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Avellaneda</h3>
+                  <ul className="space-y-3 text-sm text-neutral-700">
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 9 de Julio 64 P.2 º A – Avellaneda</li>
+                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4222.5553</li>
+                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> avellaneda@irdental.com.ar</li>
+                  </ul>
+                </div>
               </div>
 
-              <div className="bg-neutral-50 p-6 rounded border border-neutral-200 hover:border-red-200 transition-colors">
-                <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Lomas de Zamora</h3>
-                <ul className="space-y-3 text-sm text-neutral-700">
-                  <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Sede Lomas de Zamora</li>
-                  <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> lomas@irdental.com.ar</li>
-                </ul>
+              {/* Sede Lomas de Zamora */}
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+                <iframe 
+                  src="https://maps.google.com/maps?q=Lomas%20de%20Zamora,%20Buenos%20Aires&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+                  width="100%" 
+                  height="250" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={false} 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="bg-neutral-200"
+                ></iframe>
+                <div className="p-6 flex-grow">
+                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Lomas de Zamora</h3>
+                  <ul className="space-y-3 text-sm text-neutral-700">
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Sede Lomas de Zamora</li>
+                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> lomas@irdental.com.ar</li>
+                  </ul>
+                </div>
               </div>
 
             </div>
