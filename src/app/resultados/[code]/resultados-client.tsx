@@ -34,7 +34,7 @@ export default function ResultadosClient() {
     
     if (res.success) {
       setPatient(res.patient);
-      setOrders(res.orders);
+      setOrders(res.orders || []);
       setIsAuthenticated(true);
       toast.success("Identidad verificada", { icon: "🔒" });
     } else {
