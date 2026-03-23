@@ -5,8 +5,9 @@ export function middleware(request: NextRequest) {
   const authCookie = request.cookies.get('radiologia-auth')?.value
   const path = request.nextUrl.pathname
 
-  // 1. Si no está logueado y NO está en el login -> ¡Al login!
-  if (!authCookie && path !== '/login') {
+  // 1. Si no está logueado y NO está en el login NI en el inicio -> ¡Al login!
+  // 🔥 Le agregamos "&& path !== '/'" para que deje entrar a la Landing Page
+  if (!authCookie && path !== '/login' && path !== '/') {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -15,8 +16,9 @@ export function middleware(request: NextRequest) {
     const session = JSON.parse(authCookie)
     const role = session.role // Puede ser: 'ADMIN', 'RECEPTIONIST', o 'TECHNICIAN'
 
-    // Si va a la raíz o al login, lo mandamos a su panel correspondiente
-    if (path === '/login' || path === '/') {
+    // Si va al login, lo mandamos a su panel correspondiente
+    // 🔥 Sacamos el "path === '/'" de acá para que, si quiere, el empleado pueda ver la Landing Page igual
+    if (path === '/login') {
       if (role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
       if (role === 'TECHNICIAN') return NextResponse.redirect(new URL('/tecnico', request.url))
       return NextResponse.redirect(new URL('/recepcion', request.url))
@@ -56,8 +58,9 @@ export const config = {
      * - favicon.ico (ícono)
      * - login (pantalla de inicio de sesión de empleados)
      * - resultados (Portal público del paciente)
-     * - portal-medico (PORTAL DE LOS ODONTÓLOGOS) <--- ESTO ES LO NUEVO
+     * - portal-medico (PORTAL DE LOS ODONTÓLOGOS)
+     * - la página de inicio ('/') <--- 🔥 NUEVO: Excluimos la raíz para evitar loops
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|login|resultados|portal-medico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|login|resultados|portal-medico|$).*)",
   ],
 };
