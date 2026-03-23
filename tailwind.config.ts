@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-    darkMode: ["class"],
+    darkMode: "class",
     content: [
     "./src/**/*.{ts,tsx}", // Esto le dice que busque en TODO lo que esté dentro de src
 	"./app/**/*.{ts,tsx}",
