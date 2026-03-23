@@ -109,7 +109,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const refreshOrders = async () => {
     if (session?.branchId) {
       const res = await getDailyOrders(session.branchId);
-      if (res.success) setDailyOrders(res.data);
+      if (res.success) setDailyOrders(res.data || []);
     }
   }
 
