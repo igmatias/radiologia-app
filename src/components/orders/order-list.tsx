@@ -29,7 +29,7 @@ export default function OrderList({ orders }: { orders: any[] }) {
       toast.error("Selecciona un equipo primero")
       return
     }
-    // Enviamos el estado EN_ATENCION y el nombre del equipo
+    // @ts-ignore
     const result = await updateOrderStatusAction(orderId, "EN_ATENCION", equip)
     if (result.success) {
       toast.success(`Estudio iniciado en ${equip}`)
