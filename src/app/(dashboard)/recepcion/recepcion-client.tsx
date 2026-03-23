@@ -134,7 +134,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       setSaldoSeleccionado(null)
       if (branchId) cargarCaja(branchId)
       router.refresh()
-    } else toast.error(res.error)
+    } else toast.error((res as any).error || "Ocurrió un error en la caja")
     setLoading(false)
   }
 
