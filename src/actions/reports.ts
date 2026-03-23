@@ -1,0 +1,121 @@
+"use server"
+
+import { prisma } from "@/lib/prisma"
+import { startOfDay, endOfDay } from "date-fns"
+
+export async function getDentistStats(dentistId: string, startDate: string, endDate: string) {
+  try {
+    // Manejo de fechas seguro para evitar saltos de zona horaria
+    const start = startOfDay(new Date(startDate + "T12:00:00"));
+    const end = endOfDay(new Date(endDate + "T12:00:00"));
+
+    const orders = await prisma.order.findMany({
+      where: {
+        dentistId: dentistId,
+        status: { not: 'ANULADA' }, // 🔥 CRUCIAL: No contamos las anuladas en las métricas
+        createdAt: { gte: start, lte: end }
+      },
+      include: {
+        patient: true,
+        items: { include: { procedure: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Armamos el recuento de estudios para el gráfico
+    const procedureCounts: Record<string, number> = {};
+    let totalProcedures = 0;
+    const uniquePatients = new Set(); // 🔥 Set para contar pacientes únicos reales
+
+    orders.forEach(order => {
+      uniquePatients.add(order.patientId);
+      order.items.forEach(item => {
+        const procName = item.procedure?.name || 'Desconocido';
+        procedureCounts[procName] = (procedureCounts[procName] || 0) + 1;
+        totalProcedures++;
+      });
+    });
+
+    // Lo convertimos a un array ordenado de mayor a menor
+    const chartData = Object.entries(procedureCounts)
+      .map(([name, count]) => ({ name, count, percentage: Math.round((count / totalProcedures) * 100) || 0 }))
+      .sort((a, b) => b.count - a.count);
+
+    return { 
+      success: true, 
+      orders, 
+      chartData, 
+      totalProcedures, 
+      totalPatients: uniquePatients.size 
+    };
+  } catch (error) {
+    console.error("Error obteniendo stats:", error);
+    return { success: false, orders: [], chartData: [], totalProcedures: 0, totalPatients: 0 };
+  }
+}
+
+export async function getInsuranceBilling(obrasocialId: string, startDate: string, endDate: string, branchId: string) {
+  try {
+    const start = startOfDay(new Date(startDate + "T12:00:00"));
+    const end = endOfDay(new Date(endDate + "T12:00:00"));
+
+    // Armamos el filtro base
+    const whereClause: any = {
+      order: {
+        obraSocialId: obrasocialId, // 🔥 Busca por la OS de la Orden, no del paciente actual
+        status: { not: 'ANULADA' }, // 🔥 CRUCIAL: No le facturamos a la mutual algo anulado
+        createdAt: { gte: start, lte: end }
+      }
+    };
+
+    // Si eligió una sede en particular (y no "TODAS"), filtramos por esa sede
+    if (branchId && branchId !== "ALL") {
+      whereClause.order.branchId = branchId;
+    }
+
+    const items = await prisma.orderItem.findMany({
+      where: whereClause,
+      include: {
+        procedure: true,
+        order: {
+          include: { patient: true, branch: true } // Incluimos branch para ver de dónde es
+        }
+      },
+      orderBy: {
+        order: { createdAt: 'asc' } // Orden cronológico para la tabla
+      }
+    });
+
+    return { success: true, items };
+  } catch (error) {
+    console.error("Error obteniendo facturación:", error);
+    return { success: false, items: [] };
+  }
+}
+
+// 🔥 Esta es la función clave para el ajuste rápido de precio
+export async function updateItemInsuranceAmount(itemId: string, newAmount: number) {
+  try {
+    await prisma.orderItem.update({
+      where: { id: itemId },
+      data: { insuranceCoverage: newAmount }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error actualizando monto:", error);
+    return { success: false, error: "No se pudo actualizar el monto" };
+  }
+}
+
+export async function updateItemPatientCopay(itemId: string, amount: number) {
+  try {
+    await prisma.orderItem.update({
+      where: { id: itemId },
+      data: { patientCopay: amount }
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Error al actualizar el copago" };
+  }
+}

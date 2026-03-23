@@ -1,0 +1,279 @@
+"use client"
+
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { updateProcedurePrice, createObraSocial, deleteObraSocial } from "@/actions/admin"
+import { toast } from "sonner"
+import { Plus, Trash2, Building2, Search, X, Calculator } from "lucide-react"
+
+export function PriceEditor({ obrasSociales, procedures }: any) {
+  const [selectedOS, setSelectedOS] = useState<any>(null)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newOSName, setNewOSName] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [updatingId, setUpdatingId] = useState<string | null>(null) // Para mostrar feedback visual de guardado
+
+  // Filtrado de estudios por búsqueda
+  const filteredProcedures = procedures.filter((p: any) => 
+    p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")) || 
+    p.code?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const handleOSChange = (id: string) => {
+    const os = obrasSociales.find((o: any) => o.id === id)
+    setSelectedOS(os)
+  }
+
+  const handleCreate = async () => {
+    if (!newOSName) return
+    const res = await createObraSocial(newOSName)
+    if (res.success) {
+      toast.success("Obra Social creada")
+      setNewOSName("")
+      setIsCreating(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedOS) return
+    if (!confirm(`¿Estás seguro de eliminar ${selectedOS.name}? Esta acción no se puede deshacer.`)) return
+
+    const res = await deleteObraSocial(selectedOS.id)
+    if (res.success) {
+      toast.success("Obra Social eliminada")
+      setSelectedOS(null)
+    } else {
+      toast.error(res.error || "No se pudo eliminar")
+    }
+  }
+
+  // --- NUEVA FUNCIÓN DE ACTUALIZACIÓN DOBLE ---
+  const handlePriceUpdate = async (procedureId: string, type: 'insurance' | 'patient', value: string, currentInsurance: number, currentPatient: number) => {
+    if (!selectedOS?.priceListId) return
+    
+    const numValue = parseFloat(value) || 0;
+    
+    // Armamos el paquete de datos dependiendo de qué cajita tocó
+    const newInsurance = type === 'insurance' ? numValue : currentInsurance;
+    const newPatient = type === 'patient' ? numValue : currentPatient;
+
+    // Solo guardamos si realmente cambió algún valor
+    if (newInsurance === currentInsurance && newPatient === currentPatient) return;
+
+    setUpdatingId(procedureId)
+    
+    // Llamamos a la acción con los dos parámetros
+    const res = await updateProcedurePrice(selectedOS.priceListId, procedureId, newInsurance, newPatient)
+    
+    if (res.success) {
+      toast.success("Valores actualizados", { id: 'price-update' })
+      
+      // Actualizamos el estado local (selectedOS) para que la UI se refresque sin recargar toda la página
+      setSelectedOS((prev: any) => {
+        const newPrices = prev.priceList.prices.map((p: any) => {
+          if (p.procedureId === procedureId) {
+            return { ...p, insuranceCoverage: newInsurance, patientCopay: newPatient, amount: newInsurance + newPatient }
+          }
+          return p;
+        });
+
+        // Si el precio no existía antes en el array, lo agregamos
+        if (!newPrices.some((p:any) => p.procedureId === procedureId)) {
+           newPrices.push({ procedureId, insuranceCoverage: newInsurance, patientCopay: newPatient, amount: newInsurance + newPatient })
+        }
+
+        return {
+          ...prev,
+          priceList: { ...prev.priceList, prices: newPrices }
+        }
+      });
+    } else {
+      toast.error("Error al guardar")
+    }
+    setUpdatingId(null)
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* PANEL IZQUIERDO: SELECCIÓN Y GESTIÓN DE MUTUALES */}
+      <div className="space-y-4">
+        <Card className="border-none shadow-lg rounded-2xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b pb-4">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-800 flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-red-700" />
+              Directorio de Mutuales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 p-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Seleccionar Convenio</label>
+              <Select onValueChange={handleOSChange} value={selectedOS?.id}>
+                <SelectTrigger className="h-12 border-2 font-bold uppercase text-sm">
+                  <SelectValue placeholder="ELEGIR MUTUAL..." />
+                </SelectTrigger>
+                <SelectContent className="font-bold uppercase">
+                  {obrasSociales.map((os: any) => (
+                    <SelectItem key={os.id} value={os.id}>{os.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {!isCreating ? (
+              <Button 
+                variant="outline" 
+                className="w-full border-dashed text-slate-500 h-12 hover:border-red-500 hover:text-red-700 transition-all font-bold uppercase text-xs" 
+                onClick={() => setIsCreating(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" /> Cargar Nueva Mutual
+              </Button>
+            ) : (
+              <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-red-200 animate-in fade-in zoom-in duration-200 shadow-inner">
+                <label className="text-[10px] font-black uppercase text-red-700 tracking-widest">Nombre de la Mutual</label>
+                <Input 
+                  placeholder="EJ: OSDE, IOMA, SWISS MEDICAL..." 
+                  value={newOSName}
+                  onChange={(e) => setNewOSName(e.target.value.toUpperCase())}
+                  className="bg-white h-10 font-bold uppercase"
+                  autoFocus
+                />
+                <div className="flex gap-2 pt-1">
+                  <Button className="flex-1 bg-red-700 hover:bg-red-800 font-bold uppercase text-xs h-10" onClick={handleCreate}>Guardar ✓</Button>
+                  <Button variant="outline" className="h-10 px-3 hover:bg-slate-200" onClick={() => setIsCreating(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {selectedOS && (
+              <Button 
+                variant="ghost" 
+                className="w-full text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors text-[10px] font-bold uppercase mt-8"
+                onClick={handleDelete}
+              >
+                <Trash2 className="h-3 w-3 mr-2" /> Eliminar Convenio de {selectedOS.name}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* PANEL DERECHO: TARIFARIO DOBLE */}
+      <Card className="md:col-span-2 xl:col-span-3 border-none shadow-xl rounded-2xl overflow-hidden">
+        <CardHeader className="bg-slate-900 text-white space-y-4 p-6 border-b-8 border-red-700">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+              <Calculator className="text-red-500" />
+              {selectedOS ? `Aranceles: ${selectedOS.name}` : "Configuración de Precios"}
+            </CardTitle>
+          </div>
+          
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input 
+              placeholder="BUSCAR ESTUDIO (EJ: PERIAPICAL, 09.01)..." 
+              className="pl-10 h-12 text-sm bg-slate-800 border-slate-700 text-white font-bold uppercase placeholder:text-slate-500 focus-visible:ring-red-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {!selectedOS ? (
+            <div className="text-center py-32 bg-slate-50">
+              <Building2 className="h-16 w-16 text-slate-200 mx-auto mb-4" />
+              <p className="text-lg font-black italic text-slate-400 uppercase tracking-tighter">
+                Esperando Selección
+              </p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2">
+                Seleccioná una obra social del panel izquierdo
+              </p>
+            </div>
+          ) : (
+            <div className="max-h-[600px] overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-100 text-[10px] font-black uppercase text-slate-500 tracking-widest sticky top-0 z-10 shadow-sm">
+                  <tr>
+                    <th className="p-4 pl-6 border-b-2 border-slate-200">Código / Estudio</th>
+                    <th className="p-4 w-40 text-center border-b-2 border-slate-200">Cubre Mutual</th>
+                    <th className="p-4 w-40 text-center border-b-2 border-slate-200 bg-red-50 text-red-800">Copago Paciente</th>
+                    <th className="p-4 w-32 text-right pr-6 border-b-2 border-slate-200">Valor Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredProcedures.map((proc: any) => {
+                    // Buscamos los precios actuales de este estudio en la OS seleccionada
+                    const priceRecord = selectedOS?.priceList?.prices.find((p: any) => p.procedureId === proc.id);
+                    const insuranceValue = priceRecord?.insuranceCoverage || 0;
+                    const patientValue = priceRecord?.patientCopay || 0;
+                    const totalValue = insuranceValue + patientValue;
+
+                    const isUpdating = updatingId === proc.id;
+
+                    return (
+                      <tr key={proc.id} className={`hover:bg-slate-50 transition-colors ${isUpdating ? 'bg-amber-50' : ''}`}>
+                        <td className="p-4 pl-6">
+                          <p className="text-[10px] text-red-700 font-black uppercase mb-0.5">
+                            {proc.code || 'S/C'}
+                          </p>
+                          <p className="text-sm font-black text-slate-800 uppercase leading-tight">
+                            {proc.name}
+                          </p>
+                        </td>
+                        
+                        {/* INPUT: CUBRE OBRA SOCIAL */}
+                        <td className="p-4">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">$</span>
+                            <Input 
+                              type="number" 
+                              className="pl-7 w-full text-center font-bold text-slate-700 border-2 focus-visible:ring-slate-400 h-10"
+                              defaultValue={insuranceValue}
+                              onBlur={(e) => handlePriceUpdate(proc.id, 'insurance', e.target.value, insuranceValue, patientValue)}
+                            />
+                          </div>
+                        </td>
+
+                        {/* INPUT: COPAGO PACIENTE */}
+                        <td className="p-4 bg-red-50/30">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 text-xs font-bold">$</span>
+                            <Input 
+                              type="number" 
+                              className="pl-7 w-full text-center font-black text-red-700 border-2 border-red-200 focus-visible:ring-red-500 bg-white h-10 shadow-sm"
+                              defaultValue={patientValue}
+                              onBlur={(e) => handlePriceUpdate(proc.id, 'patient', e.target.value, insuranceValue, patientValue)}
+                            />
+                          </div>
+                        </td>
+
+                        {/* TOTAL AUTOMÁTICO */}
+                        <td className="p-4 pr-6 text-right">
+                          <span className={`text-lg font-black italic ${totalValue > 0 ? 'text-slate-900' : 'text-slate-300'}`}>
+                            ${totalValue}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+
+              {filteredProcedures.length === 0 && (
+                <div className="text-center py-20 bg-slate-50 border-t border-dashed">
+                  <Search className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+                  <p className="text-sm font-bold uppercase text-slate-400 tracking-widest">No hay coincidencias.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

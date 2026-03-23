@@ -1,26 +1,17 @@
-// --------------------------------------------------------
-// CONFIGURACIÓN
-// --------------------------------------------------------
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
-
-// --------------------------------------------------------
-// ENUMS
-// --------------------------------------------------------
 
 enum UserRole {
   ADMIN
-  RECEPCION
-  TECNICO
-  MEDICO
+  RECEPTIONIST
+  TECHNICIAN
 }
 
 enum OrderStatus {
@@ -32,6 +23,7 @@ enum OrderStatus {
   ENTREGADA
   ANULADA
   ENVIADA_DIGITAL
+  DEMORADA
 }
 
 enum PaymentMethod {
@@ -42,34 +34,80 @@ enum PaymentMethod {
   MERCADOPAGO
   CUENTA_CORRIENTE
   OTRO
+  SALDO
 }
 
-// --------------------------------------------------------
-// MODELOS
-// --------------------------------------------------------
+enum DailyRegisterStatus {
+  ABIERTA
+  CIERRE_PARCIAL
+  CERRADA
+}
+
+enum MovementType {
+  GASTO
+  RETIRO
+  INGRESO_EXTRA
+  A_CAJA_FUERTE  
+  RETIRO_DUENO   
+}
 
 model Branch {
-  id        String   @id @default(cuid())
-  name      String
-  code      String   @unique
-  address   String?
-  phone     String?
-  isActive  Boolean  @default(true)
+  id             String          @id @default(cuid())
+  name           String
+  code           String          @unique
+  address        String?
+  phone          String?
+  isActive       Boolean         @default(true)
   
-  users     User[]
-  orders    Order[]
-  equipments Equipment[]
+  users          User[]
+  orders         Order[]
+  equipments     Equipment[]
+  cashMovements  CashMovement[]
+  
+  dailyRegisters DailyRegister[]
+  safeVault      SafeVault?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model DailyRegister {
+  id            String              @id @default(cuid())
+  branchId      String
+  branch        Branch              @relation(fields: [branchId], references: [id])
+  
+  date          DateTime            @default(now()) 
+  status        DailyRegisterStatus @default(ABIERTA)
+  
+  startBalance  Float               @default(0)
+  endBalance    Float?              
+  
+  openedBy      String              
+  closedBy      String?             
+  notes         String?
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([branchId, date]) 
+}
+
+model SafeVault {
+  id          String   @id @default(cuid())
+  branchId    String   @unique
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  balance     Float    @default(0) 
+  updatedAt   DateTime @updatedAt
 }
 
 model User {
   id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(RECEPCION)
+  username  String   @unique 
+  pin       String   
+  firstName String
+  lastName  String
+  role      UserRole @default(RECEPTIONIST)
+  isActive  Boolean  @default(true)
   
   branchId  String?
   branch    Branch?  @relation(fields: [branchId], references: [id])
@@ -79,137 +117,159 @@ model User {
 }
 
 model Equipment {
-  id        String   @id @default(cuid())
-  name      String
-  type      String?
+  id         String      @id @default(cuid())
+  name       String
+  type       String?  
   
-  branchId  String
-  branch    Branch   @relation(fields: [branchId], references: [id])
+  room       String?  
+  anydeskId  String?  
+  ipAddress  String?  
+  
+  branchId   String
+  branch     Branch      @relation(fields: [branchId], references: [id])
 
   orderItems OrderItem[]
 
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
 
   @@unique([branchId, name])
 }
 
 model Patient {
-  id        String   @id @default(cuid())
-  dni       String   @unique
-  firstName String
-  lastName  String
-  email     String?
-  phone     String?
-  birthDate DateTime?
+  id                  String      @id @default(cuid())
+  dni                 String      @unique
+  firstName           String?
+  lastName            String?
+  birthDate           DateTime?
+  phone               String?
+  email               String?
+  affiliateNumber     String?
+  plan                String?   
   
   defaultObraSocialId String?
-  
-  orders    Order[]
+  defaultObraSocial   ObraSocial? @relation(fields: [defaultObraSocialId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([dni])
-  @@index([lastName])
+  orders              Order[]
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
 
 model Dentist {
-  id           String   @id @default(cuid())
-  firstName    String
-  lastName     String
-  matricula    String?
-  email        String?
-  phone        String?
+  id                 String   @id @default(cuid())
+  firstName          String
+  lastName           String
+  matriculaProv      String?  
+  matriculaNac       String?  
+  email              String?
+  phone              String?
   
-  preferences  Json?
+  resultPreference   String? 
+  deliveryMethod     String? 
+  
+  orders             Order[]
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
 
-  orders       Order[]
-
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  password           String?
+  mustChangePassword Boolean  @default(true)
 }
 
 model ObraSocial {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
-  code        String?  @unique
+  code        String?    @unique
   
   priceListId String?
   priceList   PriceList? @relation(fields: [priceListId], references: [id])
 
   orders      Order[]
+  patients    Patient[]
 
-  isActive    Boolean @default(true)
+  isActive    Boolean    @default(true)
 }
 
 model Procedure {
-  id          String   @id @default(cuid())
-  code        String   @unique
-  name        String
-  category    String?
+  id            String      @id @default(cuid())
+  code          String      @unique
+  name          String
+  category      String?
   
-  prices      Price[]
-  orderItems  OrderItem[]
+  requiresTooth Boolean     @default(false)
+  options       String[]    @default([])
 
-  isActive    Boolean @default(true)
+  prices        Price[]
+  orderItems    OrderItem[]
+
+  isActive      Boolean     @default(true)
 }
 
 model PriceList {
-  id          String   @id @default(cuid())
-  name        String
+  id            String       @id @default(cuid())
+  name          String
   
   obrasSociales ObraSocial[]
   prices        Price[]
 
-  isActive    Boolean @default(true)
+  isActive      Boolean      @default(true)
 }
 
 model Price {
-  id          String    @id @default(cuid())
-  amount      Float
+  id                String    @id @default(cuid())
+  amount            Float
+  insuranceCoverage Float     @default(0) 
+  patientCopay      Float     @default(0) 
   
-  priceListId String
-  priceList   PriceList @relation(fields: [priceListId], references: [id])
+  priceListId       String
+  priceList         PriceList @relation(fields: [priceListId], references: [id])
   
-  procedureId String
-  procedure   Procedure @relation(fields: [procedureId], references: [id])
+  procedureId       String
+  procedure         Procedure @relation(fields: [procedureId], references: [id])
 
   @@unique([priceListId, procedureId])
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  dailyId       Int         @default(autoincrement())
-  code          String?     @unique
+  id              String         @id @default(cuid())
+  dailyId         Int            @default(autoincrement())
+  code            String?        @unique
 
-  branchId      String
-  branch        Branch      @relation(fields: [branchId], references: [id])
+  branchId        String
+  branch          Branch         @relation(fields: [branchId], references: [id])
 
-  patientId     String
-  patient       Patient     @relation(fields: [patientId], references: [id])
+  patientId       String
+  patient         Patient        @relation(fields: [patientId], references: [id])
 
-  dentistId     String
-  dentist       Dentist     @relation(fields: [dentistId], references: [id])
+  dentistId       String?
+  dentist         Dentist?       @relation(fields: [dentistId], references: [id])
 
-  obraSocialId  String?
-  obraSocial    ObraSocial? @relation(fields: [obraSocialId], references: [id])
+  obraSocialId    String?
+  obraSocial      ObraSocial?    @relation(fields: [obraSocialId], references: [id])
 
-  status        OrderStatus @default(CREADA)
-  createdAt     DateTime    @default(now())
-  attendedAt    DateTime?
-  completedAt   DateTime?
-  deliveredAt   DateTime?
-
-  totalAmount   Float       @default(0)
-  paidAmount    Float       @default(0)
+  status          OrderStatus    @default(CREADA)
+  accessCode      String?        @unique @default(uuid())
+  images          String[]       @default([])
+  externalLink    String?
   
-  items         OrderItem[]
-  payments      Payment[]
-  history       OrderHistory[]
+  equipmentName   String?     
+  
+  createdAt       DateTime       @default(now())
+  attendedAt      DateTime?
+  completedAt     DateTime?
+  deliveredAt     DateTime?
 
-  notes         String?
-  updatedAt     DateTime    @updatedAt
+  totalAmount     Float          @default(0)
+  patientAmount   Float          @default(0) 
+  insuranceAmount Float          @default(0) 
+  paidAmount      Float          @default(0)
+  
+  items           OrderItem[]
+  payments        Payment[]
+  history         OrderHistory[]
+
+  notes           String?
+  updatedAt       DateTime       @updatedAt
 
   @@index([branchId, status])
   @@index([patientId])
@@ -217,40 +277,45 @@ model Order {
 }
 
 model OrderItem {
-  id            String    @id @default(cuid())
+  id                String      @id @default(cuid())
   
-  orderId       String
-  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId           String
+  order             Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  procedureId   String
-  procedure     Procedure @relation(fields: [procedureId], references: [id])
+  procedureId       String
+  procedure         Procedure   @relation(fields: [procedureId], references: [id])
 
-  equipmentId   String?
-  equipment     Equipment? @relation(fields: [equipmentId], references: [id])
+  equipmentId       String?
+  equipment         Equipment?  @relation(fields: [equipmentId], references: [id])
 
-  price         Float
-  details       Json?
-  status        OrderStatus @default(CREADA)
+  price             Float
+  insuranceCoverage Float       @default(0) 
+  patientCopay      Float       @default(0) 
+  
+  metadata          Json?     
+  
+  details           Json?
+  status            OrderStatus @default(CREADA)
 
-  createdAt     DateTime  @default(now())
+  createdAt         DateTime    @default(now())
 }
 
 model Payment {
-  id            String        @id @default(cuid())
-  orderId       String
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id        String        @id @default(cuid())
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
-  amount        Float
-  method        PaymentMethod
-  notes         String?
+  amount    Float
+  method    PaymentMethod
+  notes     String?
 
-  createdAt     DateTime      @default(now())
+  createdAt DateTime      @default(now())
 }
 
 model OrderHistory {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
   userId    String?
   action    String
@@ -258,5 +323,21 @@ model OrderHistory {
   newStatus OrderStatus?
   details   String?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
+}
+
+model CashMovement {
+  id          String        @id @default(cuid())
+  
+  branchId    String
+  branch      Branch        @relation(fields: [branchId], references: [id])
+  
+  type        MovementType
+  amount      Float
+  description String
+  method      PaymentMethod @default(EFECTIVO)
+  
+  createdAt   DateTime      @default(now())
+  
+  @@index([branchId, createdAt])
 }
