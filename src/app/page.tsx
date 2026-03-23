@@ -7,11 +7,35 @@ import {
   FileText, 
   Camera, 
   Activity, 
-  Stethoscope,
   ChevronRight,
   ShieldCheck,
-  Scan
+  Scan,
+  MessageCircle
 } from "lucide-react"
+
+// Forzamos el título de la pestaña del navegador
+export const metadata = {
+  title: 'I-R Dental',
+}
+
+// Ícono personalizado de Diente para la interfaz
+const ToothIcon = ({ size = 24, className = "" }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M10 21c-2.43 0-4.14-1.93-4.57-4.19L4.2 8.7A3.2 3.2 0 0 1 7.27 5h9.46a3.2 3.2 0 0 1 3.07 3.7l-1.23 8.11C18.14 19.07 16.43 21 14 21a3.64 3.64 0 0 1-2-.6 3.64 3.64 0 0 1-2 .6Z" />
+    <path d="M12 11v10" />
+  </svg>
+)
 
 export default function Home() {
   return (
@@ -40,8 +64,8 @@ export default function Home() {
             {/* LOGO DE LA EMPRESA */}
             <Link href="/">
               <img 
-                src="/logo.png" 
-                alt="I-R Dental Logo" 
+                src="/logo.png?v=1" 
+                alt="I-R Dental" 
                 className="h-14 w-auto object-contain"
               />
             </Link>
@@ -50,7 +74,7 @@ export default function Home() {
             <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
             <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
             <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded text-sm font-bold transition-all shadow-md">
-              ONLINE REPORTING
+              PORTAL PROFESIONAL
             </Link>
           </div>
         </div>
@@ -77,7 +101,7 @@ export default function Home() {
               <div className="bg-white rounded-lg p-8 shadow-xl border-t-4 border-red-600 hover:-translate-y-1 transition-transform">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-red-50 p-3 rounded-full text-red-600">
-                    <Stethoscope size={32} />
+                    <ToothIcon size={32} />
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-800">Profesionales</h3>
                 </div>
@@ -85,7 +109,7 @@ export default function Home() {
                   Acceso exclusivo a estudios derivados, tomografías 3D e informes detallados.
                 </p>
                 <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-sm">
-                  PORTAL MÉDICO <ChevronRight size={20} />
+                  PORTAL PROFESIONAL <ChevronRight size={20} />
                 </Link>
               </div>
 
@@ -169,7 +193,7 @@ export default function Home() {
               </div>
 
               <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><Stethoscope size={32} /></div>
+                <div className="text-red-600 mb-4"><ToothIcon size={32} /></div>
                 <h3 className="font-bold text-neutral-800 text-lg mb-2">Análisis Cefalométricos</h3>
                 <p className="text-sm text-neutral-600">Trazados computados precisos para planificación y seguimiento de tratamientos ortodóncicos.</p>
               </div>
@@ -189,7 +213,7 @@ export default function Home() {
               {/* Sede Quilmes */}
               <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
                 <iframe 
-                  src="https://maps.google.com/maps?q=Olavarr%C3%ADa%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                  src="https://maps.google.com/maps?q=Olavarria%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
                   height="250" 
                   style={{ border: 0 }} 
@@ -201,9 +225,9 @@ export default function Home() {
                 <div className="p-6 flex-grow">
                   <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Quilmes</h3>
                   <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Olavarría 88 – Quilmes</li>
-                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4257.1222</li>
-                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> quilmes@irdental.com.ar</li>
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> OLAVARRIA 88</li>
+                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4253-5947</li>
+                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-3333-3333</li>
                   </ul>
                 </div>
               </div>
@@ -223,9 +247,9 @@ export default function Home() {
                 <div className="p-6 flex-grow">
                   <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Avellaneda</h3>
                   <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 9 de Julio 64 P.2 º A – Avellaneda</li>
-                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 011.4222.5553</li>
-                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> avellaneda@irdental.com.ar</li>
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 9 de Julio 64 - 2do. "A"</li>
+                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4210-0148</li>
+                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-5555-9999</li>
                   </ul>
                 </div>
               </div>
@@ -233,7 +257,7 @@ export default function Home() {
               {/* Sede Lomas de Zamora */}
               <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
                 <iframe 
-                  src="https://maps.google.com/maps?q=Lomas%20de%20Zamora,%20Buenos%20Aires&t=&z=14&ie=UTF8&iwloc=&output=embed" 
+                  src="https://maps.google.com/maps?q=Espa%C3%B1a%20156,%20Lomas%20de%20Zamora&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
                   height="250" 
                   style={{ border: 0 }} 
@@ -245,8 +269,9 @@ export default function Home() {
                 <div className="p-6 flex-grow">
                   <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Lomas de Zamora</h3>
                   <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Sede Lomas de Zamora</li>
-                    <li className="flex items-start gap-3"><Mail className="text-neutral-400 mt-0.5 shrink-0" size={16} /> lomas@irdental.com.ar</li>
+                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> ESPAÑA 156 - Planta Baja</li>
+                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4222-1111</li>
+                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-6666-9999</li>
                   </ul>
                 </div>
               </div>
@@ -260,7 +285,7 @@ export default function Home() {
       <footer className="bg-black py-8 text-neutral-400 text-sm border-t-4 border-red-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <img src="/logo.png" alt="I-R Dental" className="h-8 w-auto brightness-0 invert opacity-80" />
+            <img src="/logo.png?v=1" alt="I-R Dental" className="h-8 w-auto brightness-0 invert opacity-80" />
           </div>
           <p>
             © {new Date().getFullYear()} Instituto Radiodiagnóstico Dentomaxilofacial S.A. | Todos los derechos reservados.
