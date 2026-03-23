@@ -12,12 +12,16 @@ import {
   Scan,
   MessageCircle,
   CheckCircle2,
-  HelpCircle
+  HelpCircle,
+  Download,
+  Instagram,
+  Facebook
 } from "lucide-react"
 
-// Forzamos el título de la pestaña del navegador
+// Forzamos el título de la pestaña y optimizamos el SEO para Google
 export const metadata = {
-  title: 'I-R Dental',
+  title: 'I-R Dental | Radiodiagnóstico Dentomaxilofacial',
+  description: 'Instituto Radiodiagnóstico Dentomaxilofacial S.A. Tecnología de vanguardia al servicio del profesional. Sedes en Quilmes, Avellaneda y Lomas de Zamora.',
 }
 
 // Ícono personalizado de Diente para la interfaz
@@ -61,23 +65,29 @@ export default function Home() {
 
       {/* NAVEGACIÓN (HEADER) */}
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* LOGO DE LA EMPRESA */}
             <Link href="/">
               <img 
                 src="/logo.png?v=1" 
                 alt="I-R Dental" 
-                className="h-14 w-auto object-contain"
+                className="h-10 md:h-14 w-auto object-contain"
               />
             </Link>
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#tecnologia" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Tecnología</a>
-            <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
-            <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
-            <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded text-sm font-bold transition-all shadow-md">
-              PORTAL PROFESIONAL
+          
+          <div className="flex items-center gap-4 md:gap-8">
+            {/* Menú visible solo en PC */}
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#tecnologia" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Tecnología</a>
+              <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
+              <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
+            </div>
+            {/* Botón CTA (Visible siempre, se achica en móvil) */}
+            <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 md:px-6 md:py-2.5 rounded text-xs md:text-sm font-bold transition-all shadow-md flex items-center gap-2">
+              <span className="hidden md:inline">PORTAL PROFESIONAL</span>
+              <span className="md:hidden">PORTAL</span> {/* Texto más corto para que entre en celular */}
             </Link>
           </div>
         </div>
@@ -85,15 +95,15 @@ export default function Home() {
 
       {/* SECCIÓN HERO (PORTADA PRINCIPAL) */}
       <main className="flex-grow">
-        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[600px] flex items-center">
-          {/* Fondo Premium Fotográfico (Consultorio Odontológico / Monitor) */}
+        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[500px] md:min-h-[600px] flex items-center">
+          {/* Fondo Premium Fotográfico */}
           <div 
             className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-30 mix-blend-luminosity" 
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')" }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-transparent z-0"></div>
           
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10 w-full">
             <div className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
                 Tecnología de Vanguardia al Servicio del Profesional
@@ -105,19 +115,18 @@ export default function Home() {
 
             {/* ACCESOS DIRECTOS AL SISTEMA */}
             <div className="mt-8 max-w-md">
-              {/* Portal Profesionales */}
-              <div className="bg-white rounded-xl p-8 shadow-2xl border-t-4 border-red-600 hover:-translate-y-1 transition-all duration-300">
+              <div className="bg-white rounded-xl p-6 md:p-8 shadow-2xl border-t-4 border-red-600 hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-red-50 p-3 rounded-full text-red-600">
                     <ToothIcon size={32} />
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-800">Profesionales</h3>
                 </div>
-                <p className="text-neutral-600 text-sm mb-8 h-10">
+                <p className="text-neutral-600 text-sm mb-8 h-auto md:h-10">
                   Acceso exclusivo a estudios derivados, tomografías 3D e informes detallados.
                 </p>
                 <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-md">
-                  PORTAL PROFESIONAL <ChevronRight size={20} />
+                  INGRESAR AL PORTAL <ChevronRight size={20} />
                 </Link>
               </div>
             </div>
@@ -125,16 +134,16 @@ export default function Home() {
         </section>
 
         {/* NUEVA SECCIÓN: OBRAS SOCIALES (COBERTURAS) */}
-        <section className="py-12 bg-white border-b border-neutral-200 overflow-hidden">
+        <section className="py-10 md:py-12 bg-white border-b border-neutral-200 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-center text-sm font-bold text-neutral-400 uppercase tracking-widest mb-8">Trabajamos con las principales coberturas médicas</p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-              <span className="text-2xl font-black text-neutral-800">OSDE</span>
-              <span className="text-2xl font-black text-neutral-800">SWISS MEDICAL</span>
-              <span className="text-2xl font-black text-neutral-800">GALENO</span>
-              <span className="text-2xl font-black text-neutral-800">IOMA</span>
-              <span className="text-2xl font-black text-neutral-800">MEDICUS</span>
-              <span className="text-2xl font-black text-neutral-800">SANCOR SALUD</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">OSDE</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">SWISS MEDICAL</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">GALENO</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">IOMA</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">MEDICUS</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">SANCOR SALUD</span>
             </div>
           </div>
         </section>
@@ -183,33 +192,33 @@ export default function Home() {
         </section>
 
         {/* SECCIÓN TECNOLOGÍA SIRONA AXEOS */}
-        <section id="tecnologia" className="py-24 bg-neutral-900 text-white relative overflow-hidden">
+        <section id="tecnologia" className="py-20 md:py-24 bg-neutral-900 text-white relative overflow-hidden">
           {/* Imagen de RX Panorámica */}
           <div className="absolute inset-0 opacity-20">
             <img src="https://images.unsplash.com/photo-1570625686884-3c8115663ec4?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover mix-blend-luminosity" alt="RX Panorámica Dental" />
           </div>
           
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-12 md:gap-16">
             <div className="lg:w-1/2">
               <div className="inline-block bg-red-600/20 border border-red-500/50 px-4 py-1.5 rounded-full mb-6">
-                <span className="text-sm font-bold tracking-widest text-red-500 uppercase">Calidad y Precisión Alemana</span>
+                <span className="text-xs md:text-sm font-bold tracking-widest text-red-500 uppercase">Calidad y Precisión Alemana</span>
               </div>
-              <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">Equipamiento <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">Dentsply Sirona AXEOS</span></h3>
-              <p className="text-neutral-300 text-lg mb-8 font-light leading-relaxed">
+              <h3 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">Equipamiento <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">Dentsply Sirona AXEOS</span></h3>
+              <p className="text-neutral-300 text-base md:text-lg mb-8 font-light leading-relaxed">
                 Elevamos el estándar del diagnóstico por imágenes. El sistema <strong>AXEOS</strong> ofrece volúmenes de campo de visión (FOV) flexibles y una calidad de imagen 2D panorámica y 3D excepcional. Todo esto logrando una dosis de radiación significativamente menor para la máxima tranquilidad y seguridad de sus pacientes.
               </p>
               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
-                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
-                 <li className="flex items-center gap-3 font-medium"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
               </ul>
             </div>
-            <div className="lg:w-1/2 relative">
+            <div className="lg:w-1/2 relative w-full">
                <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
                {/* Imagen representativa de un escáner/tecnología médica */}
                <img 
                  src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800" 
-                 className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[500px]" 
+                 className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[350px] md:h-[500px]" 
                  alt="Tecnología Médica Scanner" 
                />
             </div>
@@ -326,6 +335,28 @@ export default function Home() {
           </div>
         </section>
 
+        {/* BANNER: DESCARGA DE ORDEN MÉDICA (NUEVO) */}
+        <section className="bg-red-600 py-12 md:py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/cc0000/990000?text=+')] opacity-20 bg-cover mix-blend-multiply"></div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="text-white text-center md:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">¿Odontólogo Derivante?</h2>
+              <p className="text-red-100 text-sm md:text-base max-w-xl">
+                Si se quedó sin talonarios físicos, puede descargar nuestra orden de derivación oficial en formato PDF, lista para imprimir y entregar a sus pacientes.
+              </p>
+            </div>
+            <a 
+              href="/orden.pdf" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="bg-white hover:bg-neutral-100 text-red-600 px-8 py-4 rounded-xl font-bold transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-3 whitespace-nowrap"
+            >
+              <Download size={24} /> 
+              DESCARGAR ORDEN
+            </a>
+          </div>
+        </section>
+
         {/* SECCIÓN SEDES */}
         <section id="sedes" className="py-20 bg-neutral-100 border-t border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -407,11 +438,22 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-red-600 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
-            <img src="/logo.png?v=1" alt="I-R Dental" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-neutral-800 pb-8 mb-8">
+            <div>
+              <img src="/logo.png?v=1" alt="I-R Dental" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity" />
+            </div>
+            {/* REDES SOCIALES (NUEVO) */}
+            <div className="flex gap-4">
+              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-red-600 hover:text-white transition-colors">
+                <Instagram size={20} />
+              </a>
+              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-red-600 hover:text-white transition-colors">
+                <Facebook size={20} />
+              </a>
+            </div>
           </div>
-          <p className="text-center md:text-right">
+          <p className="text-center md:text-left text-neutral-500">
             © {new Date().getFullYear()} Instituto Radiodiagnóstico Dentomaxilofacial S.A. <br className="md:hidden" /> Todos los derechos reservados.
           </p>
         </div>
