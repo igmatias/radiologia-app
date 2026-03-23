@@ -15,7 +15,10 @@ import {
   HelpCircle,
   Download,
   Instagram,
-  Facebook
+  Facebook,
+  Award,
+  Users,
+  Zap
 } from "lucide-react"
 
 // Forzamos el título de la pestaña y optimizamos el SEO para Google
@@ -133,7 +136,35 @@ export default function Home() {
           </div>
         </section>
 
-        {/* NUEVA SECCIÓN: OBRAS SOCIALES (COBERTURAS) */}
+        {/* NUEVA SECCIÓN: TRAYECTORIA Y CONFIANZA (ESTADÍSTICAS) */}
+        <section className="bg-neutral-800 py-12 border-b border-neutral-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x md:divide-neutral-700">
+              <div className="flex flex-col items-center justify-center p-4">
+                <Award className="text-red-500 mb-3" size={36} />
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+20</h3>
+                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Años de Trayectoria</p>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4">
+                <Users className="text-red-500 mb-3" size={36} />
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+50k</h3>
+                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Estudios Anuales</p>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4">
+                <MapPin className="text-red-500 mb-3" size={36} />
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">3</h3>
+                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Sedes Estratégicas</p>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4">
+                <Zap className="text-red-500 mb-3" size={36} />
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">100%</h3>
+                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Flujo Digital</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECCIÓN: OBRAS SOCIALES (COBERTURAS) */}
         <section className="py-10 md:py-12 bg-white border-b border-neutral-200 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="text-center text-sm font-bold text-neutral-400 uppercase tracking-widest mb-8">Trabajamos con las principales coberturas médicas</p>
@@ -155,7 +186,7 @@ export default function Home() {
               Información Importante
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
                   <Clock className="text-red-600" size={24} /> Sin Turno Previo
                 </h4>
@@ -163,7 +194,7 @@ export default function Home() {
                   No es necesario solicitar turno. Los estudios se realizan en cualquiera de nuestras sedes por orden de llegada.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
                   <Activity className="text-red-600" size={24} /> Preparación
                 </h4>
@@ -171,7 +202,7 @@ export default function Home() {
                   Los estudios que realizamos no requieren ninguna consideración o preparación especial previa.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
                   <FileText className="text-red-600" size={24} /> Entrega
                 </h4>
@@ -179,7 +210,7 @@ export default function Home() {
                   Se entregan en el momento, salvo las Tomografías en 3D y los trazados Cefalométricos que demoran 48 horas.
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm">
+              <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
                   <ShieldCheck className="text-red-600" size={24} /> Obras Sociales
                 </h4>

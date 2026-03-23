@@ -62,5 +62,7 @@ export const config = {
      * - la página de inicio ('/') <--- 🔥 NUEVO: Excluimos la raíz para evitar loops
      */
     "/((?!api|_next/static|_next/image|favicon.ico|login|resultados|portal-medico|$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|login|resultados|portal-medico|orden\\.pdf|$).*)",
   ],
 };
+
