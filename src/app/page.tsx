@@ -146,9 +146,9 @@ export default function Home() {
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Años de Trayectoria</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
-                <Users className="text-red-500 mb-3" size={36} />
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+50k</h3>
-                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Estudios Anuales</p>
+                <Scan className="text-red-500 mb-3" size={36} />
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">HD / 3D</h3>
+                <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Alta Resolución</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
                 <MapPin className="text-red-500 mb-3" size={36} />
@@ -366,7 +366,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* BANNER: DESCARGA DE ORDEN MÉDICA (NUEVO) */}
+        {/* BANNER: DESCARGA DE ORDEN MÉDICA */}
         <section className="bg-red-600 py-12 md:py-16 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/cc0000/990000?text=+')] opacity-20 bg-cover mix-blend-multiply"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
