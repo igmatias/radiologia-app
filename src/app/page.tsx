@@ -71,6 +71,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-8">
+            <a href="#tecnologia" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Tecnología</a>
             <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
             <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
             <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded text-sm font-bold transition-all shadow-md">
@@ -82,23 +83,28 @@ export default function Home() {
 
       {/* SECCIÓN HERO (PORTADA PRINCIPAL) */}
       <main className="flex-grow">
-        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600">
-          <div className="absolute inset-0 bg-[url('https://placehold.co/1920x1080/1a1a1a/000000?text=+')] opacity-50 bg-cover bg-center mix-blend-multiply"></div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10">
+        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[600px] flex items-center">
+          {/* Fondo Premium Fotográfico */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-40 mix-blend-luminosity" 
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')" }}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-transparent z-0"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 w-full">
             <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
                 Tecnología de Vanguardia al Servicio del Profesional
               </h1>
-              <p className="text-lg text-neutral-300 mb-12 font-light border-l-4 border-red-600 pl-4">
-                El resultado completa el análisis de su odontólogo para brindarle una mejor salud dental.
+              <p className="text-lg md:text-xl text-neutral-300 mb-12 font-light border-l-4 border-red-600 pl-4 max-w-2xl">
+                El resultado completa el análisis de su odontólogo para brindarle una mejor salud dental, respaldado por la mejor tecnología alemana.
               </p>
             </div>
 
             {/* ACCESOS DIRECTOS AL SISTEMA */}
             <div className="mt-8 max-w-md">
-              
               {/* Portal Profesionales */}
-              <div className="bg-white rounded-lg p-8 shadow-xl border-t-4 border-red-600 hover:-translate-y-1 transition-transform">
+              <div className="bg-white rounded-xl p-8 shadow-2xl border-t-4 border-red-600 hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="bg-red-50 p-3 rounded-full text-red-600">
                     <ToothIcon size={32} />
@@ -108,11 +114,10 @@ export default function Home() {
                 <p className="text-neutral-600 text-sm mb-8 h-10">
                   Acceso exclusivo a estudios derivados, tomografías 3D e informes detallados.
                 </p>
-                <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-sm">
+                <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-md">
                   PORTAL PROFESIONAL <ChevronRight size={20} />
                 </Link>
               </div>
-
             </div>
           </div>
         </section>
@@ -160,42 +165,121 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SECCIÓN SERVICIOS */}
-        <section id="servicios" className="py-16 bg-neutral-50 border-t border-neutral-200">
+        {/* SECCIÓN TECNOLOGÍA SIRONA AXEOS (NUEVA - CHETA) */}
+        <section id="tecnologia" className="py-24 bg-neutral-900 text-white relative overflow-hidden">
+          {/* Imagen de fondo desvanecida */}
+          <div className="absolute inset-0 opacity-20">
+            <img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover mix-blend-luminosity" alt="RX Panorámica y Tecnología" />
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2">
+              <div className="inline-block bg-red-600/20 border border-red-500/50 px-4 py-1.5 rounded-full mb-6">
+                <span className="text-sm font-bold tracking-widest text-red-500 uppercase">Calidad y Precisión Alemana</span>
+              </div>
+              <h3 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">Equipamiento <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">Dentsply Sirona AXEOS</span></h3>
+              <p className="text-neutral-300 text-lg mb-8 font-light leading-relaxed">
+                Elevamos el estándar del diagnóstico por imágenes. El sistema <strong>AXEOS</strong> ofrece volúmenes de campo de visión (FOV) flexibles y una calidad de imagen 2D panorámica y 3D excepcional. Todo esto logrando una dosis de radiación significativamente menor para la máxima tranquilidad y seguridad de sus pacientes.
+              </p>
+              <ul className="space-y-4 mb-8">
+                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
+                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
+                 <li className="flex items-center gap-3 font-medium"><ChevronRight className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
+              </ul>
+            </div>
+            <div className="lg:w-1/2 relative">
+               {/* Resplandor rojo detrás de la imagen para darle el look moderno */}
+               <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
+               <img 
+                 src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800" 
+                 className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[500px]" 
+                 alt="Sirona Axeos Scanner" 
+               />
+            </div>
+          </div>
+        </section>
+
+        {/* SECCIÓN SERVICIOS (AHORA CON FOTOS PREMIUM) */}
+        <section id="servicios" className="py-20 bg-neutral-50 border-t border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-neutral-800 uppercase mb-8 pb-2 border-b-2 border-neutral-200">
+            <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 border-b-2 border-neutral-200 inline-block">
               Nuestros Servicios
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               
-              <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><Activity size={32} /></div>
-                <h3 className="font-bold text-neutral-800 text-lg mb-2">Tomografías en 3D</h3>
-                <p className="text-sm text-neutral-600">Estudios de alta precisión (Cone Beam). Evaluación pre implantológica e imágenes detalladas en 3D.</p>
+              {/* Servicio 1 */}
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+                <div className="h-48 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <Activity size={32} />
+                  </div>
+                </div>
+                <div className="p-6 flex-grow">
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Tomografías en 3D</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Estudios de alta precisión (Cone Beam). Evaluación pre implantológica e imágenes detalladas en 3D para diagnósticos exactos.</p>
+                </div>
               </div>
 
-              <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><Scan size={32} /></div>
-                <h3 className="font-bold text-neutral-800 text-lg mb-2">Placas Intraorales</h3>
-                <p className="text-sm text-neutral-600">Estudios Oclusales, Palatales y Seriadas de 14 películas para un diagnóstico dental minucioso.</p>
+              {/* Servicio 2 */}
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+                <div className="h-48 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <Scan size={32} />
+                  </div>
+                </div>
+                <div className="p-6 flex-grow">
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Intraorales</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Estudios Oclusales, Palatales y Seriadas de 14 películas. Resolución superior para un diagnóstico dental minucioso.</p>
+                </div>
               </div>
 
-              <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><FileText size={32} /></div>
-                <h3 className="font-bold text-neutral-800 text-lg mb-2">Placas Extraorales</h3>
-                <p className="text-sm text-neutral-600">Radiografías Panorámicas, Telerradiografías y estudios de ATM (Articulación Temporomandibular).</p>
+              {/* Servicio 3 */}
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+                <div className="h-48 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1582560475093-ba66accbc424?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <FileText size={32} />
+                  </div>
+                </div>
+                <div className="p-6 flex-grow">
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Extraorales</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Radiografías Panorámicas de campo completo, Telerradiografías y estudios específicos de ATM (Articulación Temporomandibular).</p>
+                </div>
               </div>
 
-              <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><Camera size={32} /></div>
-                <h3 className="font-bold text-neutral-800 text-lg mb-2">Fotografías Clínicas</h3>
-                <p className="text-sm text-neutral-600">Registro fotográfico profesional especializado para tratamientos de ortodoncia.</p>
+              {/* Servicio 4 */}
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+                <div className="h-48 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1598331668826-20cefac91e06?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <Camera size={32} />
+                  </div>
+                </div>
+                <div className="p-6 flex-grow">
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Fotografías Clínicas</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Registro fotográfico profesional y especializado, ideal para planificar y documentar tratamientos de ortodoncia e implantes.</p>
+                </div>
               </div>
 
-              <div className="bg-white p-6 border border-neutral-200 rounded hover:shadow-md transition-shadow">
-                <div className="text-red-600 mb-4"><ToothIcon size={32} /></div>
-                <h3 className="font-bold text-neutral-800 text-lg mb-2">Análisis Cefalométricos</h3>
-                <p className="text-sm text-neutral-600">Trazados computados precisos para planificación y seguimiento de tratamientos ortodóncicos.</p>
+              {/* Servicio 5 */}
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col lg:col-span-2">
+                <div className="h-48 overflow-hidden relative">
+                  <img src="https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-top" alt="Análisis Cefalométricos" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <ToothIcon size={32} />
+                  </div>
+                </div>
+                <div className="p-6 flex-grow">
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Análisis Cefalométricos</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Trazados computados precisos mediante software especializado para la planificación y seguimiento efectivo de tratamientos ortodóncicos y maxilofaciales.</p>
+                </div>
               </div>
 
             </div>
@@ -203,15 +287,15 @@ export default function Home() {
         </section>
 
         {/* SECCIÓN SEDES */}
-        <section id="sedes" className="py-16 bg-white border-t border-neutral-200">
+        <section id="sedes" className="py-20 bg-white border-t border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-neutral-800 uppercase mb-8 pb-2 border-b-2 border-neutral-100">
+            <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 border-b-2 border-neutral-100 inline-block">
               Nuestras Sedes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Sede Quilmes */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Olavarria%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -220,20 +304,20 @@ export default function Home() {
                   allowFullScreen={false} 
                   loading="lazy" 
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="bg-neutral-200"
+                  className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Quilmes</h3>
-                  <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> OLAVARRIA 88</li>
-                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4253-5947</li>
-                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-3333-3333</li>
+                <div className="p-8 flex-grow">
+                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Quilmes</h3>
+                  <ul className="space-y-4 text-sm text-neutral-700">
+                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">OLAVARRIA 88</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4253-5947</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-3333-3333</span></li>
                   </ul>
                 </div>
               </div>
 
               {/* Sede Avellaneda */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=9%20de%20Julio%2064,%20Avellaneda&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -242,20 +326,20 @@ export default function Home() {
                   allowFullScreen={false} 
                   loading="lazy" 
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="bg-neutral-200"
+                  className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Avellaneda</h3>
-                  <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> 9 de Julio 64 - 2do. "A"</li>
-                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4210-0148</li>
-                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-5555-9999</li>
+                <div className="p-8 flex-grow">
+                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Avellaneda</h3>
+                  <ul className="space-y-4 text-sm text-neutral-700">
+                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">9 de Julio 64 - 2do. "A"</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4210-0148</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-5555-9999</span></li>
                   </ul>
                 </div>
               </div>
 
               {/* Sede Lomas de Zamora */}
-              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-sm flex flex-col">
+              <div className="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Espa%C3%B1a%20156,%20Lomas%20de%20Zamora&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -264,14 +348,14 @@ export default function Home() {
                   allowFullScreen={false} 
                   loading="lazy" 
                   referrerPolicy="no-referrer-when-downgrade"
-                  className="bg-neutral-200"
+                  className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold text-red-600 uppercase mb-4">Lomas de Zamora</h3>
-                  <ul className="space-y-3 text-sm text-neutral-700">
-                    <li className="flex items-start gap-3"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={16} /> ESPAÑA 156 - Planta Baja</li>
-                    <li className="flex items-start gap-3"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={16} /> Tel. 4222-1111</li>
-                    <li className="flex items-start gap-3"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={16} /> Whatsapp. 11-6666-9999</li>
+                <div className="p-8 flex-grow">
+                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Lomas de Zamora</h3>
+                  <ul className="space-y-4 text-sm text-neutral-700">
+                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">ESPAÑA 156 - Planta Baja</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4222-1111</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-6666-9999</span></li>
                   </ul>
                 </div>
               </div>
@@ -282,13 +366,13 @@ export default function Home() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-black py-8 text-neutral-400 text-sm border-t-4 border-red-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-red-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
-            <img src="/logo.png?v=1" alt="I-R Dental" className="h-8 w-auto brightness-0 invert opacity-80" />
+            <img src="/logo.png?v=1" alt="I-R Dental" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity" />
           </div>
-          <p>
-            © {new Date().getFullYear()} Instituto Radiodiagnóstico Dentomaxilofacial S.A. | Todos los derechos reservados.
+          <p className="text-center md:text-right">
+            © {new Date().getFullYear()} Instituto Radiodiagnóstico Dentomaxilofacial S.A. <br className="md:hidden" /> Todos los derechos reservados.
           </p>
         </div>
       </footer>
