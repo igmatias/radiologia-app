@@ -131,7 +131,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
 
       if (!uploadRes.ok) throw new Error("Fallo al subir archivo a la nube");
 
-      await saveImageToOrder(orderId, res.publicUrl);
+      await saveImageToOrder(orderId, res.publicUrl as string);
       toast.success("¡Archivo subido con éxito! ✓", { id: `upload-${orderId}` });
       
     } catch (error: any) {
