@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { updateOrderStatus } from "@/actions/orders"
+import { updateOrderStatusAction } from "@/actions/orders"
 import { toast } from "sonner"
 import { Play, CheckCircle, Clock, Check, Monitor } from "lucide-react"
 
@@ -30,7 +30,7 @@ export default function OrderList({ orders }: { orders: any[] }) {
       return
     }
     // Enviamos el estado EN_ATENCION y el nombre del equipo
-    const result = await updateOrderStatus(orderId, "EN_ATENCION", equip)
+    const result = await updateOrderStatusAction(orderId, "EN_ATENCION", equip)
     if (result.success) {
       toast.success(`Estudio iniciado en ${equip}`)
     } else {
@@ -39,7 +39,7 @@ export default function OrderList({ orders }: { orders: any[] }) {
   }
 
   const handleFinish = async (orderId: string) => {
-    const result = await updateOrderStatus(orderId, "LISTO_PARA_ENTREGA")
+    const result = await updateOrderStatusAction(orderId, "LISTO_PARA_ENTREGA")
     if (result.success) {
       toast.success("Estudio finalizado")
     }
