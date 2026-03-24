@@ -367,7 +367,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-red-700 relative">
           <CardContent className="p-6 flex justify-between items-center">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">
                 {editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR EN CAJA"}
               </p>
               <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-red-700'}`}>
@@ -378,13 +378,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         </Card>
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
           <CardContent className="p-6 flex justify-between items-start">
-            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
+            <div><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
             <button onClick={handleLogout} className="bg-red-100 text-red-700 p-2 rounded-xl hover:bg-red-200 shrink-0"><LogOut size={16} /></button>
           </CardContent>
         </Card>
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
           <CardContent className="p-6 flex justify-between items-start">
-            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b:any) => b.id === session?.branchId)?.name || "---"}</p></div>
+            <div><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b:any) => b.id === session?.branchId)?.name || "---"}</p></div>
             <button onClick={() => setShowSessionModal(true)} className="bg-slate-200 text-slate-700 p-2 rounded-xl hover:bg-slate-300 transition-colors shrink-0"><Building2 size={16} /></button>
           </CardContent>
         </Card>
@@ -461,7 +461,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       <Label className="text-sm">Odontólogo Solicitante</Label>
                       <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700">+ Nuevo Profesional</Button>
+                          <Button variant="outline" size="sm" className="h-9 text-xs font-bold bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700 px-3">+ Nuevo Profesional</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
                           <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
@@ -832,7 +832,7 @@ function ToothBtn({ t, itemIndex, form, recalculate }: any) {
 function StatCard({ title, value }: any) {
   return (
     <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full">
-      <CardContent className="p-6"><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">{title}</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate">{value}</p></CardContent>
+      <CardContent className="p-6"><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">{title}</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate">{value}</p></CardContent>
     </Card>
   )
 }

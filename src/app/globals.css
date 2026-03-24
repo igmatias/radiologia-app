@@ -123,7 +123,31 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+}
+
+/* ===== TIPOGRAFÍA CENTURY GOTHIC — LEGIBILIDAD ===== */
+/* Century Gothic es muy delgada; compensamos en tamaños chicos */
+[style*="Century Gothic"] *,
+[style*="CenturyGothic"] * {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Labels pequeños del sistema (stat cards, formularios) */
+.text-\[11px\] {
+  letter-spacing: 0.05em;
+}
+.text-xs {
+  letter-spacing: 0.03em;
+}
+
+/* Botones con texto chico - mínimo legible */
+button, [role="button"] {
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ===== CUBOS 3D LOGIN ===== */

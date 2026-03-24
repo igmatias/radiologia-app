@@ -15,7 +15,7 @@ export default function DashboardLayout({
       <header className="bg-neutral-900 border-b border-neutral-800 px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-50">
         {/* Logo + branding */}
         <div className="flex items-center gap-3">
-          <img src="/logo.png?v=1" alt="I-R Dental" className="h-7 brightness-0 invert" />
+          <img src="/logo.png?v=1" alt="I-R Dental" className="h-8" />
           <div className="hidden sm:block h-5 w-px bg-neutral-700" />
           <span className="hidden sm:block text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em]">Sistema de Gestión</span>
         </div>
