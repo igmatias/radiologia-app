@@ -15,8 +15,6 @@ import {
   Search, Hash, FileText, ExternalLink, Settings, Users, MessageSquarePlus, Download, ChevronRight
 } from "lucide-react"
 import Link from "next/link"
-// IMPORTANTE: Asegurate de tener una server action 'createTicket' en tus actions o crear la API route.
-// import { createTicket } from "@/actions/tickets" 
 
 export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   const router = useRouter()
