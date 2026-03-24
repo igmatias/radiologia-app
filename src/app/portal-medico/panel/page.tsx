@@ -1,12 +1,11 @@
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { getDentistSession } from "@/lib/session"
 import PanelMedicoClient from "./panel-client"
 
 export default async function PanelMedicoPage() {
-  // 🔥 SOLUCIÓN: Agregamos await acá también
-  const cookieStore = await cookies()
-  const dentistId = cookieStore.get("dentist_session")?.value
+  const session = await getDentistSession()
+  const dentistId = session?.dentistId
 
   if (!dentistId) {
     redirect("/portal-medico")
