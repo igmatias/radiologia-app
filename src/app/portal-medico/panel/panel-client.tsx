@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
 import { 
   Stethoscope, LogOut, Calendar, CheckCircle2, Image as ImageIcon, 
   Search, Hash, FileText, ExternalLink, Settings, Users, MessageSquarePlus, Download, ChevronRight
@@ -185,11 +184,11 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Detalle su solicitud</Label>
-              <Textarea 
+              <textarea 
                 placeholder="Por favor, incluya nombre del paciente, DNI o fecha aproximada del estudio para agilizar la búsqueda..." 
                 value={ticketMessage}
                 onChange={e => setTicketMessage(e.target.value)}
-                className="min-h-[120px] bg-neutral-50 font-medium resize-none focus-visible:ring-red-600 p-3"
+                className="flex w-full rounded-md border border-neutral-200 text-sm ring-offset-white placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px] bg-neutral-50 font-medium resize-none focus-visible:ring-red-600 p-3"
               />
             </div>
             
