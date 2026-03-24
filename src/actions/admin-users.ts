@@ -2,23 +2,30 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import bcrypt from "bcryptjs"
 
 // 1. GESTIÓN DE PERSONAL INTERNO
 export async function saveStaffUser(data: any) {
   try {
     if (data.id) {
       // Actualizar usuario existente
+      const updateData: any = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username,
+        role: data.role,
+        branchId: data.branchId || null,
+        isActive: data.isActive,
+      };
+
+      // Solo hashear si se proporcionó un nuevo PIN
+      if (data.pin) {
+        updateData.pin = await bcrypt.hash(data.pin, 12);
+      }
+
       await prisma.user.update({
         where: { id: data.id },
-        data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          username: data.username,
-          pin: data.pin,
-          role: data.role,
-          branchId: data.branchId || null,
-          isActive: data.isActive
-        }
+        data: updateData,
       });
     } else {
       // Crear usuario nuevo
@@ -27,18 +34,17 @@ export async function saveStaffUser(data: any) {
           firstName: data.firstName,
           lastName: data.lastName,
           username: data.username,
-          pin: data.pin,
+          pin: await bcrypt.hash(data.pin, 12),
           role: data.role,
           branchId: data.branchId || null,
-          isActive: true
-        }
+          isActive: true,
+        },
       });
     }
     revalidatePath("/admin/usuarios");
     return { success: true };
   } catch (error: any) {
     console.error("Error guardando usuario:", error);
-    // Si el error es por username duplicado, Prisma tira el código P2002
     if (error.code === 'P2002') return { success: false, error: "Ese nombre de usuario ya existe." };
     return { success: false, error: "Ocurrió un error al guardar el personal." };
   }
@@ -49,10 +55,10 @@ export async function resetDentistPassword(dentistId: string, newPassword: strin
   try {
     await prisma.dentist.update({
       where: { id: dentistId },
-      data: { 
-        password: newPassword, 
-        mustChangePassword: true // Lo obligamos a cambiarla cuando entre
-      }
+      data: {
+        password: await bcrypt.hash(newPassword, 12),
+        mustChangePassword: true,
+      },
     });
     revalidatePath("/admin/usuarios");
     return { success: true };

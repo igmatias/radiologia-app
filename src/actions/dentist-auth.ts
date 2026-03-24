@@ -2,9 +2,21 @@
 
 import { prisma } from "@/lib/prisma"
 import { cookies } from "next/headers"
+import { getIronSession } from "iron-session"
+import bcrypt from "bcryptjs"
+import { dentistSessionOptions, type DentistSessionData } from "@/lib/session"
+import { checkRateLimit, clearRateLimit } from "@/lib/rate-limit"
 
 // 1. FUNCIÓN PARA INICIAR SESIÓN
 export async function loginDentist(matricula: string, pass: string) {
+  const rateCheck = checkRateLimit(`dentist:${matricula}`);
+  if (rateCheck.limited) {
+    return {
+      success: false,
+      error: `Demasiados intentos fallidos. Intentá de nuevo en ${Math.ceil(rateCheck.retryAfterSeconds! / 60)} minutos.`,
+    };
+  }
+
   try {
     const dentist = await prisma.dentist.findFirst({
       where: {
@@ -19,25 +31,29 @@ export async function loginDentist(matricula: string, pass: string) {
       return { success: false, error: "No se encontró ningún profesional con esa matrícula." };
     }
 
-    const isDefaultPassword = !dentist.password && dentist.lastName.toLowerCase() === pass.toLowerCase();
-    const isCustomPassword = dentist.password === pass; 
+    // Si no tiene password seteada, la clave por defecto es el apellido
+    let passwordValid = false;
+    if (!dentist.password) {
+      // Clave por defecto: apellido (solo si mustChangePassword es true)
+      passwordValid = dentist.mustChangePassword && dentist.lastName.toLowerCase() === pass.toLowerCase();
+    } else {
+      passwordValid = await bcrypt.compare(pass, dentist.password);
+    }
 
-    if (!isDefaultPassword && !isCustomPassword) {
+    if (!passwordValid) {
       return { success: false, error: "Contraseña incorrecta." };
     }
 
+    clearRateLimit(`dentist:${matricula}`);
+
     if (dentist.mustChangePassword) {
-       return { success: true, requirePasswordChange: true, dentistId: dentist.id };
+      return { success: true, requirePasswordChange: true, dentistId: dentist.id };
     }
 
-    // 🔥 SOLUCIÓN: Agregamos await
     const cookieStore = await cookies();
-    cookieStore.set("dentist_session", dentist.id, { 
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === "production", 
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30 
-    });
+    const session = await getIronSession<DentistSessionData>(cookieStore, dentistSessionOptions);
+    session.dentistId = dentist.id;
+    await session.save();
 
     return { success: true, requirePasswordChange: false };
   } catch (error) {
@@ -51,21 +67,17 @@ export async function changeDentistPassword(dentistId: string, newPassword: stri
   try {
     await prisma.dentist.update({
       where: { id: dentistId },
-      data: { 
-        password: newPassword, 
-        mustChangePassword: false 
-      }
+      data: {
+        password: await bcrypt.hash(newPassword, 12),
+        mustChangePassword: false,
+      },
     });
-    
-    // 🔥 SOLUCIÓN: Agregamos await
+
     const cookieStore = await cookies();
-    cookieStore.set("dentist_session", dentistId, { 
-        httpOnly: true, 
-        secure: process.env.NODE_ENV === "production", 
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30 
-    });
-    
+    const session = await getIronSession<DentistSessionData>(cookieStore, dentistSessionOptions);
+    session.dentistId = dentistId;
+    await session.save();
+
     return { success: true };
   } catch (error) {
     console.error("Error al cambiar password:", error);
@@ -75,9 +87,9 @@ export async function changeDentistPassword(dentistId: string, newPassword: stri
 
 // 3. FUNCIÓN PARA CERRAR SESIÓN DEL MÉDICO
 export async function logoutDentist() {
-  // 🔥 SOLUCIÓN: Agregamos await
   const cookieStore = await cookies();
-  cookieStore.delete("dentist_session");
+  const session = await getIronSession<DentistSessionData>(cookieStore, dentistSessionOptions);
+  session.destroy();
   return { success: true };
 }
 
