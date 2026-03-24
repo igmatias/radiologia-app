@@ -48,10 +48,10 @@ export function StepStudies({
     <div className="space-y-6 animate-in slide-in-from-right">
 
       {/* ===== ODONTÓLOGO SOLICITANTE ===== */}
-      <div className={`rounded-2xl border-2 overflow-hidden shadow-lg transition-all duration-300 ${dentistId ? 'border-emerald-400' : 'border-red-500'}`}>
+      <div className={`rounded-2xl border-2 shadow-lg transition-all duration-300 ${dentistId ? 'border-emerald-400' : 'border-red-500'}`}>
 
         {/* Header con color fuerte */}
-        <div className={`px-5 py-3.5 flex items-center justify-between transition-colors ${dentistId ? 'bg-emerald-600' : 'bg-red-600'}`}>
+        <div className={`px-5 py-3.5 flex items-center justify-between transition-colors rounded-t-2xl ${dentistId ? 'bg-emerald-600' : 'bg-red-600'}`}>
           <div className="flex items-center gap-2.5 text-white">
             {dentistId
               ? <UserCheck size={20} className="shrink-0" />
@@ -83,7 +83,7 @@ export function StepStudies({
         </div>
 
         {/* Cuerpo del buscador / seleccionado */}
-        <div className={`p-4 transition-colors ${dentistId ? 'bg-emerald-50/60' : 'bg-red-50/40'}`}>
+        <div className={`p-4 transition-colors rounded-b-2xl ${dentistId ? 'bg-emerald-50/60' : 'bg-red-50/40'}`}>
           {!dentistId ? (
             <div className="relative">
               <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />

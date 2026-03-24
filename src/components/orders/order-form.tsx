@@ -156,12 +156,71 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       document.body.appendChild(iframe);
 
       const itemsHtml = printData.items.map((item: any) => `
-        <div style="font-weight: 900; font-size: 12px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          • ${item.name} ${item.info ? `<span style="font-weight: 700; font-size: 10px;">(${item.info})</span>` : ''}
+        <div style="display:flex; align-items:baseline; gap:3px; margin-bottom:1.5px; line-height:1.2;">
+          <span style="color:#c00; font-weight:900; font-size:9px; flex-shrink:0;">▶</span>
+          <span style="font-weight:800; font-size:11px; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</span>
+          ${item.info ? `<span style="font-weight:600; font-size:9px; color:#555; flex-shrink:0;">${item.info}</span>` : ''}
         </div>
       `).join('');
 
-      const htmlContent = `<html><head><style>@page { size: 90mm 50mm; margin: 0; } body { margin: 0; padding: 2mm; width: 90mm; height: 50mm; box-sizing: border-box; font-family: sans-serif; display: flex; flex-direction: column; }</style></head><body><div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 2px; margin-bottom: 3px;"><span style="font-weight: 900; font-size: 13px;">Nº ${printData.code}</span><span style="font-weight: 700; font-size: 11px;">${printData.date}</span></div><div style="margin-bottom: 3px;"><div style="font-weight: 900; font-size: 17px; text-transform: uppercase;">${printData.patient}</div><div style="font-weight: 700; font-size: 11px; margin-top: 2px;">F. Nac: ${printData.dob}</div></div><div style="flex: 1; border-top: 2px solid black; padding-top: 4px;">${itemsHtml}</div><div style="border-top: 2px solid black; padding-top: 2px; margin-top: auto;"><div style="font-weight: 900; font-size: 9px;">Prof. Solicitante</div><div style="font-weight: 900; font-size: 14px; text-transform: uppercase;">${printData.dentist}</div></div></body></html>`;
+      const htmlContent = `
+        <html>
+        <head>
+        <style>
+          @page { size: 90mm 50mm; margin: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          html, body {
+            width: 90mm; height: 50mm;
+            overflow: hidden;
+            font-family: 'Arial Narrow', Arial, sans-serif;
+            background: white;
+          }
+          .label {
+            width: 90mm; height: 50mm;
+            padding: 3mm 3.5mm 2.5mm 3.5mm;
+            display: flex; flex-direction: column; gap: 0;
+          }
+          .header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #111;
+            padding-bottom: 1.5mm; margin-bottom: 1.5mm;
+          }
+          .order-num { font-weight: 900; font-size: 13px; letter-spacing: -0.3px; }
+          .date { font-size: 10px; font-weight: 700; color: #333; }
+          .patient-name {
+            font-weight: 900; font-size: 16px; text-transform: uppercase;
+            letter-spacing: -0.5px; line-height: 1.1;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          }
+          .patient-dob { font-size: 9.5px; font-weight: 600; color: #444; margin-top: 0.5mm; margin-bottom: 1.5mm; }
+          .studies { flex: 1; overflow: hidden; }
+          .footer {
+            border-top: 1.5px solid #111;
+            padding-top: 1.5mm; margin-top: 1mm;
+            display: flex; justify-content: space-between; align-items: baseline;
+          }
+          .dentist-label { font-size: 7px; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
+          .dentist-name { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.3px; }
+        </style>
+        </head>
+        <body>
+          <div class="label">
+            <div class="header">
+              <span class="order-num">Nº ${printData.code}</span>
+              <span class="date">${printData.date}</span>
+            </div>
+            <div class="patient-name">${printData.patient}</div>
+            <div class="patient-dob">F. Nac: ${printData.dob}</div>
+            <div class="studies">${itemsHtml}</div>
+            <div class="footer">
+              <div>
+                <div class="dentist-label">Prof. Solicitante</div>
+                <div class="dentist-name">${printData.dentist}</div>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>`;
 
       const doc = iframe.contentWindow?.document;
       if (doc) {
