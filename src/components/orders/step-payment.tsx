@@ -13,7 +13,7 @@ interface StepPaymentProps {
   saldoDiferencia: number
   remainingBalance: number
   targetAmount: number
-  onUpdateItemPrice: (idx: number, field: string, value: number) => void
+  onUpdateItemPrice: (idx: number, field: 'insuranceCoverage' | 'patientCopay', value: number) => void
   onAddPayment: () => void
   onRemovePayment: (idx: number) => void
   onUpdatePayment: (idx: number, field: string, value: any) => void
