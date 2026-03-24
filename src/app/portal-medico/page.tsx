@@ -67,10 +67,7 @@ export default function PortalMedicoLogin() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 relative overflow-hidden"
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
-    >
+    <div className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
       
       {/* Botón para volver a la Home */}
       <Link 

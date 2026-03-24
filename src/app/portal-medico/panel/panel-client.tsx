@@ -115,10 +115,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   }) || []
 
   return (
-    <div 
-      className="min-h-screen bg-neutral-50 pb-20"
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
-    >
+    <div className="min-h-screen bg-neutral-50 pb-20">
       
       {/* ----------------- MODALES ----------------- */}
 

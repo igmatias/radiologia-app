@@ -7,10 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div
-      className="h-screen flex flex-col bg-slate-50"
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
-    >
+    <div className="h-screen flex flex-col bg-slate-50">
       {/* HEADER SUPERIOR GLOBAL */}
       <header className="bg-neutral-900 border-b border-neutral-800 px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-50">
         {/* Logo + branding */}

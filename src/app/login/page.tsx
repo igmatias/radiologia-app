@@ -37,10 +37,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950"
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
-    >
+    <div className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">
       {/* Volver a la web */}
       <Link
         href="/"

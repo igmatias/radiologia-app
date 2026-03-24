@@ -48,10 +48,7 @@ const ToothIcon = ({ size = 24, className = "" }) => (
 
 export default function Home() {
   return (
-    <div 
-      className="min-h-screen bg-neutral-50 flex flex-col relative" 
-      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
-    >
+    <div className="min-h-screen bg-neutral-50 flex flex-col relative">
       
       {/* BARRA SUPERIOR DE CONTACTO */}
       <div className="bg-black text-neutral-300 py-2 text-sm hidden md:block">
