@@ -11,10 +11,29 @@ import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { 
-  Stethoscope, LogOut, Calendar, CheckCircle2, Image as ImageIcon, 
-  Search, Hash, FileText, ExternalLink, Settings, Users, MessageSquarePlus, Download, ChevronRight
+  LogOut, Calendar, CheckCircle2, Image as ImageIcon, 
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight
 } from "lucide-react"
 import Link from "next/link"
+
+// Ícono personalizado de Diente para la interfaz
+const ToothIcon = ({ size = 24, className = "" }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M10 21c-2.43 0-4.14-1.93-4.57-4.19L4.2 8.7A3.2 3.2 0 0 1 7.27 5h9.46a3.2 3.2 0 0 1 3.07 3.7l-1.23 8.11C18.14 19.07 16.43 21 14 21a3.64 3.64 0 0 1-2-.6 3.64 3.64 0 0 1-2 .6Z" />
+    <path d="M12 11v10" />
+  </svg>
+)
 
 export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   const router = useRouter()
@@ -94,8 +113,6 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
            dni.includes(searchLower) || 
            orderCode.includes(searchLower)
   }) || []
-
-  const totalPacientes = dentist.orders?.length || 0
 
   return (
     <div 
@@ -232,7 +249,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5 w-full md:w-auto">
               <div className="bg-neutral-800 p-4 rounded-full border-2 border-red-600 shrink-0 shadow-lg">
-                <Stethoscope size={32} className="text-white" />
+                <ToothIcon size={32} className="text-white" />
               </div>
               <div className="w-full">
                 <h1 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
@@ -249,17 +266,10 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
               </div>
             </div>
             
-            <div className="flex flex-row items-center gap-3 w-full md:w-auto">
-              <div className="bg-neutral-800/80 border border-neutral-700 rounded-lg px-4 py-3 text-center flex-1 md:flex-none flex items-center justify-center gap-3">
-                <Users className="text-red-500" size={24}/>
-                <div className="text-left">
-                  <p className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest leading-none mb-1">Total Derivados</p>
-                  <p className="text-2xl font-bold text-white leading-none">{totalPacientes}</p>
-                </div>
-              </div>
-              <Button onClick={() => setShowProfileModal(true)} variant="outline" className="h-[60px] w-[60px] md:w-auto md:px-6 bg-transparent border-neutral-700 hover:bg-neutral-800 text-neutral-300 hover:text-white shrink-0">
-                <Settings size={20} className="md:mr-2" />
-                <span className="hidden md:block text-xs font-bold uppercase tracking-widest">Ajustes</span>
+            <div className="flex w-full md:w-auto">
+              <Button onClick={() => setShowProfileModal(true)} variant="outline" className="h-12 w-full md:w-auto md:px-6 bg-neutral-800/80 border border-neutral-700 hover:bg-neutral-700 text-neutral-300 hover:text-white shrink-0 shadow-lg transition-colors flex items-center justify-center">
+                <Settings size={18} className="mr-2" />
+                <span className="text-xs font-bold uppercase tracking-widest">Ajustes del Perfil</span>
               </Button>
             </div>
           </div>
@@ -308,7 +318,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
         <div className="space-y-6 mt-8">
           {dentist.orders?.length === 0 ? (
             <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-neutral-300 shadow-sm">
-              <Stethoscope size={48} className="text-neutral-300 mx-auto mb-4" />
+              <ToothIcon size={48} className="text-neutral-300 mx-auto mb-4" />
               <p className="text-lg font-bold uppercase text-neutral-800 mb-2">Aún no hay pacientes derivados</p>
               <p className="text-sm text-neutral-500 max-w-md mx-auto">Una vez que sus pacientes se realicen estudios en nuestras sedes, los informes e imágenes aparecerán aquí automáticamente.</p>
             </div>
