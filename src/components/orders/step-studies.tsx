@@ -1,10 +1,9 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, Plus, Check, Settings2, X, Stethoscope, LayoutGrid, ScanLine, MapPin } from "lucide-react"
+import { Search, Plus, Check, Settings2, X, Stethoscope, ScanLine, MapPin, UserCheck, AlertCircle } from "lucide-react"
 import { QuickDentistForm } from "./quick-dentist-form"
 
 interface StepStudiesProps {
@@ -40,14 +39,41 @@ export function StepStudies({
   setActiveConfigId,
   onToggleProcedure,
 }: StepStudiesProps) {
+  const dentistId = form.watch("dentistId")
+  const selectedDentist = dentists.find((d: any) => d.id === dentistId)
+  const selectedItems = form.watch("items") || []
+  const selectedCount = selectedItems.length
+
   return (
-    <div className="space-y-8 animate-in slide-in-from-right">
-      <div className="bg-white p-6 rounded-2xl border-2 border-red-500 relative shadow-md">
-        <div className="flex justify-between items-center mb-4 text-red-700 font-black uppercase italic">
-          <Label className="text-sm">Odontólogo Solicitante</Label>
+    <div className="space-y-6 animate-in slide-in-from-right">
+
+      {/* ===== ODONTÓLOGO SOLICITANTE ===== */}
+      <div className={`rounded-2xl border-2 overflow-hidden shadow-lg transition-all duration-300 ${dentistId ? 'border-emerald-400' : 'border-red-500'}`}>
+
+        {/* Header con color fuerte */}
+        <div className={`px-5 py-3.5 flex items-center justify-between transition-colors ${dentistId ? 'bg-emerald-600' : 'bg-red-600'}`}>
+          <div className="flex items-center gap-2.5 text-white">
+            {dentistId
+              ? <UserCheck size={20} className="shrink-0" />
+              : <AlertCircle size={20} className="shrink-0 animate-pulse" />
+            }
+            <span className="font-black uppercase text-sm tracking-widest">Odontólogo Solicitante</span>
+            {!dentistId && (
+              <span className="hidden sm:inline text-[10px] bg-white/25 text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                Obligatorio
+              </span>
+            )}
+          </div>
+
           <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 text-xs font-bold bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700 px-3">+ Nuevo Profesional</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs font-bold bg-white/10 hover:bg-white/25 border-white/30 text-white px-3 transition-colors"
+              >
+                + Nuevo Profesional
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
               <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
@@ -55,73 +81,177 @@ export function StepStudies({
             </DialogContent>
           </Dialog>
         </div>
-        {!form.watch("dentistId") ? (
-          <div className="relative shadow-sm rounded-xl">
-            <Search className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
-            <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50" />
-            {searchTerm && (
-              <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold">
-                {filteredDentists.map((d: any) => (
-                  <div key={d.id} className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm" onClick={() => { form.setValue("dentistId", d.id); setSearchTerm(""); }}>
-                    {d.lastName}, {d.firstName} {d.matriculaProv ? `(MP: ${d.matriculaProv})` : ''}
-                  </div>
-                ))}
+
+        {/* Cuerpo del buscador / seleccionado */}
+        <div className={`p-4 transition-colors ${dentistId ? 'bg-emerald-50/60' : 'bg-red-50/40'}`}>
+          {!dentistId ? (
+            <div className="relative">
+              <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+              <Input
+                placeholder="Escribí APELLIDO o MATRÍCULA..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 text-sm uppercase font-bold border-2 border-red-200 bg-white focus-visible:ring-red-400 rounded-xl"
+                autoFocus
+              />
+              {searchTerm && (
+                <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold">
+                  {filteredDentists.length === 0 ? (
+                    <p className="p-4 text-sm text-slate-400 font-bold uppercase text-center">Sin resultados</p>
+                  ) : filteredDentists.map((d: any) => (
+                    <div
+                      key={d.id}
+                      className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 text-sm"
+                      onClick={() => { form.setValue("dentistId", d.id); setSearchTerm("") }}
+                    >
+                      <span className="font-black uppercase italic text-slate-900">
+                        {d.lastName}, {d.firstName}
+                      </span>
+                      {d.matriculaProv && (
+                        <span className="ml-2 text-[11px] font-bold text-slate-500">MP: {d.matriculaProv}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : selectedDentist && (
+            <div className="flex flex-col gap-2.5">
+              {/* Nombre seleccionado */}
+              <div className="flex items-center justify-between bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <Stethoscope size={18} />
+                  <span className="font-black uppercase italic text-sm tracking-wide">
+                    {selectedDentist.lastName}, {selectedDentist.firstName}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => form.setValue("dentistId", "")}
+                  className="bg-emerald-800 hover:bg-emerald-900 p-1.5 rounded-full transition-colors"
+                >
+                  <X size={14} />
+                </button>
               </div>
-            )}
-          </div>
-        ) : (() => {
-          const d = dentists.find((doc: any) => doc.id === form.watch("dentistId"));
-          return d && (
-            <div className="flex flex-col gap-2">
-              <div className="px-5 py-3 bg-red-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
-                <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> {d.lastName}, {d.firstName}</div>
-                <button type="button" onClick={() => form.setValue("dentistId", "")} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
-              </div>
-              {/* CHIPS DE PREFERENCIAS DEL MEDICO */}
+              {/* Chips de preferencias */}
               <div className="flex gap-2 ml-1">
-                {(d.deliveryMethod === 'IMPRESA' || d.deliveryMethod === 'AMBAS') && (
-                  <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200 shadow-sm flex items-center gap-1">📦 FÍSICO</span>
+                {(selectedDentist.deliveryMethod === 'IMPRESA' || selectedDentist.deliveryMethod === 'AMBAS') && (
+                  <span className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-orange-100 text-orange-800 border border-orange-200 flex items-center gap-1">
+                    📦 Físico
+                  </span>
                 )}
-                {(d.deliveryMethod === 'DIGITAL' || d.deliveryMethod === 'AMBAS' || !d.deliveryMethod) && (
-                  <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md bg-blue-100 text-blue-800 border border-blue-200 shadow-sm flex items-center gap-1">📱 DIGITAL ({d.resultPreference || 'WHATSAPP'})</span>
+                {(selectedDentist.deliveryMethod === 'DIGITAL' || selectedDentist.deliveryMethod === 'AMBAS' || !selectedDentist.deliveryMethod) && (
+                  <span className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1">
+                    📱 Digital ({selectedDentist.resultPreference || 'WhatsApp'})
+                  </span>
                 )}
               </div>
             </div>
-          )
-        })()}
+          )}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center mb-2">
-          <Label className="text-xs font-black uppercase italic text-slate-900 flex items-center gap-2"><LayoutGrid size={16}/> Prácticas</Label>
-          <div className="relative w-64"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><Input placeholder="FILTRAR ESTUDIO..." value={procedureSearch} onChange={(e) => setProcedureSearch(e.target.value)} className="pl-9 h-9 text-xs uppercase font-bold border-2 border-slate-200 bg-slate-50 rounded-lg" /></div>
+      {/* ===== PRÁCTICAS ===== */}
+      <div className="space-y-3">
+
+        {/* Header de prácticas */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-black uppercase text-sm text-slate-800 tracking-wider">Prácticas</span>
+            {selectedCount > 0 && (
+              <span className="bg-red-700 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+                {selectedCount} seleccionada{selectedCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <div className="relative w-56">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Filtrar estudio..."
+              value={procedureSearch}
+              onChange={(e) => setProcedureSearch(e.target.value)}
+              className="pl-9 h-9 text-xs font-bold border-2 border-slate-200 bg-slate-50 rounded-xl"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2 pb-2">
+        {/* Grid de prácticas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[420px] overflow-y-auto pr-1 pb-2">
           {filteredProcedures.map((p: any) => {
-            const selectedItem = form.watch("items").find((i: any) => i.procedureId === p.id);
-            const isSelected = !!selectedItem;
-            const hasConfig = p.requiresTooth || (p.options && p.options.length > 0);
+            const selectedItem = selectedItems.find((i: any) => i.procedureId === p.id)
+            const isSelected = !!selectedItem
+            const hasConfig = p.requiresTooth || (p.options && p.options.length > 0)
+            const hasTeeth = selectedItem?.teeth?.length > 0
+            const hasLocations = selectedItem?.locations?.length > 0
 
             return (
-              <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isSelected ? 'bg-red-50 border-red-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
-                <button type="button" onClick={() => onToggleProcedure(p.id)} className="flex-1 flex items-start gap-3 p-1.5 text-left">
-                  <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-red-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              <div
+                key={p.id}
+                className={`flex items-stretch rounded-2xl border-2 transition-all duration-150 ${
+                  isSelected
+                    ? 'bg-red-50 border-red-600 shadow-md'
+                    : 'bg-white border-slate-100 hover:border-slate-300 hover:shadow-sm'
+                }`}
+              >
+                {/* Botón principal */}
+                <button
+                  type="button"
+                  onClick={() => onToggleProcedure(p.id)}
+                  className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left"
+                >
+                  {/* Check / Plus */}
+                  <div className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-colors ${
+                    isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'
+                  }`}>
                     {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </div>
-                  <div className="overflow-hidden flex-1">
-                    <p className="text-[9px] font-black uppercase text-red-700 mb-0.5 leading-none">{p.code}</p>
-                    <p className="text-xs font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
-                    {isSelected && selectedItem && (
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-red-200 text-red-800 px-1.5 py-0.5 rounded-md uppercase border border-red-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
-                        {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
+
+                  {/* Texto */}
+                  <div className="flex-1 min-w-0">
+                    {/* Código */}
+                    <span className={`inline-block text-[10px] font-black uppercase px-1.5 py-0.5 rounded mb-1 ${
+                      isSelected ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {p.code}
+                    </span>
+                    {/* Nombre */}
+                    <p className="text-sm font-bold uppercase leading-tight text-slate-900 truncate" title={p.name}>
+                      {p.name}
+                    </p>
+                    {/* Piezas / Ubicaciones seleccionadas */}
+                    {isSelected && (hasTeeth || hasLocations) && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {hasTeeth && (
+                          <span className="inline-flex items-center gap-1 text-xs font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-lg border border-red-200">
+                            <ScanLine size={11} />
+                            Piezas: {selectedItem.teeth.join(', ')}
+                          </span>
+                        )}
+                        {hasLocations && (
+                          <span className="inline-flex items-center gap-1 text-xs font-black bg-blue-100 text-blue-800 px-2 py-0.5 rounded-lg border border-blue-200">
+                            <MapPin size={11} />
+                            {selectedItem.locations.join(', ')}
+                          </span>
+                        )}
                       </div>
+                    )}
+                    {/* Indicador de que necesita config */}
+                    {isSelected && hasConfig && !hasTeeth && !hasLocations && (
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                        ⚠ Configurar piezas/posición
+                      </span>
                     )}
                   </div>
                 </button>
+
+                {/* Botón de configuración */}
                 {isSelected && hasConfig && (
-                  <button onClick={() => setActiveConfigId(p.id)} className="mr-2 shrink-0 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setActiveConfigId(p.id)}
+                    className="px-3 mr-2 my-2 shrink-0 bg-slate-900 hover:bg-red-700 text-white rounded-xl transition-colors shadow-sm flex items-center"
+                    title="Configurar piezas o posición"
+                  >
                     <Settings2 className="h-4 w-4" />
                   </button>
                 )}
