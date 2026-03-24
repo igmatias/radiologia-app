@@ -16,10 +16,10 @@ import { importDentistsAction } from "@/actions/dentists"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
-import { 
-  Search, Monitor, Send, Plus, Check, Settings2, X, Phone, User as UserIcon, Stethoscope, 
+import {
+  Search, Monitor, Send, Plus, Check, Settings2, X, Phone, User as UserIcon, Stethoscope,
   CreditCard, LogOut, Building2, FileText, History, Calendar, LayoutGrid, MessageCircle, Mail, Wallet, Trash2,
-  Banknote, Printer, Edit, AlertTriangle, RefreshCw
+  Banknote, Printer, Edit, AlertTriangle, RefreshCw, ScanLine, MapPin
 } from "lucide-react"
 
 export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger }: any) {
@@ -510,8 +510,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                                  <p className="text-xs font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
                                  {isSelected && selectedItem && (
                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-red-200 text-red-800 px-1.5 py-0.5 rounded-md uppercase border border-red-300">🦷 {selectedItem.teeth.join(', ')}</span>}
-                                     {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200">📍 {selectedItem.locations.join(', ')}</span>}
+                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-red-200 text-red-800 px-1.5 py-0.5 rounded-md uppercase border border-red-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
+                                     {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
                                    </div>
                                  )}
                                </div>

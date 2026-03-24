@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { loginWithPin } from "@/actions/auth"
-import { Lock, UserCircle } from "lucide-react"
+import { Lock, UserCircle, ArrowRight, ShieldCheck } from "lucide-react"
+import Link from "next/link"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -22,67 +23,111 @@ export default function LoginPage() {
 
     setLoading(true)
     const res = await loginWithPin(username, pin)
-    
+
     if (res.success) {
       toast.success("¡Bienvenido/a!")
-      // Usamos EXACTAMENTE los roles de Prisma
       if (res.role === "ADMIN") router.push("/admin")
       else if (res.role === "TECHNICIAN") router.push("/tecnico")
       else router.push("/recepcion")
     } else {
       toast.error(res.error)
-      setPin("") // Limpiamos el PIN si se equivocó
+      setPin("")
     }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-t-8 border-t-red-700 shadow-2xl rounded-3xl overflow-hidden bg-white">
-        <CardContent className="p-10 space-y-8">
-          <div className="text-center space-y-2">
-            <div className="mx-auto w-16 h-16 bg-red-100 text-red-700 rounded-full flex items-center justify-center mb-4">
-              <Lock size={32} />
-            </div>
-            <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter">Acceso al Sistema</h1>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Centro Radiológico Quilmes</p>
-          </div>
+    <div
+      className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
+    >
+      {/* Volver a la web */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 text-neutral-400 hover:text-white flex items-center gap-2 font-bold text-sm transition-colors z-20"
+      >
+        ← Volver a la web
+      </Link>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2 relative">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">Usuario</label>
-              <div className="relative">
-                <UserCircle className="absolute left-4 top-4 text-slate-400" size={20} />
-                <Input 
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="h-14 border-2 font-black text-lg rounded-xl pl-12"
-                  placeholder="EJ: GomezMaria"
-                  autoComplete="username"
-                />
+      {/* Fondo decorativo */}
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')] opacity-10 bg-cover bg-center mix-blend-luminosity z-0" />
+      <div className="absolute top-0 left-0 w-full h-[120%] bg-gradient-to-b from-red-600/20 to-transparent skew-y-6 transform -translate-y-1/2 z-0 pointer-events-none" />
+
+      <div className="w-full max-w-md z-10 space-y-6">
+
+        {/* Logo */}
+        <div className="text-center space-y-3 mb-8">
+          <div className="mx-auto w-32 h-auto flex items-center justify-center mb-6">
+            <img
+              src="/logo.png?v=1"
+              alt="I-R Dental Logo"
+              className="w-full h-auto brightness-0 invert"
+            />
+          </div>
+          <h1 className="text-2xl font-bold uppercase text-white tracking-widest">Acceso al Sistema</h1>
+          <p className="text-xs font-semibold text-neutral-400">Panel interno — Solo personal autorizado</p>
+        </div>
+
+        {/* Card */}
+        <Card className="border-t-4 border-t-red-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
+          <CardContent className="p-8">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center shrink-0">
+                  <Lock size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold uppercase text-neutral-900">Iniciar Sesión</h2>
+                  <div className="w-10 h-1 bg-red-600 mt-1 rounded-full" />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase">PIN de Seguridad (4 dígitos)</label>
-              <Input 
-                type="password" 
-                inputMode="numeric"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))} // Solo permite números
-                className="h-16 text-center text-4xl tracking-[1em] font-black border-2 rounded-xl"
-                placeholder="••••"
-              />
-            </div>
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Usuario</label>
+                <div className="relative">
+                  <UserCircle className="absolute left-4 top-3.5 text-neutral-400" size={18} />
+                  <Input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="h-12 border-2 font-bold text-base rounded-xl pl-11 focus-visible:ring-red-600"
+                    placeholder="Ej: GomezMaria"
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
 
-            <Button type="submit" disabled={loading} className="w-full bg-red-700 hover:bg-red-800 h-16 text-white text-xl font-black italic uppercase rounded-2xl shadow-xl transition-all">
-              {loading ? "VERIFICANDO..." : "INGRESAR ✓"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">PIN de Seguridad (4 dígitos)</label>
+                <Input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
+                  className="h-12 text-center text-3xl tracking-[1em] font-bold border-2 rounded-xl focus-visible:ring-red-600"
+                  placeholder="••••"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 mt-6 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2 group"
+              >
+                {loading ? "Verificando..." : <> Ingresar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-8 flex items-center justify-center gap-1.5">
+          <ShieldCheck size={16} className="text-red-500" />
+          Plataforma Segura
+        </p>
+      </div>
     </div>
   )
 }

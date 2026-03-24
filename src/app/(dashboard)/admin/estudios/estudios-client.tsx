@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { upsertProcedure, deleteProcedure } from "@/actions/procedures"
-import { 
-  LayoutGrid, Search, Plus, Pencil, Trash2, Tag, Hash, Settings2
+import {
+  LayoutGrid, Search, Plus, Pencil, Trash2, Tag, Hash, Settings2, ScanLine
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
@@ -109,8 +109,8 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
                       <td className="p-4"><span className="font-black uppercase text-slate-800 block">{proc.name}</span>{proc.category && <span className="text-[9px] font-bold text-slate-400 uppercase">{proc.category}</span>}</td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
-                          {proc.requiresTooth && <span className="text-[9px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase border border-red-200">🦷 Odontograma</span>}
-                          {proc.options && proc.options.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase border border-blue-200">📍 {proc.options.length} Opciones</span>}
+                          {proc.requiresTooth && <span className="text-[9px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase border border-red-200 inline-flex items-center gap-1"><ScanLine size={10} /> Odontograma</span>}
+                          {proc.options && proc.options.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase border border-blue-200 inline-flex items-center gap-1"><Tag size={9} /> {proc.options.length} Opciones</span>}
                           {!proc.requiresTooth && (!proc.options || proc.options.length === 0) && <span className="text-[10px] font-bold text-slate-300 uppercase italic">Directo</span>}
                         </div>
                       </td>
