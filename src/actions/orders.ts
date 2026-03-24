@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { OrderStatus } from "@prisma/client"
 import { startOfDay, endOfDay } from "date-fns"
+import { toNum } from "@/lib/utils"
 
 /**
  * Genera el próximo número de orden correlativo para una sucursal.
@@ -197,7 +198,7 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
       // 1. Si anulamos, calculamos el efectivo a restar y creamos un GASTO
       const totalEfectivo = order.payments
         .filter(p => p.method === 'EFECTIVO')
-        .reduce((acc, curr) => acc + curr.amount, 0);
+        .reduce((acc, curr) => acc + toNum(curr.amount), 0);
 
       if (totalEfectivo > 0) {
         await prisma.cashMovement.create({
@@ -249,9 +250,9 @@ export async function getProcedurePrice(procedureId: string, obraSocialId: strin
       where: { priceListId_procedureId: { priceListId: os.priceListId, procedureId: procedureId } }
     })
     return {
-      amount: priceRecord?.amount || 0,
-      insuranceCoverage: priceRecord?.insuranceCoverage || 0,
-      patientCopay: priceRecord?.patientCopay || 0
+      amount: toNum(priceRecord?.amount),
+      insuranceCoverage: toNum(priceRecord?.insuranceCoverage),
+      patientCopay: toNum(priceRecord?.patientCopay)
     }
   } catch (error) { return { amount: 0, insuranceCoverage: 0, patientCopay: 0 } }
 }

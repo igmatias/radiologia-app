@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay } from "date-fns"
 import { revalidatePath } from "next/cache"
+import { toNum } from "@/lib/utils"
 
 // 1. OBTENER EL ESTADO ACTUAL DE LA CAJA DEL DÍA
 export async function getEstadoCaja(branchId: string) {
@@ -33,12 +34,12 @@ export async function getEstadoCaja(branchId: string) {
       },
       _sum: { amount: true }
     });
-    const ingresosEfectivo = pagosHoy._sum.amount || 0;
+    const ingresosEfectivo = toNum(pagosHoy._sum.amount);
 
     // Buscamos los movimientos manuales (Gastos de farmacia, envíos a caja fuerte, etc)
     const movimientos = await prisma.cashMovement.findMany({
-      where: { 
-        branchId, 
+      where: {
+        branchId,
         createdAt: { gte: inicioHoy, lte: finHoy },
         method: 'EFECTIVO'
       },
@@ -48,12 +49,12 @@ export async function getEstadoCaja(branchId: string) {
     let salidasEfectivo = 0;
     movimientos.forEach(m => {
       if (m.type === 'GASTO' || m.type === 'A_CAJA_FUERTE' || m.type === 'RETIRO_DUENO') {
-        salidasEfectivo += m.amount;
+        salidasEfectivo += toNum(m.amount);
       }
     });
 
     // FÓRMULA DEL MOSTRADOR: Saldo Inicial + Cobros - Gastos/Envíos
-    const saldoInicial = cajaDiaria.startBalance || 0;
+    const saldoInicial = toNum(cajaDiaria.startBalance);
     const totalEnCajon = saldoInicial + ingresosEfectivo - salidasEfectivo;
 
     return { 
@@ -65,9 +66,9 @@ export async function getEstadoCaja(branchId: string) {
       totalEnCajon,
       movimientos
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error obteniendo caja:", error);
-    return { success: false, error: "Error de lectura: " + error.message };
+    return { success: false, error: "No se pudo obtener el estado de la caja." };
   }
 }
 
@@ -95,10 +96,9 @@ export async function abrirCajaDiaria(branchId: string, userName: string) {
 
     revalidatePath("/recepcion");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("⛔ ERROR AL ABRIR CAJA:", error);
-    // Ahora si falla te va a decir el por qué exacto en la pantalla
-    return { success: false, error: `Error DB: ${error.message}` };
+    return { success: false, error: "No se pudo abrir la caja." };
   }
 }
 
@@ -127,9 +127,9 @@ export async function registrarMovimientoRecepcion(branchId: string, type: any, 
 
     revalidatePath("/recepcion");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("⛔ ERROR AL REGISTRAR MOVIMIENTO:", error);
-    return { success: false, error: `Error DB: ${error.message}` };
+    return { success: false, error: "No se pudo registrar el movimiento." };
   }
 }
 
@@ -183,8 +183,8 @@ export async function cerrarCajaDiaria(branchId: string, userName: string, endBa
     
     revalidatePath("/recepcion");
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("⛔ ERROR AL CERRAR CAJA:", error);
-    return { success: false, error: `Error DB: ${error.message}` };
+    return { success: false, error: "No se pudo cerrar la caja." };
   }
 }

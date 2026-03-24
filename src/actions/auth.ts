@@ -1,53 +1,65 @@
 "use server"
+
 import { prisma } from "@/lib/prisma"
 import { cookies } from "next/headers"
+import { getIronSession } from "iron-session"
+import bcrypt from "bcryptjs"
+import { sessionOptions, type SessionData } from "@/lib/session"
+import { checkRateLimit, clearRateLimit } from "@/lib/rate-limit"
 
 export async function loginWithPin(username: string, pin: string) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { username }
-    });
+  // Validación básica del PIN
+  if (!/^\d{4}$/.test(pin)) {
+    return { success: false, error: "PIN inválido." };
+  }
 
-    if (!user) return { success: false, error: "Usuario no encontrado" };
-    if (!user.isActive) return { success: false, error: "Usuario inactivo" };
-    if (user.pin !== pin) return { success: false, error: "PIN incorrecto" };
-
-    // Creamos la sesión 
-    const sessionData = {
-      id: user.id,
-      username: user.username,
-      name: `${user.firstName} ${user.lastName}`,
-      role: user.role
+  // Rate limiting por username
+  const rateCheck = checkRateLimit(username);
+  if (rateCheck.limited) {
+    return {
+      success: false,
+      error: `Demasiados intentos fallidos. Intentá de nuevo en ${Math.ceil(rateCheck.retryAfterSeconds! / 60)} minutos.`,
     };
+  }
 
-    // CORRECCIÓN NEXT.JS 15: Ahora cookies() necesita un await
+  try {
+    const user = await prisma.user.findUnique({ where: { username } });
+
+    if (!user) return { success: false, error: "Usuario o PIN incorrecto." };
+    if (!user.isActive) return { success: false, error: "Usuario inactivo." };
+
+    const pinValid = await bcrypt.compare(pin, user.pin);
+    if (!pinValid) return { success: false, error: "Usuario o PIN incorrecto." };
+
+    // Login exitoso: limpiar el rate limit
+    clearRateLimit(username);
+
+    // Crear sesión firmada con iron-session
     const cookieStore = await cookies();
-    
-    cookieStore.set("radiologia-auth", JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 12, // 12 horas de turno
-      path: "/",
-    });
+    const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+    session.id = user.id;
+    session.username = user.username;
+    session.name = `${user.firstName} ${user.lastName}`;
+    session.role = user.role;
+    await session.save();
 
     return { success: true, role: user.role };
-    
-  } catch (error: any) {
-    // Ahora mandamos el error real a la consola y a la pantalla para no estar a ciegas
-    console.error("Error en login detallado:", error);
-    return { success: false, error: `Error interno: ${error.message || 'Desconocido'}` };
+
+  } catch (error) {
+    console.error("Error en login:", error);
+    return { success: false, error: "Error interno del servidor." };
   }
 }
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete("radiologia-auth");
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+  session.destroy();
 }
 
-// Agregá esto al final de src/actions/auth.ts
 export async function getCurrentSession() {
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get("radiologia-auth")?.value;
-  if (!authCookie) return null;
-  return JSON.parse(authCookie);
+  const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+  if (!session.id) return null;
+  return session;
 }
