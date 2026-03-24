@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay } from "date-fns"
 import { revalidatePath } from "next/cache"
+import { toNum } from "@/lib/utils"
 
 // 1. OBTENER TODO EL TABLERO DEL DUEÑO (Con filtros)
 export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaFin: Date, branchId: string }) {
@@ -24,9 +25,10 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
     const desglose: Record<string, number> = { EFECTIVO: 0, MERCADOPAGO: 0, TARJETA_DEBITO: 0, TARJETA_CREDITO: 0, TRANSFERENCIA: 0, SALDO: 0 };
 
     pagos.forEach(p => {
-      totalFacturado += p.amount;
-      if (desglose[p.method] !== undefined) desglose[p.method] += p.amount;
-      else desglose[p.method] = p.amount;
+      const monto = toNum(p.amount);
+      totalFacturado += monto;
+      if (desglose[p.method] !== undefined) desglose[p.method] += monto;
+      else desglose[p.method] = monto;
     });
 
     // Calculamos los porcentajes automáticos
@@ -46,7 +48,7 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       include: { branch: true }
     });
 
-    const totalGastos = movimientos.filter(m => m.type === 'GASTO').reduce((acc, m) => acc + m.amount, 0);
+    const totalGastos = movimientos.filter(m => m.type === 'GASTO').reduce((acc, m) => acc + toNum(m.amount), 0);
 
     // C. CAJAS DIARIAS EN VIVO (Mostradores)
     const cajasDiarias = await prisma.dailyRegister.findMany({
@@ -86,7 +88,7 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
 export async function retirarDeBoveda(branchId: string, amount: number, description: string) {
   try {
     const boveda = await prisma.safeVault.findUnique({ where: { branchId } });
-    if (!boveda || boveda.balance < amount) {
+    if (!boveda || toNum(boveda.balance) < amount) {
       return { success: false, error: "No hay suficiente dinero en esta Caja Fuerte." };
     }
 
@@ -109,8 +111,9 @@ export async function retirarDeBoveda(branchId: string, amount: number, descript
 
     revalidatePath("/admin");
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error) {
+    console.error("⛔ ERROR AL RETIRAR DE BOVEDA:", error);
+    return { success: false, error: "No se pudo completar el retiro." };
   }
 }
 

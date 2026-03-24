@@ -79,8 +79,8 @@ model DailyRegister {
   date          DateTime            @default(now()) 
   status        DailyRegisterStatus @default(ABIERTA)
   
-  startBalance  Float               @default(0)
-  endBalance    Float?              
+  startBalance  Decimal             @default(0)
+  endBalance    Decimal?
   
   openedBy      String              
   closedBy      String?             
@@ -96,7 +96,7 @@ model SafeVault {
   id          String   @id @default(cuid())
   branchId    String   @unique
   branch      Branch   @relation(fields: [branchId], references: [id])
-  balance     Float    @default(0) 
+  balance     Decimal  @default(0)
   updatedAt   DateTime @updatedAt
 }
 
@@ -217,10 +217,10 @@ model PriceList {
 
 model Price {
   id                String    @id @default(cuid())
-  amount            Float
-  insuranceCoverage Float     @default(0) 
-  patientCopay      Float     @default(0) 
-  
+  amount            Decimal
+  insuranceCoverage Decimal   @default(0)
+  patientCopay      Decimal   @default(0)
+
   priceListId       String
   priceList         PriceList @relation(fields: [priceListId], references: [id])
   
@@ -259,10 +259,10 @@ model Order {
   completedAt     DateTime?
   deliveredAt     DateTime?
 
-  totalAmount     Float          @default(0)
-  patientAmount   Float          @default(0) 
-  insuranceAmount Float          @default(0) 
-  paidAmount      Float          @default(0)
+  totalAmount     Decimal        @default(0)
+  patientAmount   Decimal        @default(0)
+  insuranceAmount Decimal        @default(0)
+  paidAmount      Decimal        @default(0)
   
   items           OrderItem[]
   payments        Payment[]
@@ -288,9 +288,9 @@ model OrderItem {
   equipmentId       String?
   equipment         Equipment?  @relation(fields: [equipmentId], references: [id])
 
-  price             Float
-  insuranceCoverage Float       @default(0) 
-  patientCopay      Float       @default(0) 
+  price             Decimal
+  insuranceCoverage Decimal     @default(0)
+  patientCopay      Decimal     @default(0)
   
   metadata          Json?     
   
@@ -305,7 +305,7 @@ model Payment {
   orderId   String
   order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   
-  amount    Float
+  amount    Decimal
   method    PaymentMethod
   notes     String?
 
@@ -333,7 +333,7 @@ model CashMovement {
   branch      Branch        @relation(fields: [branchId], references: [id])
   
   type        MovementType
-  amount      Float
+  amount      Decimal
   description String
   method      PaymentMethod @default(EFECTIVO)
   

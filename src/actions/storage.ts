@@ -88,9 +88,9 @@ export async function deleteImageFromOrder(orderId: string, imageUrl: string) {
     revalidatePath("/entregas");
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error al borrar imagen:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: "No se pudo eliminar la imagen." };
   }
 }
 
