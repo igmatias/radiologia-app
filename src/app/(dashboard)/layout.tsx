@@ -45,8 +45,8 @@ export default function DashboardLayout({
         </nav>
       </header>
 
-      {/* Contenido principal */}
-      <main className="flex-1 overflow-hidden">
+      {/* Contenido principal con scroll habilitado */}
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

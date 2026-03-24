@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -37,6 +37,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const dniDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
@@ -216,6 +217,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       if (p.birthDate) form.setValue("patient.birthDate", new Date(p.birthDate).toISOString().split('T')[0]);
       setPatientHistory(await getPatientHistory(dni));
     } else { setPatientHistory([]); }
+  }
+
+  const handleDniChange = (value: string) => {
+    form.setValue("patient.dni", value)
+    if (dniDebounceRef.current) clearTimeout(dniDebounceRef.current)
+    if (value.length >= 7) {
+      dniDebounceRef.current = setTimeout(() => {
+        handleDniBlur(value)
+      }, 600)
+    }
   }
 
   const recalculateTotal = () => {
@@ -423,7 +434,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               {step === 1 && (
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
-                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
+                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input
+                      {...form.register("patient.dni", {
+                        onChange: (e) => handleDniChange(e.target.value)
+                      })}
+                      onBlur={(e) => handleDniBlur(e.target.value)}
+                      className="h-11 font-black border-2 flex-1"
+                      autoFocus
+                    />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Apellido</Label><Input {...form.register("patient.lastName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</Label><Input {...form.register("patient.firstName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input {...form.register("patient.birthDate")} type="date" className="h-11 border-2 font-bold" /></div>

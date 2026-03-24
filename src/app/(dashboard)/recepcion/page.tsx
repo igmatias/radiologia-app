@@ -23,7 +23,7 @@ export default async function RecepcionPage() {
   ])
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6">
+    <div className="space-y-4 p-4 pt-6 pb-12 max-w-7xl mx-auto">
       {/* Le pasamos toda la info al nuevo controlador de pestañas */}
       <RecepcionClient 
         branches={branches}

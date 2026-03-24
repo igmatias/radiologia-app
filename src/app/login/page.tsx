@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen bg-neutral-900 flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950"
       style={{ fontFamily: '"Century Gothic", CenturyGothic, AppleGothic, sans-serif' }}
     >
       {/* Volver a la web */}
@@ -49,9 +49,18 @@ export default function LoginPage() {
         ← Volver a la web
       </Link>
 
-      {/* Fondo decorativo */}
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')] opacity-10 bg-cover bg-center mix-blend-luminosity z-0" />
-      <div className="absolute top-0 left-0 w-full h-[120%] bg-gradient-to-b from-red-600/20 to-transparent skew-y-6 transform -translate-y-1/2 z-0 pointer-events-none" />
+      {/* Cubos 3D animados */}
+      <div className="cubes-bg" aria-hidden="true">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div key={i} className="cube" style={{
+            '--i': i,
+            '--x': `${10 + (i * 6.5) % 85}%`,
+            '--delay': `${(i * 1.3) % 8}s`,
+            '--size': `${30 + (i * 17) % 60}px`,
+            '--duration': `${8 + (i * 2.1) % 12}s`,
+          } as React.CSSProperties} />
+        ))}
+      </div>
 
       <div className="w-full max-w-md z-10 space-y-6">
 
