@@ -101,7 +101,7 @@ export async function createOrder(data: any) {
               patientCopay: item.patientCopay || 0,
               insuranceCoverage: item.insuranceCoverage || 0,
               status: "CREADA",
-              metadata: { teeth: item.teeth || [], locations: item.locations || [] }
+              metadata: { teeth: item.teeth || [], locations: item.locations || [], ...(item.metadata || {}) }
             }))
           },
           payments: {
@@ -151,7 +151,7 @@ export async function updateOrder(orderId: string, data: any) {
           patientCopay: item.patientCopay || 0,
           insuranceCoverage: item.insuranceCoverage || 0,
           status: "CREADA",
-          metadata: { teeth: item.teeth || [], locations: item.locations || [] }
+          metadata: { teeth: item.teeth || [], locations: item.locations || [], ...(item.metadata || {}) }
         }))
       })
 
