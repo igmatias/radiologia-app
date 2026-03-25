@@ -240,42 +240,49 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-slate-900">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Banknote className="text-slate-900"/> Métodos de Cobro</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Distribución del total recaudado</p>
-                    {data.porcentajes.length === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay cobros registrados en este período</p>
-                    ) : (
-                      <div className="space-y-5">
-                        {(() => {
-                          const labels: Record<string, string> = {
-                            EFECTIVO: 'Efectivo',
-                            MERCADOPAGO: 'MercadoPago',
-                            TARJETA_DEBITO: 'Tarjeta Débito',
-                            TARJETA_CREDITO: 'Tarjeta Crédito',
-                            TRANSFERENCIA: 'Transferencia',
-                            SALDO: 'Saldo a Favor',
-                          };
-                          return data.porcentajes.map((m: any) => (
-                            <div key={m.metodo}>
-                              <div className="flex justify-between items-end mb-1.5">
-                                <span className="text-sm font-black uppercase text-slate-700">{labels[m.metodo] || m.metodo}</span>
-                                <span className="text-right leading-none">
-                                  <span className="text-base font-black italic text-slate-900">${m.monto.toLocaleString('es-AR')}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 ml-2">({m.porcentaje}%)</span>
-                                </span>
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Clock className="text-slate-900"/> Tiempo de Entrega</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Desde creación hasta entrega al paciente</p>
+                    {data.entregaStats.totalEntregadas === 0 ? (
+                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay órdenes entregadas en este período</p>
+                    ) : (() => {
+                      const fmt = (hs: number) => {
+                        if (hs < 1) return `${Math.round(hs * 60)} min`;
+                        if (hs < 24) return `${hs.toFixed(1).replace('.', ',')} hs`;
+                        const dias = Math.floor(hs / 24);
+                        const resto = Math.round(hs % 24);
+                        return resto > 0 ? `${dias}d ${resto}hs` : `${dias} día${dias !== 1 ? 's' : ''}`;
+                      };
+                      const avg = data.entregaStats.avgHoras;
+                      const min = data.entregaStats.minHoras;
+                      const max = data.entregaStats.maxHoras;
+                      const maxBar = max || 1;
+                      return (
+                        <div className="space-y-6">
+                          <div className="text-center bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Promedio</p>
+                            <p className="text-5xl font-black italic tracking-tighter text-slate-900">{fmt(avg)}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase mt-2">{data.entregaStats.totalEntregadas} órdenes entregadas</p>
+                          </div>
+                          <div className="space-y-3">
+                            {[
+                              { label: 'Más Rápida', value: min, color: 'bg-emerald-500' },
+                              { label: 'Promedio', value: avg, color: 'bg-slate-700' },
+                              { label: 'Más Lenta', value: max, color: 'bg-red-500' },
+                            ].map(({ label, value, color }) => (
+                              <div key={label}>
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-[10px] font-black uppercase text-slate-500">{label}</span>
+                                  <span className="text-sm font-black italic text-slate-800">{fmt(value)}</span>
+                                </div>
+                                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                  <div className={`${color} h-2.5 rounded-full transition-all duration-700`} style={{ width: `${Math.max(4, (value / maxBar) * 100)}%` }} />
+                                </div>
                               </div>
-                              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
-                                <div className="bg-slate-800 h-3 rounded-full transition-all duration-700 ease-out" style={{ width: `${m.porcentaje}%` }} />
-                              </div>
-                            </div>
-                          ));
-                        })()}
-                        <div className="flex justify-between items-center pt-4 border-t-2 border-slate-200 mt-2">
-                          <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Total Recaudado</span>
-                          <span className="text-2xl font-black italic text-slate-900">${data.totalFacturado.toLocaleString('es-AR')}</span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </CardContent>
                 </Card>
 

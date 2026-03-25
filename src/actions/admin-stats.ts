@@ -66,6 +66,35 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       include: { branch: true }
     });
 
+    // E. TIEMPO PROMEDIO DE ENTREGA
+    const ordenesEntregadas = await prisma.order.findMany({
+      where: {
+        deliveredAt: { not: null },
+        createdAt: { gte: inicio, lte: fin },
+        status: { not: 'ANULADA' },
+        ...branchQuery
+      },
+      select: { createdAt: true, deliveredAt: true }
+    });
+
+    const tiemposHs = ordenesEntregadas
+      .filter(o => o.deliveredAt)
+      .map(o => (o.deliveredAt!.getTime() - o.createdAt.getTime()) / (1000 * 60 * 60));
+
+    const avgHoras = tiemposHs.length > 0
+      ? tiemposHs.reduce((a, b) => a + b, 0) / tiemposHs.length
+      : null;
+
+    const minHoras = tiemposHs.length > 0 ? Math.min(...tiemposHs) : null;
+    const maxHoras = tiemposHs.length > 0 ? Math.max(...tiemposHs) : null;
+
+    const entregaStats = {
+      totalEntregadas: tiemposHs.length,
+      avgHoras,
+      minHoras,
+      maxHoras,
+    };
+
     return {
       success: true,
       data: {
@@ -75,7 +104,8 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
         totalGastos,
         movimientos,
         cajasDiarias,
-        bovedas
+        bovedas,
+        entregaStats
       }
     };
   } catch (error) {
