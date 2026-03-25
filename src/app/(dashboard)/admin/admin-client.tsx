@@ -127,16 +127,18 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-10 md:h-12 border-none bg-white font-bold rounded-xl shadow-sm text-xs sm:text-sm min-w-0 w-[130px] sm:w-auto"/>
             </div>
 
-            <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
-              <SelectTrigger className="h-10 md:h-14 w-full sm:w-[200px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg">
-                {/* 🔥 SOLUCIÓN 2: Cambiamos <div> por <span> para no romper el HTML */}
-                <span className="flex items-center gap-2"><Filter size={14}/> <SelectValue placeholder="Todas las sedes" /></span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL" className="font-black text-xs uppercase">🌎 Todas las sedes</SelectItem>
-                {branches.map(b => <SelectItem key={b.id} value={b.id} className="font-black text-xs uppercase">{b.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="relative w-full sm:w-[220px]">
+              <Filter size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"/>
+              <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
+                <SelectTrigger className="h-10 md:h-12 w-full bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg pl-8">
+                  <SelectValue placeholder="Todas las sedes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL" className="font-black text-xs uppercase">🌎 Todas las sedes</SelectItem>
+                  {branches.map(b => <SelectItem key={b.id} value={b.id} className="font-black text-xs uppercase">{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -184,7 +186,6 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                         <CardContent className="p-6 relative z-10">
                           <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1 flex items-center gap-1.5"><MapPin size={12}/> Sede {boveda.branch.name}</p>
                           <p className="text-4xl font-black italic mt-2">${Number(boveda.balance).toLocaleString('es-AR')}</p>
-                          <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase">Fondos acumulados intocables por el personal</p>
                         </CardContent>
                       </Card>
                     ))
