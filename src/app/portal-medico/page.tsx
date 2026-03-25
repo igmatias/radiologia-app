@@ -85,11 +85,11 @@ export default function PortalMedicoLogin() {
         
         {/* Logo / Cabecera */}
         <div className="text-center space-y-4 mb-8">
-          <div className="mx-auto w-32 h-auto flex items-center justify-center mb-6">
-            <img 
-              src="/logo.png?v=1" 
-              alt="I-R Dental Logo" 
-              className="w-full h-auto brightness-0 invert" 
+          <div className="mx-auto w-52 h-auto flex items-center justify-center mb-6">
+            <img
+              src="/logo.png?v=2"
+              alt="I-R Dental Logo"
+              className="w-full h-auto drop-shadow-[0_0_20px_rgba(220,38,38,0.4)]"
             />
           </div>
           <h1 className="text-2xl font-bold uppercase text-white tracking-widest">Portal Profesional</h1>

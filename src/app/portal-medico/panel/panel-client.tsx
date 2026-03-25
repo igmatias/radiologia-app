@@ -10,30 +10,12 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { 
-  LogOut, Calendar, CheckCircle2, Image as ImageIcon, 
-  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight
+import {
+  LogOut, Calendar, CheckCircle2, Image as ImageIcon,
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Stethoscope
 } from "lucide-react"
 import Link from "next/link"
 
-// Ícono personalizado de Diente para la interfaz
-const ToothIcon = ({ size = 24, className = "" }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M10 21c-2.43 0-4.14-1.93-4.57-4.19L4.2 8.7A3.2 3.2 0 0 1 7.27 5h9.46a3.2 3.2 0 0 1 3.07 3.7l-1.23 8.11C18.14 19.07 16.43 21 14 21a3.64 3.64 0 0 1-2-.6 3.64 3.64 0 0 1-2 .6Z" />
-    <path d="M12 11v10" />
-  </svg>
-)
 
 export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   const router = useRouter()
@@ -223,7 +205,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           {/* Fila 1: Logo, Descarga Orden y Salir */}
           <div className="flex justify-between items-center mb-8 border-b border-neutral-800 pb-6">
             <Link href="/" className="flex items-center gap-3 group">
-               <img src="/logo.png?v=1" alt="I-R Dental" className="h-8 md:h-10 w-auto brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity" />
+               <img src="/logo.png?v=2" alt="I-R Dental" className="h-8 md:h-10 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
                <div className="h-6 w-px bg-neutral-700 hidden sm:block"></div>
                <span className="text-red-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs hidden sm:block">Portal Profesional</span>
             </Link>
@@ -245,8 +227,15 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           {/* Fila 2: Perfil del Odontólogo */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5 w-full md:w-auto">
-              <div className="bg-neutral-800 p-4 rounded-full border-2 border-red-600 shrink-0 shadow-lg">
-                <ToothIcon size={32} className="text-white" />
+              <div className="relative shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-700 to-red-900 border-2 border-red-500/50 shadow-lg shadow-red-900/40 flex items-center justify-center">
+                  <span className="text-2xl font-black text-white uppercase tracking-tighter">
+                    {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
+                  </span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 bg-neutral-700 rounded-full p-1 border border-neutral-600">
+                  <Stethoscope size={12} className="text-red-400" />
+                </div>
               </div>
               <div className="w-full">
                 <h1 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
