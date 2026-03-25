@@ -188,35 +188,17 @@ export default function Home() {
               {/* Texto del aniversario */}
               <div className="text-center lg:text-left">
                 <div className="inline-block bg-amber-500/20 border border-amber-400/40 px-4 py-1.5 rounded-full mb-5">
-                  <span className="text-xs font-bold tracking-widest text-amber-400 uppercase">✦ Hito Institucional · 2026</span>
+                  <span className="text-xs font-bold tracking-widest text-amber-400 uppercase">✦ Hito Institucional</span>
                 </div>
                 <h2 className="text-3xl md:text-5xl font-bold text-white mb-5 leading-tight">
-                  Cuatro Décadas al Servicio<br className="hidden md:block" /> del Diagnóstico Dental
+                  Más de Cuatro Décadas al<br className="hidden md:block" /> Servicio del Diagnóstico Dental
                 </h2>
-                <p className="text-neutral-300 text-base md:text-lg leading-relaxed mb-8 max-w-2xl">
-                  En 2026 cumplimos <strong className="text-amber-400">40 años</strong> de trayectoria ininterrumpida, acompañando a profesionales odontológicos y sus pacientes en el Gran Buenos Aires con la más avanzada tecnología en radiodiagnóstico dentomaxilofacial. Cuatro décadas de confianza, innovación constante y un compromiso inquebrantable con la excelencia diagnóstica.
+                <p className="text-neutral-300 text-base md:text-lg leading-relaxed mb-6 max-w-2xl">
+                  Con <strong className="text-amber-400">más de 40 años</strong> en el rubro, somos una institución de referencia en radiodiagnóstico dentomaxilofacial en el Gran Buenos Aires. Nuestra trayectoria es el resultado de la confianza de miles de profesionales odontológicos que nos eligen día a día, y de un equipo humano comprometido con la precisión diagnóstica y el trato al paciente.
                 </p>
-                <div className="flex flex-wrap justify-center lg:justify-start gap-8 md:gap-10">
-                  <div className="text-center">
-                    <div className="text-3xl md:text-4xl font-black text-amber-400">1986</div>
-                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Año de Fundación</div>
-                  </div>
-                  <div className="w-px bg-neutral-700 hidden md:block"></div>
-                  <div className="text-center">
-                    <div className="text-3xl md:text-4xl font-black text-amber-400">3</div>
-                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Sedes Activas</div>
-                  </div>
-                  <div className="w-px bg-neutral-700 hidden md:block"></div>
-                  <div className="text-center">
-                    <div className="text-3xl md:text-4xl font-black text-amber-400">+100K</div>
-                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Estudios Realizados</div>
-                  </div>
-                  <div className="w-px bg-neutral-700 hidden md:block"></div>
-                  <div className="text-center">
-                    <div className="text-3xl md:text-4xl font-black text-amber-400">40</div>
-                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Años de Confianza</div>
-                  </div>
-                </div>
+                <p className="text-neutral-400 text-sm md:text-base leading-relaxed max-w-2xl">
+                  A lo largo de estos años hemos incorporado tecnología de última generación, ampliado nuestras sedes y consolidado un modelo de atención ágil, sin turno previo y con entrega inmediata — porque el tiempo del profesional y del paciente siempre fue nuestra prioridad.
+                </p>
               </div>
 
             </div>
@@ -295,12 +277,14 @@ export default function Home() {
               </div>
               <h3 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">Equipamiento <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">Dentsply Sirona AXEOS</span></h3>
               <p className="text-neutral-300 text-base md:text-lg mb-8 font-light leading-relaxed">
-                Elevamos el estándar del diagnóstico por imágenes. El sistema <strong>AXEOS</strong> ofrece volúmenes de campo de visión (FOV) flexibles y una calidad de imagen 2D panorámica y 3D excepcional. Todo esto logrando una dosis de radiación significativamente menor para la máxima tranquilidad y seguridad de sus pacientes.
+                El <strong>AXEOS</strong> es uno de los sistemas de radiodiagnóstico dental más avanzados del mundo. Desarrollado por <strong>Dentsply Sirona</strong> — líder mundial en tecnología odontológica — combina radiografía panorámica 2D, cefalometría y tomografía cone beam 3D en un único equipo de altísima precisión, con la dosis de radiación más baja posible para el paciente.
               </p>
               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Alta nitidez y enfoque automático de precisión.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Programas panorámicos extraorales y cefalométricos avanzados.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento firme, seguro y sumamente cómodo.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Imágenes panorámicas y 3D de resolución excepcional en un solo equipo.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Dosis de radiación optimizada: máxima imagen, mínima exposición.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> FOV flexible: desde periapicales hasta reconstrucciones craneofaciales completas.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento inteligente y ergonómico para pacientes de cualquier edad.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Compatible con los principales softwares de planificación implantológica.</li>
               </ul>
             </div>
             <div className="lg:w-1/2 relative w-full">
