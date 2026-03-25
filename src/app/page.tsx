@@ -307,7 +307,7 @@ export default function Home() {
               {/* Servicio 1 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1606282845347-75e11409da7d?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
+                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Activity size={32} />
@@ -322,7 +322,7 @@ export default function Home() {
               {/* Servicio 2 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
+                  <img src="https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Scan size={32} />
@@ -337,7 +337,7 @@ export default function Home() {
               {/* Servicio 3 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1599304609802-bd921bf3a5ec?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
+                  <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <FileText size={32} />
@@ -352,7 +352,7 @@ export default function Home() {
               {/* Servicio 4 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1588776813677-77ade49edab2?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
+                  <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Camera size={32} />
@@ -367,7 +367,7 @@ export default function Home() {
               {/* Servicio 5 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col lg:col-span-2">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1598331668826-20cefac91e06?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
+                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <ToothIcon size={32} />
