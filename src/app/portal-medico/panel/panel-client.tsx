@@ -12,7 +12,7 @@ import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
-  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Stethoscope
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 
@@ -227,15 +227,10 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           {/* Fila 2: Perfil del Odontólogo */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5 w-full md:w-auto">
-              <div className="relative shrink-0">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-700 to-red-900 border-2 border-red-500/50 shadow-lg shadow-red-900/40 flex items-center justify-center">
-                  <span className="text-2xl font-black text-white uppercase tracking-tighter">
-                    {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
-                  </span>
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-neutral-700 rounded-full p-1 border border-neutral-600">
-                  <Stethoscope size={12} className="text-red-400" />
-                </div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-700 to-red-900 border-2 border-red-500/50 shadow-lg shadow-red-900/40 flex items-center justify-center shrink-0">
+                <span className="text-2xl font-black text-white uppercase tracking-tighter">
+                  {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
+                </span>
               </div>
               <div className="w-full">
                 <h1 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
@@ -304,7 +299,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
         <div className="space-y-6 mt-8">
           {dentist.orders?.length === 0 ? (
             <div className="text-center py-24 bg-white rounded-2xl border border-dashed border-neutral-300 shadow-sm">
-              <ToothIcon size={48} className="text-neutral-300 mx-auto mb-4" />
+              <FileText size={48} className="text-neutral-300 mx-auto mb-4" />
               <p className="text-lg font-bold uppercase text-neutral-800 mb-2">Aún no hay pacientes derivados</p>
               <p className="text-sm text-neutral-500 max-w-md mx-auto">Una vez que sus pacientes se realicen estudios en nuestras sedes, los informes e imágenes aparecerán aquí automáticamente.</p>
             </div>
