@@ -139,7 +139,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x md:divide-neutral-700">
               <div className="flex flex-col items-center justify-center p-4">
                 <Award className="text-red-500 mb-3" size={36} />
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+20</h3>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+40</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Años de Trayectoria</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
@@ -157,6 +157,68 @@ export default function Home() {
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">100%</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Flujo Digital</p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECCIÓN: 40 ANIVERSARIO */}
+        <section className="relative bg-neutral-950 py-16 md:py-24 overflow-hidden border-b-4 border-amber-500">
+          {/* Sala de rayos como fondo */}
+          <div className="absolute inset-0">
+            <img src="/salarx.png" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" alt="" />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-neutral-950/60"></div>
+          {/* Cubos decorativos */}
+          <img src="/cubito.png" className="absolute right-8 top-8 w-20 h-20 opacity-[0.07] rotate-12 select-none pointer-events-none" alt="" />
+          <img src="/cubito.png" className="absolute right-40 bottom-8 w-10 h-10 opacity-[0.07] -rotate-6 select-none pointer-events-none" alt="" />
+          <img src="/cubito.png" className="absolute left-4 bottom-16 w-14 h-14 opacity-[0.05] rotate-45 select-none pointer-events-none" alt="" />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="flex flex-col lg:flex-row items-center gap-10 md:gap-16">
+
+              {/* Logo 40 años */}
+              <div className="flex-shrink-0 flex items-center justify-center">
+                <img
+                  src="/40anoshq.png"
+                  alt="40 Años I-R Dental"
+                  className="w-44 md:w-72 h-auto drop-shadow-[0_0_40px_rgba(245,158,11,0.3)]"
+                />
+              </div>
+
+              {/* Texto del aniversario */}
+              <div className="text-center lg:text-left">
+                <div className="inline-block bg-amber-500/20 border border-amber-400/40 px-4 py-1.5 rounded-full mb-5">
+                  <span className="text-xs font-bold tracking-widest text-amber-400 uppercase">✦ Hito Institucional · 2026</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-5 leading-tight">
+                  Cuatro Décadas al Servicio<br className="hidden md:block" /> del Diagnóstico Dental
+                </h2>
+                <p className="text-neutral-300 text-base md:text-lg leading-relaxed mb-8 max-w-2xl">
+                  En 2026 cumplimos <strong className="text-amber-400">40 años</strong> de trayectoria ininterrumpida, acompañando a profesionales odontológicos y sus pacientes en el Gran Buenos Aires con la más avanzada tecnología en radiodiagnóstico dentomaxilofacial. Cuatro décadas de confianza, innovación constante y un compromiso inquebrantable con la excelencia diagnóstica.
+                </p>
+                <div className="flex flex-wrap justify-center lg:justify-start gap-8 md:gap-10">
+                  <div className="text-center">
+                    <div className="text-3xl md:text-4xl font-black text-amber-400">1986</div>
+                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Año de Fundación</div>
+                  </div>
+                  <div className="w-px bg-neutral-700 hidden md:block"></div>
+                  <div className="text-center">
+                    <div className="text-3xl md:text-4xl font-black text-amber-400">3</div>
+                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Sedes Activas</div>
+                  </div>
+                  <div className="w-px bg-neutral-700 hidden md:block"></div>
+                  <div className="text-center">
+                    <div className="text-3xl md:text-4xl font-black text-amber-400">+100K</div>
+                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Estudios Realizados</div>
+                  </div>
+                  <div className="w-px bg-neutral-700 hidden md:block"></div>
+                  <div className="text-center">
+                    <div className="text-3xl md:text-4xl font-black text-amber-400">40</div>
+                    <div className="text-xs text-neutral-400 uppercase tracking-wider mt-1.5">Años de Confianza</div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
@@ -244,10 +306,10 @@ export default function Home() {
             <div className="lg:w-1/2 relative w-full">
                <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
                {/* Imagen representativa de un escáner/tecnología médica */}
-               <img 
-                 src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800" 
-                 className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[350px] md:h-[500px]" 
-                 alt="Tecnología Médica Scanner" 
+               <img
+                 src="/cbct2.jpeg"
+                 className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[350px] md:h-[500px]"
+                 alt="Equipo CBCT Dentsply Sirona AXEOS"
                />
             </div>
           </div>
