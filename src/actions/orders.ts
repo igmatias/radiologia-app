@@ -274,8 +274,7 @@ export async function getPatientHistory(dni: string) {
         branch: true,
         dentist: true,
         items: { include: { procedure: true } },
-        payments: true,
-        insurancePlan: { include: { insuranceProvider: true } }
+        payments: true
       },
       orderBy: { createdAt: 'desc' }
     })
