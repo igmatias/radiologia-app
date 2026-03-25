@@ -246,7 +246,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social / Prepaga</Label>
                   <Select value={selectedOS} onValueChange={setSelectedOS}>
-                    <SelectTrigger className="h-14 font-black uppercase italic border-2 border-slate-200 focus:border-red-700 text-lg"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
+                    <SelectTrigger className="h-14 font-black uppercase border-2 border-slate-200 focus:border-red-700 text-sm"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
                     <SelectContent className="font-black uppercase italic">
                       {/* Convertimos a String explícitamente */}
                       {obrasSociales.map(os => <SelectItem key={os.id} value={String(os.id)}>{os.name}</SelectItem>)}
@@ -295,8 +295,8 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   </Select>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={handleExportExcel} variant="outline" className="h-10 border-2 border-slate-200 text-slate-800 hover:bg-white font-black uppercase text-xs shadow-sm"><FileSpreadsheet size={14} className="mr-2"/> Excel (.XLS)</Button>
-                  <Button onClick={() => window.print()} className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase text-xs shadow-sm"><Printer size={14} className="mr-2"/> PDF / Imprimir</Button>
+                  <Button onClick={handleExportExcel} className="h-10 bg-white border-2 border-slate-300 text-slate-800 hover:bg-slate-50 font-black uppercase text-xs shadow-sm"><FileSpreadsheet size={14} className="mr-2"/> Excel (.XLS)</Button>
+                  <Button onClick={() => window.print()} className="h-10 bg-red-700 hover:bg-red-800 text-white font-black uppercase text-xs shadow-sm"><Printer size={14} className="mr-2"/> PDF / Imprimir</Button>
                 </div>
               </div>
 
@@ -341,26 +341,26 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                               type="number"
                               defaultValue={item.insuranceCoverage}
                               onBlur={(e) => handleUpdatePrice(item.id, Number(e.target.value), index)}
-                              className="h-8 w-24 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors"
+                              className="h-8 w-32 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors"
                               title="Modificar valor OS"
                             />
                           </div>
-                          <span className="hidden print:inline font-black text-[11px] italic text-slate-900">${item.insuranceCoverage}</span>
+                          <span className="hidden print:inline font-black text-[11px] italic text-slate-900">${Number(item.insuranceCoverage).toLocaleString('es-AR')}</span>
                         </td>
 
                         {/* COLUMNA DE COPAGO EDITABLE */}
                         <td className="p-3 print:p-1.5 text-right">
                           <div className="flex justify-end items-center gap-1 print:hidden">
                             <span className="text-red-300 font-bold">$</span>
-                            <Input 
-                              type="number" 
-                              defaultValue={item.patientCopay} 
-                              onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)} 
-                              className="h-8 w-24 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors" 
-                              title="Modificar copago" 
+                            <Input
+                              type="number"
+                              defaultValue={item.patientCopay}
+                              onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)}
+                              className="h-8 w-32 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors"
+                              title="Modificar copago"
                             />
                           </div>
-                          <span className="hidden print:inline font-black text-[11px] italic text-red-700">${item.patientCopay}</span>
+                          <span className="hidden print:inline font-black text-[11px] italic text-red-700">${Number(item.patientCopay).toLocaleString('es-AR')}</span>
                         </td>
 
                       </tr>

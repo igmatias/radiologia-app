@@ -317,7 +317,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                   {/* Resumen efectivo físico */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { t: "Inicio", v: estadoCaja.caja.startBalance, c: "text-slate-500" },
+                      { t: "Inicio", v: Number(estadoCaja.caja.startBalance), c: "text-slate-500" },
                       { t: "Cobros Efectivo", v: estadoCaja.ingresosEfectivo, c: "text-emerald-600" },
                       { t: "Salidas", v: estadoCaja.salidasEfectivo, c: "text-red-600" },
                       { t: "EN CAJÓN", v: estadoCaja.totalEnCajon, c: "text-slate-900 font-black", bg: "bg-emerald-50 border-emerald-200 shadow-inner" }
@@ -398,7 +398,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                           </div>
                           <div className="flex items-center gap-3">
                             <p className={`text-xl font-black ${m.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-600'}`}>
-                              {m.type === 'INGRESO' ? '+' : '-'}${m.amount.toLocaleString('es-AR')}
+                              {m.type === 'INGRESO' ? '+' : '-'}${Number(m.amount).toLocaleString('es-AR')}
                             </p>
                             <button onClick={() => handleBorrarMovimiento(m.id)} className="text-slate-300 hover:text-red-600 transition-colors p-1.5 opacity-0 group-hover:opacity-100"><Trash2 size={17}/></button>
                           </div>
