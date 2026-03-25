@@ -36,6 +36,33 @@ export async function getEstadoCaja(branchId: string) {
     });
     const ingresosEfectivo = toNum(pagosHoy._sum.amount);
 
+    // Traemos todos los pagos del día (excepto SALDO) con datos del paciente
+    const pagosDetalleHoy = await prisma.payment.findMany({
+      where: {
+        method: { not: 'SALDO' },
+        createdAt: { gte: inicioHoy, lte: finHoy },
+        order: { branchId }
+      },
+      include: {
+        order: { include: { patient: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // Agrupar por método y calcular totales
+    const pagosPorMetodo: Record<string, { patient: string; amount: number; time: Date }[]> = {};
+    const totalesPorMetodo: Record<string, number> = {};
+    pagosDetalleHoy.forEach((p: any) => {
+      const method = p.method as string;
+      if (!pagosPorMetodo[method]) pagosPorMetodo[method] = [];
+      pagosPorMetodo[method].push({
+        patient: `${p.order.patient.lastName}, ${p.order.patient.firstName}`,
+        amount: toNum(p.amount),
+        time: p.createdAt
+      });
+      totalesPorMetodo[method] = (totalesPorMetodo[method] || 0) + toNum(p.amount);
+    });
+
     // Buscamos los movimientos manuales (Gastos de farmacia, envíos a caja fuerte, etc)
     const movimientos = await prisma.cashMovement.findMany({
       where: {
@@ -57,14 +84,16 @@ export async function getEstadoCaja(branchId: string) {
     const saldoInicial = toNum(cajaDiaria.startBalance);
     const totalEnCajon = saldoInicial + ingresosEfectivo - salidasEfectivo;
 
-    return { 
-      success: true, 
-      cajaAbierta: true, 
+    return {
+      success: true,
+      cajaAbierta: true,
       caja: cajaDiaria,
       ingresosEfectivo,
       salidasEfectivo,
       totalEnCajon,
-      movimientos
+      movimientos,
+      pagosPorMetodo,
+      totalesPorMetodo
     };
   } catch (error) {
     console.error("Error obteniendo caja:", error);

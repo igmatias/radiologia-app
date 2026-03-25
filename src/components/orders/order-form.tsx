@@ -24,7 +24,7 @@ import { StepStudies } from "./step-studies"
 import { StepPayment } from "./step-payment"
 import { OrderListView } from "./order-list-view"
 
-export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger }: any) {
+export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger, onOrderCountChange }: any) {
   const [session, setSession] = useState<{ branchId: string, userName: string } | null>(null)
   const [showSessionModal, setShowSessionModal] = useState(false)
 
@@ -112,7 +112,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const refreshOrders = async () => {
     if (session?.branchId) {
       const res = await getDailyOrders(session.branchId);
-      if (res.success) setDailyOrders(res.data || []);
+      if (res.success) { setDailyOrders(res.data || []); onOrderCountChange?.(res.data?.length || 0); }
     }
   }
 

@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation"
 import {
   UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
-  Send, RefreshCw, Plus, ChevronRight
+  Send, RefreshCw, Plus, ChevronRight, ChevronDown
 } from "lucide-react"
 
 export default function RecepcionClient({ branches, dentists, obrasSociales, procedures, saldos }: any) {
@@ -38,6 +38,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const [saldoSeleccionado, setSaldoSeleccionado] = useState<any>(null)
   const [metodoPago, setMetodoPago] = useState<string>("EFECTIVO")
 
+  const [dailyOrderCount, setDailyOrderCount] = useState(0)
   const [estadoCaja, setEstadoCaja] = useState<any>(null)
   const [cargandoCaja, setCargandoCaja] = useState(true)
   const [movimientoModal, setMovimientoModal] = useState(false)
@@ -47,6 +48,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const [cierreModal, setCierreModal] = useState(false)
   const [totalEfectivoCierre, setTotalEfectivoCierre] = useState(0)
   const [notasCierre, setNotasCierre] = useState("")
+  const [expandedMethod, setExpandedMethod] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -150,7 +152,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-left ${
-        active ? `${activeClass} text-white shadow-md` : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        active ? `${activeClass} text-white shadow-md` : 'text-slate-400 hover:bg-neutral-800 hover:text-white'
       }`}
     >
       {icon}
@@ -167,7 +169,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     <div className="flex h-full min-h-screen">
 
       {/* ===== SIDEBAR IZQUIERDO ===== */}
-      <aside className="w-52 shrink-0 bg-slate-900 flex flex-col sticky top-0 h-screen overflow-hidden hide-on-print">
+      <aside className="w-52 shrink-0 bg-neutral-900 flex flex-col sticky top-0 h-screen overflow-hidden hide-on-print">
 
         {/* Branding */}
         <div className="px-5 py-5 border-b border-slate-800">
@@ -179,7 +181,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
         {/* Navegación */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navBtn("Nueva Orden", <UserPlus size={16}/>, () => { setActiveTab("NUEVA_ORDEN"); setResetTrigger(prev=>prev+1); }, activeTab === "NUEVA_ORDEN", "bg-red-700")}
-          {navBtn("Órdenes", <LayoutGrid size={16}/>, () => setActiveTab("ORDENES"), activeTab === "ORDENES", "bg-slate-700")}
+          {navBtn("Órdenes", <LayoutGrid size={16}/>, () => setActiveTab("ORDENES"), activeTab === "ORDENES", "bg-slate-700", dailyOrderCount || undefined)}
           {navBtn("Caja", <Banknote size={16}/>, () => setActiveTab("CAJA"), activeTab === "CAJA", "bg-emerald-700")}
           {navBtn("Saldos", <Wallet size={16}/>, () => setActiveTab("SALDOS"), activeTab === "SALDOS", "bg-red-800", saldosFiltrados.length || undefined)}
 
@@ -201,7 +203,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
       {(activeTab === "NUEVA_ORDEN" || activeTab === "ORDENES") && (
         <div className="animate-in fade-in duration-500">
-          <OrderForm branches={branches} dentists={dentists} obrasSociales={obrasSociales} procedures={procedures} activeTab={activeTab} setActiveTab={setActiveTab} resetTrigger={resetTrigger} />
+          <OrderForm branches={branches} dentists={dentists} obrasSociales={obrasSociales} procedures={procedures} activeTab={activeTab} setActiveTab={setActiveTab} resetTrigger={resetTrigger} onOrderCountChange={setDailyOrderCount} />
         </div>
       )}
 
@@ -248,70 +250,155 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 </div>
               </Card>
             </div>
-          ) : (
-            <div className="grid grid-cols-12 gap-8 items-start">
-              <div className="col-span-12 lg:col-span-8 space-y-6">
-                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border border-slate-100 p-8">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+          ) : (() => {
+            const methodConfig: Record<string, { label: string; color: string; icon: string }> = {
+              EFECTIVO: { label: 'Efectivo', color: 'emerald', icon: '💵' },
+              DEBITO: { label: 'Débito', color: 'blue', icon: '💳' },
+              TRANSFERENCIA: { label: 'Transferencia', color: 'purple', icon: '🏦' },
+              MERCADOPAGO: { label: 'MercadoPago', color: 'sky', icon: '📱' },
+            };
+            const pagosPorMetodo = estadoCaja.pagosPorMetodo || {};
+            const totalesPorMetodo = estadoCaja.totalesPorMetodo || {};
+            const methodsWithPayments = Object.keys(pagosPorMetodo).filter(m => pagosPorMetodo[m]?.length > 0);
+            return (
+            <div className="grid grid-cols-12 gap-6 items-start">
+              {/* ===== COLUMNA IZQUIERDA ===== */}
+              <div className="col-span-12 lg:col-span-8 space-y-5">
+
+                {/* Header de la caja */}
+                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border border-slate-100 p-7">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 mb-7">
                     <div>
-                      <div className="flex items-center gap-4">
-                        <h2 className="text-4xl font-black tracking-tighter text-slate-900 flex items-center gap-3"><Banknote className="text-emerald-500" size={40}/> Mi Caja Diaria</h2>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => cargarCaja(branchId!)} 
-                          className="rounded-full h-10 w-10 p-0 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all active:scale-90"
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 flex items-center gap-3"><Banknote className="text-emerald-500" size={34}/> Mi Caja</h2>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => cargarCaja(branchId!)}
+                          className="rounded-full h-9 w-9 p-0 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all active:scale-90"
                           title="Actualizar montos"
                         >
-                          <RefreshCw size={20} className={cargandoCaja ? "animate-spin" : ""} />
+                          <RefreshCw size={18} className={cargandoCaja ? "animate-spin" : ""} />
                         </Button>
                       </div>
-                      <div className="flex gap-3 mt-3">
+                      <div className="flex gap-2 mt-2">
                         <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-black uppercase italic">Turno Abierto</span>
                         <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Apertura: {new Date(estadoCaja.caja.createdAt).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}hs</span>
-                        <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase italic animate-pulse">Auto-Update ON</span>
                       </div>
                     </div>
                     <div className="flex gap-3 w-full md:w-auto">
-                       <Button onClick={() => { setNuevoMovimiento({type: "GASTO", amount: "", description: ""}); setMovimientoModal(true); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-900 font-black uppercase text-xs h-14 px-6 rounded-2xl shadow-sm hover:bg-slate-50 transition-colors">Nuevo Gasto</Button>
-                       <Button onClick={() => { setNuevoMovimiento({type: "A_CAJA_FUERTE", amount: "", description: ""}); setMovimientoModal(true); }} className="flex-1 bg-slate-900 text-white font-black uppercase text-xs h-14 px-6 rounded-2xl shadow-lg hover:bg-slate-800 transition-transform active:scale-95">A Bóveda</Button>
+                      <Button onClick={() => { setNuevoMovimiento({type: "GASTO", amount: "", description: ""}); setMovimientoModal(true); }} className="flex-1 bg-white border-2 border-slate-200 text-slate-900 font-black uppercase text-xs h-12 px-5 rounded-2xl shadow-sm hover:bg-slate-50 transition-colors">Nuevo Gasto</Button>
+                      <Button onClick={() => { setNuevoMovimiento({type: "A_CAJA_FUERTE", amount: "", description: ""}); setMovimientoModal(true); }} className="flex-1 bg-slate-900 text-white font-black uppercase text-xs h-12 px-5 rounded-2xl shadow-lg hover:bg-slate-800 transition-transform active:scale-95">Retirar</Button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+                  {/* 4 cards de totales por método */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50">
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-emerald-700 opacity-80">Efectivo</p>
+                      <p className="text-xl font-black text-emerald-700">${(totalesPorMetodo['EFECTIVO'] || 0).toLocaleString('es-AR')}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl border border-blue-100 bg-blue-50">
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-blue-700 opacity-80">Débito</p>
+                      <p className="text-xl font-black text-blue-700">${(totalesPorMetodo['DEBITO'] || 0).toLocaleString('es-AR')}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl border border-purple-100 bg-purple-50">
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-purple-700 opacity-80">Transferencia</p>
+                      <p className="text-xl font-black text-purple-700">${(totalesPorMetodo['TRANSFERENCIA'] || 0).toLocaleString('es-AR')}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl border border-sky-100 bg-sky-50">
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-sky-700 opacity-80">MercadoPago</p>
+                      <p className="text-xl font-black text-sky-700">${(totalesPorMetodo['MERCADOPAGO'] || 0).toLocaleString('es-AR')}</p>
+                    </div>
+                  </div>
+
+                  {/* Resumen efectivo físico */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { t: "Inicio", v: estadoCaja.caja.startBalance, c: "text-slate-500" },
-                      { t: "Cobros", v: estadoCaja.ingresosEfectivo, c: "text-emerald-600" },
+                      { t: "Cobros Efectivo", v: estadoCaja.ingresosEfectivo, c: "text-emerald-600" },
                       { t: "Salidas", v: estadoCaja.salidasEfectivo, c: "text-red-600" },
-                      { t: "En Sistema", v: estadoCaja.totalEnCajon, v_raw: estadoCaja.totalEnCajon, c: "text-slate-900 font-black", bg: "bg-emerald-50 border-emerald-200 shadow-inner" }
+                      { t: "EN CAJÓN", v: estadoCaja.totalEnCajon, c: "text-slate-900 font-black", bg: "bg-emerald-50 border-emerald-200 shadow-inner" }
                     ].map((item, i) => (
-                      <div key={i} className={`p-5 rounded-3xl border border-slate-100 bg-slate-50/50 ${item.bg}`}>
-                        <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{item.t}</p>
-                        <p className={`text-2xl font-bold ${item.c}`}>${item.v.toLocaleString('es-AR')}</p>
+                      <div key={i} className={`p-4 rounded-2xl border border-slate-100 bg-slate-50/50 ${item.bg || ''}`}>
+                        <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{item.t}</p>
+                        <p className={`text-lg font-bold ${item.c}`}>${item.v.toLocaleString('es-AR')}</p>
                       </div>
                     ))}
                   </div>
                 </Card>
 
-                <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-8">
-                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-6 border-b border-slate-50 pb-2">Operaciones de Hoy</h4>
-                  <div className="space-y-3">
-                    {estadoCaja.movimientos.length === 0 ? <p className="text-center py-10 text-slate-300 font-bold uppercase text-xs">Sin movimientos manuales</p> : 
+                {/* Cobros del día - acordeones por método */}
+                {methodsWithPayments.length > 0 && (
+                  <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-7">
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-4 border-b border-slate-50 pb-2">Cobros del Día</h4>
+                    <div className="space-y-2">
+                      {methodsWithPayments.map((method) => {
+                        const cfg = methodConfig[method] || { label: method, color: 'slate', icon: '💰' };
+                        const pagos = pagosPorMetodo[method] || [];
+                        const total = totalesPorMetodo[method] || 0;
+                        const isExpanded = expandedMethod === method;
+                        const colorMap: Record<string, string> = {
+                          emerald: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+                          blue: 'bg-blue-50 border-blue-200 text-blue-800',
+                          purple: 'bg-purple-50 border-purple-200 text-purple-800',
+                          sky: 'bg-sky-50 border-sky-200 text-sky-800',
+                          slate: 'bg-slate-50 border-slate-200 text-slate-800',
+                        };
+                        const rowClass = colorMap[cfg.color] || colorMap.slate;
+                        return (
+                          <div key={method} className={`rounded-2xl border overflow-hidden transition-all ${isExpanded ? rowClass : 'bg-slate-50 border-slate-100'}`}>
+                            <button
+                              onClick={() => setExpandedMethod(isExpanded ? null : method)}
+                              className="w-full flex items-center gap-3 px-5 py-4 text-left"
+                            >
+                              <span className="text-xl">{cfg.icon}</span>
+                              <span className="flex-1 font-black uppercase text-sm tracking-wide">{cfg.label}</span>
+                              <span className="font-black text-base mr-3">${total.toLocaleString('es-AR')}</span>
+                              <span className="text-[10px] font-bold bg-white/60 px-2 py-0.5 rounded-full mr-2">{pagos.length} cobro{pagos.length !== 1 ? 's' : ''}</span>
+                              <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+                            {isExpanded && (
+                              <div className="px-5 pb-4 space-y-2">
+                                {pagos.map((p: any, idx: number) => (
+                                  <div key={idx} className="flex justify-between items-center bg-white/70 px-4 py-2.5 rounded-xl border border-white/80">
+                                    <span className="font-bold text-sm uppercase">{p.patient}</span>
+                                    <div className="flex items-center gap-3">
+                                      <span className="font-black text-base">${p.amount.toLocaleString('es-AR')}</span>
+                                      <span className="text-[10px] font-bold opacity-60">{new Date(p.time).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Movimientos manuales */}
+                <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-7">
+                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-4 border-b border-slate-50 pb-2">Operaciones de Hoy</h4>
+                  <div className="space-y-2">
+                    {estadoCaja.movimientos.length === 0 ? <p className="text-center py-8 text-slate-300 font-bold uppercase text-xs">Sin movimientos manuales</p> :
                       estadoCaja.movimientos.map((m: any) => (
-                        <div key={m.id} className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : m.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                              {m.type === 'A_CAJA_FUERTE' ? <Vault size={20}/> : m.type === 'INGRESO' ? <Plus size={20}/> : <MinusCircle size={20}/>}
+                        <div key={m.id} className="flex justify-between items-center bg-slate-50 px-4 py-3.5 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : m.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                              {m.type === 'A_CAJA_FUERTE' ? <Vault size={17}/> : m.type === 'INGRESO' ? <Plus size={17}/> : <MinusCircle size={17}/>}
                             </div>
                             <div>
-                              <p className="text-lg font-black uppercase text-slate-800 leading-none">{m.description}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{m.type.replace(/_/g, ' ')} • {new Date(m.createdAt).toLocaleTimeString()}</p>
+                              <p className="text-sm font-black uppercase text-slate-800 leading-none">{m.description}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{m.type.replace(/_/g, ' ')} • {new Date(m.createdAt).toLocaleTimeString()}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <p className={`text-2xl font-black ${m.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-600'}`}>
+                          <div className="flex items-center gap-3">
+                            <p className={`text-xl font-black ${m.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-600'}`}>
                               {m.type === 'INGRESO' ? '+' : '-'}${m.amount.toLocaleString('es-AR')}
                             </p>
-                            <button onClick={() => handleBorrarMovimiento(m.id)} className="text-slate-300 hover:text-red-600 transition-colors p-2 opacity-0 group-hover:opacity-100"><Trash2 size={20}/></button>
+                            <button onClick={() => handleBorrarMovimiento(m.id)} className="text-slate-300 hover:text-red-600 transition-colors p-1.5 opacity-0 group-hover:opacity-100"><Trash2 size={17}/></button>
                           </div>
                         </div>
                       ))
@@ -320,6 +407,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 </Card>
               </div>
 
+              {/* ===== COLUMNA DERECHA (arqueo y cierre) ===== */}
               <div className="col-span-12 lg:col-span-4 sticky top-6">
                 <Card className="border-none shadow-xl rounded-[3rem] bg-white border-2 border-slate-100 p-8 space-y-8">
                   <div>
@@ -329,12 +417,12 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                   <div className="space-y-6">
                     <div>
                       <label className="text-xs font-black uppercase text-slate-500 ml-2 mb-2 block">Total Efectivo Contado ($)</label>
-                      <Input 
-                        type="number" 
-                        placeholder="Ej: 45800" 
-                        value={efectivoFisico} 
-                        onChange={e => setEfectivoFisico(e.target.value)} 
-                        className="h-20 rounded-[1.5rem] border-4 border-slate-100 bg-slate-50 text-center font-black text-4xl text-slate-900 focus-visible:border-emerald-500 transition-all shadow-inner" 
+                      <Input
+                        type="number"
+                        placeholder="Ej: 45800"
+                        value={efectivoFisico}
+                        onChange={e => setEfectivoFisico(e.target.value)}
+                        className="h-20 rounded-[1.5rem] border-4 border-slate-100 bg-slate-50 text-center font-black text-4xl text-slate-900 focus-visible:border-emerald-500 transition-all shadow-inner"
                       />
                     </div>
                     {efectivoFisico && (
@@ -348,8 +436,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       </div>
                     )}
                     <div className="pt-6 border-t border-slate-100">
-                      <Button 
-                        onClick={() => { if (!efectivoFisico) return toast.error("Ingresá el monto contado."); setCierreModal(true); }} 
+                      <Button
+                        onClick={() => { if (!efectivoFisico) return toast.error("Ingresá el monto contado."); setCierreModal(true); }}
                         className="w-full h-20 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-base rounded-[1.5rem] shadow-xl shadow-red-500/20 transition-transform active:scale-95"
                       >
                         <Lock size={20} className="mr-3"/> Cierre de Turno
@@ -359,7 +447,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 </Card>
               </div>
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
