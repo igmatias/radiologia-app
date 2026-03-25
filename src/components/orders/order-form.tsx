@@ -362,6 +362,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         });
         setPrintData({ code: orderNumber, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
         toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
+        refreshOrders();
       }
     } catch (e) { toast.error("Error al procesar orden"); }
     setLoading(false)

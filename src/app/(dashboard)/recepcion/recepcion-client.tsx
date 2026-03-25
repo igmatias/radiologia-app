@@ -14,6 +14,7 @@ import {
   registrarMovimientoRecepcion,
   eliminarMovimientoRecepcion,
   cerrarCajaDiaria,
+  registrarArqueoParcial,
 } from "@/actions/caja"
 import { getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -49,6 +50,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const [totalEfectivoCierre, setTotalEfectivoCierre] = useState(0)
   const [notasCierre, setNotasCierre] = useState("")
   const [expandedMethod, setExpandedMethod] = useState<string | null>(null)
+  const [guardandoParcial, setGuardandoParcial] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -158,7 +160,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       {icon}
       <span className="flex-1 uppercase tracking-wide text-xs">{label}</span>
       {badge ? (
-        <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{badge}</span>
+        <span className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full min-w-[26px] text-center leading-none">{badge}</span>
       ) : active ? (
         <ChevronRight size={14} className="opacity-60" />
       ) : null}
@@ -254,6 +256,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
             const methodConfig: Record<string, { label: string; color: string; icon: string }> = {
               EFECTIVO: { label: 'Efectivo', color: 'emerald', icon: '💵' },
               DEBITO: { label: 'Débito', color: 'blue', icon: '💳' },
+              TARJETA_DEBITO: { label: 'Débito', color: 'blue', icon: '💳' },
+              TARJETA_CREDITO: { label: 'Crédito', color: 'violet', icon: '💳' },
               TRANSFERENCIA: { label: 'Transferencia', color: 'purple', icon: '🏦' },
               MERCADOPAGO: { label: 'MercadoPago', color: 'sky', icon: '📱' },
             };
@@ -270,15 +274,13 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 mb-7">
                     <div>
                       <div className="flex items-center gap-3">
-                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 flex items-center gap-3"><Banknote className="text-emerald-500" size={34}/> Mi Caja</h2>
+                        <h2 className="text-3xl font-black tracking-tighter text-slate-900 flex items-center gap-3"><Banknote className="text-emerald-500" size={34}/> Caja</h2>
                         <Button
-                          variant="ghost"
-                          size="sm"
                           onClick={() => cargarCaja(branchId!)}
-                          className="rounded-full h-9 w-9 p-0 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all active:scale-90"
+                          className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-black uppercase text-xs h-10 px-4 rounded-xl gap-2 shadow-none border-0 transition-all active:scale-95"
                           title="Actualizar montos"
                         >
-                          <RefreshCw size={18} className={cargandoCaja ? "animate-spin" : ""} />
+                          <RefreshCw size={15} className={cargandoCaja ? "animate-spin" : ""} /> Actualizar
                         </Button>
                       </div>
                       <div className="flex gap-2 mt-2">
@@ -300,7 +302,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     </div>
                     <div className="p-4 rounded-2xl border border-blue-100 bg-blue-50">
                       <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-blue-700 opacity-80">Débito</p>
-                      <p className="text-xl font-black text-blue-700">${(totalesPorMetodo['DEBITO'] || 0).toLocaleString('es-AR')}</p>
+                      <p className="text-xl font-black text-blue-700">${((totalesPorMetodo['DEBITO'] || 0) + (totalesPorMetodo['TARJETA_DEBITO'] || 0)).toLocaleString('es-AR')}</p>
                     </div>
                     <div className="p-4 rounded-2xl border border-purple-100 bg-purple-50">
                       <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-purple-700 opacity-80">Transferencia</p>
@@ -409,38 +411,68 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
               {/* ===== COLUMNA DERECHA (arqueo y cierre) ===== */}
               <div className="col-span-12 lg:col-span-4 sticky top-6">
-                <Card className="border-none shadow-xl rounded-[3rem] bg-white border-2 border-slate-100 p-8 space-y-8">
-                  <div>
-                    <h3 className="text-xl font-black uppercase italic text-slate-900 flex items-center gap-2 mb-2"><Calculator className="text-emerald-500"/> Arqueo Físico</h3>
-                    <p className="text-xs font-bold text-slate-400 uppercase leading-relaxed">Contá el efectivo real que tenés en el cajón y cargalo aquí debajo.</p>
+                <Card className="border-none shadow-xl rounded-[3rem] bg-white border-2 border-slate-100 overflow-hidden">
+
+                  {/* Header del panel */}
+                  <div className="bg-slate-900 px-7 py-5 flex items-center gap-3">
+                    <Calculator size={20} className="text-emerald-400"/>
+                    <h3 className="text-base font-black uppercase tracking-widest text-white">Arqueo Físico</h3>
                   </div>
-                  <div className="space-y-6">
+
+                  <div className="p-7 space-y-5">
+                    {/* Sistema vs cajón */}
+                    <div className="bg-slate-50 rounded-2xl border border-slate-100 px-5 py-4 flex justify-between items-center">
+                      <span className="text-xs font-black uppercase text-slate-400">Sistema dice</span>
+                      <span className="text-2xl font-black text-slate-800">${estadoCaja.totalEnCajon.toLocaleString('es-AR')}</span>
+                    </div>
+
+                    {/* Input de conteo */}
                     <div>
-                      <label className="text-xs font-black uppercase text-slate-500 ml-2 mb-2 block">Total Efectivo Contado ($)</label>
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1 mb-1.5 block">Tu conteo ($)</label>
                       <Input
                         type="number"
-                        placeholder="Ej: 45800"
+                        placeholder="0"
                         value={efectivoFisico}
                         onChange={e => setEfectivoFisico(e.target.value)}
-                        className="h-20 rounded-[1.5rem] border-4 border-slate-100 bg-slate-50 text-center font-black text-4xl text-slate-900 focus-visible:border-emerald-500 transition-all shadow-inner"
+                        className="h-16 rounded-2xl border-2 border-slate-200 bg-slate-50 text-center font-black text-3xl text-slate-900 focus-visible:border-emerald-500 transition-all"
                       />
                     </div>
-                    {efectivoFisico && (
-                      <div className={`p-6 rounded-[2rem] border-2 text-center shadow-sm animate-in fade-in slide-in-from-top-4 ${parseFloat(efectivoFisico) === estadoCaja.totalEnCajon ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
-                        <p className="text-[10px] font-black uppercase mb-1 opacity-70">Diferencia con Sistema</p>
-                        {(() => {
-                          const dif = parseFloat(efectivoFisico) - estadoCaja.totalEnCajon;
-                          if (dif === 0) return <p className="text-2xl font-black italic">CAJA CUADRADA ✓</p>;
-                          return <p className="text-2xl font-black italic">{dif > 0 ? `SOBRA: $${dif.toLocaleString()}` : `FALTA: $${Math.abs(dif).toLocaleString()}`}</p>;
-                        })()}
-                      </div>
-                    )}
-                    <div className="pt-6 border-t border-slate-100">
+
+                    {/* Diferencia */}
+                    {efectivoFisico && (() => {
+                      const dif = parseFloat(efectivoFisico) - estadoCaja.totalEnCajon;
+                      const ok = dif === 0;
+                      return (
+                        <div className={`px-5 py-4 rounded-2xl border-2 text-center animate-in fade-in slide-in-from-top-2 ${ok ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+                          <p className="text-[10px] font-black uppercase mb-1 opacity-60">{ok ? 'Estado' : 'Diferencia'}</p>
+                          <p className={`text-xl font-black ${ok ? 'text-emerald-700' : 'text-amber-800'}`}>
+                            {ok ? 'CUADRADA ✓' : dif > 0 ? `SOBRA $${Math.abs(dif).toLocaleString('es-AR')}` : `FALTA $${Math.abs(dif).toLocaleString('es-AR')}`}
+                          </p>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Botones */}
+                    <div className="space-y-3 pt-2">
+                      <Button
+                        onClick={async () => {
+                          if (!efectivoFisico) return toast.error("Ingresá el monto contado.");
+                          setGuardandoParcial(true);
+                          const res = await registrarArqueoParcial(branchId!, parseFloat(efectivoFisico), "");
+                          if (res.success) toast.success("Arqueo guardado ✓");
+                          else toast.error(res.error);
+                          setGuardandoParcial(false);
+                        }}
+                        disabled={guardandoParcial || !efectivoFisico}
+                        className="w-full h-12 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 disabled:opacity-40"
+                      >
+                        <Calculator size={15} className="mr-2"/> Guardado Parcial
+                      </Button>
                       <Button
                         onClick={() => { if (!efectivoFisico) return toast.error("Ingresá el monto contado."); setCierreModal(true); }}
-                        className="w-full h-20 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-base rounded-[1.5rem] shadow-xl shadow-red-500/20 transition-transform active:scale-95"
+                        className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-base rounded-2xl shadow-xl shadow-red-500/20 transition-transform active:scale-95"
                       >
-                        <Lock size={20} className="mr-3"/> Cierre de Turno
+                        <Lock size={18} className="mr-2"/> Cierre de Turno
                       </Button>
                     </div>
                   </div>

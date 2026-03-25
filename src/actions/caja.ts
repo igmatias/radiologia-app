@@ -187,6 +187,38 @@ export async function eliminarMovimientoRecepcion(movimientoId: string, branchId
   }
 }
 
+// 5b. GUARDADO PARCIAL (ARQUEO MID-TURNO)
+export async function registrarArqueoParcial(branchId: string, montoContado: number, notas: string) {
+  try {
+    const hoy = new Date();
+    const inicioHoy = startOfDay(hoy);
+    const finHoy = endOfDay(hoy);
+
+    const cajaAbierta = await prisma.dailyRegister.findFirst({
+      where: { branchId, date: { gte: inicioHoy, lte: finHoy }, status: 'ABIERTA' }
+    });
+
+    if (!cajaAbierta) return { success: false, error: "No se encontró una caja abierta." };
+
+    const timestamp = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const lineaNueva = `[Arqueo ${timestamp}] Contado: $${montoContado.toLocaleString('es-AR')}${notas ? ` — ${notas}` : ''}`;
+    const notasActualizadas = cajaAbierta.notes
+      ? `${cajaAbierta.notes}\n${lineaNueva}`
+      : lineaNueva;
+
+    await prisma.dailyRegister.update({
+      where: { id: cajaAbierta.id },
+      data: { notes: notasActualizadas }
+    });
+
+    revalidatePath("/recepcion");
+    return { success: true };
+  } catch (error) {
+    console.error("⛔ ERROR AL GUARDAR ARQUEO PARCIAL:", error);
+    return { success: false, error: "No se pudo guardar el arqueo parcial." };
+  }
+}
+
 // 5. CERRAR LA CAJA (FINAL DEL DÍA)
 export async function cerrarCajaDiaria(branchId: string, userName: string, endBalance: number, notes: string) {
   try {
