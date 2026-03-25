@@ -110,7 +110,7 @@ export default function Home() {
                 Tecnología de Vanguardia al Servicio del Profesional
               </h1>
               <p className="text-lg md:text-xl text-neutral-300 mb-12 font-light border-l-4 border-brand-600 pl-4 max-w-2xl">
-                El resultado completa el análisis de su odontólogo para brindarle una mejor salud dental, respaldado por la mejor tecnología alemana.
+                Potenciamos su criterio clínico con tecnología de alta resolución para un diagnóstico completo.
               </p>
             </div>
 
@@ -192,10 +192,10 @@ export default function Home() {
                   Más de Cuatro Décadas al<br className="hidden md:block" /> Servicio del Diagnóstico Dental
                 </h2>
                 <p className="text-neutral-300 text-base md:text-lg leading-relaxed mb-6 max-w-2xl">
-                  Con <strong className="text-amber-400">más de 40 años</strong> en el rubro, somos una institución de referencia en radiodiagnóstico dentomaxilofacial en el Gran Buenos Aires. Nuestra trayectoria es el resultado de la confianza de miles de profesionales odontológicos que nos eligen día a día, y de un equipo humano comprometido con la precisión diagnóstica y el trato al paciente.
+                  Con <strong className="text-amber-400">más de 40 años</strong> de trayectoria, somos una institución de referencia en radiodiagnóstico dentomaxilofacial en el Gran Buenos Aires. Nuestra historia es el resultado de la confianza de miles de odontólogos que nos eligen día a día, y de un equipo humano comprometido con la precisión diagnóstica y la calidez en el trato al paciente.
                 </p>
                 <p className="text-neutral-400 text-sm md:text-base leading-relaxed max-w-2xl">
-                  A lo largo de estos años hemos incorporado tecnología de última generación, ampliado nuestras sedes y consolidado un modelo de atención ágil, sin turno previo y con entrega inmediata — porque el tiempo del profesional y del paciente siempre fue nuestra prioridad.
+                  A lo largo de estos años, hemos incorporado tecnología de última generación, ampliado nuestras sedes y consolidado un modelo de atención ágil: sin turno previo y con entrega inmediata. Porque entendemos que el tiempo del profesional y del paciente es siempre nuestra prioridad.
                 </p>
               </div>
 
@@ -210,8 +210,9 @@ export default function Home() {
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
               <span className="text-xl md:text-2xl font-black text-neutral-800">OSDE</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">SWISS MEDICAL</span>
-              <span className="text-xl md:text-2xl font-black text-neutral-800">GALENO</span>
-              <span className="text-xl md:text-2xl font-black text-neutral-800">IOMA</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">OSMECON</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">COMISARIOS NAVALES</span>
+              <span className="text-xl md:text-2xl font-black text-neutral-800">OMINT</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">MEDICUS</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">SANCOR SALUD</span>
             </div>
@@ -238,7 +239,7 @@ export default function Home() {
                   <Activity className="text-brand-600" size={24} /> Preparación
                 </h4>
                 <p className="text-sm text-neutral-600">
-                  Los estudios que realizamos no requieren ninguna consideración o preparación especial previa.
+                  Sin preparación previa especial. Se sugiere retirar aros y cadenas antes del estudio para evitar interferencias en la imagen y garantizar la precisión del diagnóstico.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
@@ -246,7 +247,7 @@ export default function Home() {
                   <FileText className="text-brand-600" size={24} /> Entrega
                 </h4>
                 <p className="text-sm text-neutral-600">
-                  Se entregan en el momento, salvo las Tomografías en 3D y los trazados Cefalométricos que demoran 48 horas.
+                  Inmediata en la mayoría de nuestros estudios. Las tomografías 3D y trazados cefalométricos requieren un tiempo de procesamiento adicional para garantizar la máxima precisión.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
@@ -331,7 +332,7 @@ export default function Home() {
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Intraorales</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Estudios Oclusales, Palatales y Seriadas de 14 películas. Resolución superior para un diagnóstico dental minucioso.</p>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Estudios periapicales, bite-wing y seriadas de 14 películas. Resolución superior para un diagnóstico minucioso de cada pieza dental.</p>
                 </div>
               </div>
 
@@ -346,7 +347,7 @@ export default function Home() {
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Extraorales</h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">Radiografías Panorámicas de campo completo, Telerradiografías y estudios específicos de ATM (Articulación Temporomandibular).</p>
+                  <p className="text-sm text-neutral-600 leading-relaxed">Panorámicas, Telerradiografías y estudios de ATM. Calidad de imagen superior para el análisis completo de la salud bucomaxilofacial.</p>
                 </div>
               </div>
 
@@ -392,8 +393,8 @@ export default function Home() {
             </h2>
             <div className="space-y-6">
               <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
-                <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Necesito llevar la orden médica impresa?</h4>
-                <p className="text-sm text-neutral-600">Aceptamos tanto órdenes impresas como órdenes médicas digitales (en formato PDF o foto clara) enviadas por WhatsApp al momento de presentarse en la recepción.</p>
+                <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Es necesario traer la orden impresa?</h4>
+                <p className="text-sm text-neutral-600">Aceptamos tanto órdenes físicas como digitales en formato PDF. Puede enviarla por WhatsApp de forma anticipada o al momento de presentarse en nuestra recepción para una gestión más ágil.</p>
               </div>
               <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
                 <h4 className="font-bold text-neutral-800 text-lg mb-2">¿Atienden urgencias?</h4>
@@ -412,9 +413,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/BA2C66/9e2457?text=+')] opacity-20 bg-cover mix-blend-multiply"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="text-white text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">¿Odontólogo Derivante?</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">Recursos para el Profesional</h2>
               <p className="text-brand-100 text-sm md:text-base max-w-xl">
-                Si se quedó sin talonarios físicos, puede descargar nuestra orden de derivación oficial en formato PDF, lista para imprimir y entregar a sus pacientes.
+                Ponemos a su disposición nuestra orden de derivación oficial en formato digital, diseñada para una indicación clara y precisa de cada estudio. Puede descargarla aquí para su impresión o uso digital.
               </p>
             </div>
             <a 
