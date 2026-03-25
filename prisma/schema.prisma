@@ -259,6 +259,7 @@ model Order {
   attendedAt      DateTime?
   completedAt     DateTime?
   deliveredAt     DateTime?
+  deliveryMethod  String?        // WHATSAPP | EMAIL | FÍSICO | QR
 
   totalAmount     Decimal        @default(0)
   patientAmount   Decimal        @default(0)

@@ -67,6 +67,7 @@ export async function markAsDelivered(orderId: string, method: string) {
       data: {
         status: "ENTREGADA",
         deliveredAt: new Date(),
+        deliveryMethod: method,
         notes: `${existingNotes}Entregado vía: ${method}`
       }
     });

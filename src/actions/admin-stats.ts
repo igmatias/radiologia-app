@@ -100,6 +100,31 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       creacionAEntrega:  { avg: avg(t3), n: t3.length },
     };
 
+    // F. MÉTODOS DE ENTREGA
+    const ordenesConMetodo = await prisma.order.findMany({
+      where: {
+        deliveredAt: { not: null },
+        createdAt: { gte: inicio, lte: fin },
+        status: { not: 'ANULADA' },
+        ...branchQuery
+      },
+      select: { deliveryMethod: true }
+    });
+
+    const metodoConteo: Record<string, number> = {};
+    ordenesConMetodo.forEach(o => {
+      const m = o.deliveryMethod || 'OTRO';
+      metodoConteo[m] = (metodoConteo[m] || 0) + 1;
+    });
+    const totalEntregadas = ordenesConMetodo.length;
+    const metodosEntrega = Object.entries(metodoConteo)
+      .map(([metodo, cantidad]) => ({
+        metodo,
+        cantidad,
+        porcentaje: totalEntregadas > 0 ? Math.round((cantidad / totalEntregadas) * 100) : 0
+      }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+
     return {
       success: true,
       data: {
@@ -110,7 +135,9 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
         movimientos,
         cajasDiarias,
         bovedas,
-        entregaStats
+        entregaStats,
+        metodosEntrega,
+        totalEntregadas
       }
     };
   } catch (error) {

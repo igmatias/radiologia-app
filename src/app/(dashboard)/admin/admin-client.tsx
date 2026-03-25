@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
   Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
-  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, LogOut
+  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, LogOut,
+  Send, Printer, Smartphone, Mail, PackageCheck
 } from "lucide-react"
 import { logoutUser } from "@/actions/auth"
 import { useRouter } from "next/navigation"
@@ -310,6 +311,48 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* MÉTODOS DE ENTREGA */}
+              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-emerald-600">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Send className="text-emerald-600"/> Métodos de Entrega</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
+                    {data.totalEntregadas > 0 ? `${data.totalEntregadas} estudios entregados en el período` : 'No hay entregas en este período'}
+                  </p>
+                  {data.metodosEntrega.length === 0 ? (
+                    <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">Sin datos</p>
+                  ) : (() => {
+                    const iconMap: Record<string, any> = {
+                      WHATSAPP:  { icon: <Smartphone size={16}/>, color: 'bg-emerald-100 text-emerald-700', bar: 'bg-emerald-500', label: 'WhatsApp' },
+                      EMAIL:     { icon: <Mail size={16}/>,       color: 'bg-blue-100 text-blue-700',    bar: 'bg-blue-500',    label: 'Email' },
+                      'FÍSICO':  { icon: <PackageCheck size={16}/>, color: 'bg-slate-100 text-slate-700', bar: 'bg-slate-700',  label: 'Físico / En mano' },
+                      QR:        { icon: <Printer size={16}/>,    color: 'bg-amber-100 text-amber-700',  bar: 'bg-amber-500',   label: 'Ticket / QR' },
+                    };
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {data.metodosEntrega.map((m: any) => {
+                          const cfg = iconMap[m.metodo] || { icon: <Send size={16}/>, color: 'bg-slate-100 text-slate-700', bar: 'bg-slate-400', label: m.metodo };
+                          return (
+                            <div key={m.metodo} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${cfg.color}`}>{cfg.icon}</span>
+                                  <span className="text-sm font-black uppercase text-slate-700">{cfg.label}</span>
+                                </div>
+                                <span className="text-2xl font-black italic text-slate-900">{m.cantidad}</span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div className={`${cfg.bar} h-2 rounded-full transition-all duration-700`} style={{ width: `${m.porcentaje}%` }}/>
+                              </div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5 text-right">{m.porcentaje}% del total</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
             </div>
           )}
 
