@@ -95,15 +95,15 @@ export default function AdminClient({ branches }: { branches: any[] }) {
   if (!isMounted) return null; 
 
   return (
-    <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
-      
+    <div className="p-3 sm:p-6 md:p-8 space-y-6 md:space-y-8 bg-slate-50 min-h-screen">
+
       {/* 1. HEADER Y FILTROS GLOBALES */}
-      <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
+      <div className="bg-white p-4 sm:p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-200">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 md:gap-6">
           <div>
             <p className="text-xs font-black uppercase text-emerald-600 tracking-[0.3em] mb-1">Torre de Control</p>
-            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-3">
-              <BarChart3 className="text-slate-900" size={32}/> Dashboard Manager
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2 md:gap-3">
+              <BarChart3 className="text-slate-900 shrink-0" size={28}/> Dashboard Manager
             </h1>
           </div>
           <button
@@ -113,22 +113,22 @@ export default function AdminClient({ branches }: { branches: any[] }) {
             <LogOut size={15}/> Salir
           </button>
           
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full xl:w-auto">
             <button
               onClick={async () => { await logoutUser(); router.push("/login") }}
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all h-12"
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all h-10 md:h-12"
             >
               <LogOut size={15}/> Cerrar Sesión
             </button>
-            <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
-              <span className="text-[10px] font-black uppercase text-slate-500 ml-3 mr-1"><CalendarIcon size={14}/></span>
-              <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-12 border-none bg-white font-bold rounded-xl shadow-sm"/>
-              <span className="text-xs font-bold text-slate-400">al</span>
-              <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-12 border-none bg-white font-bold rounded-xl shadow-sm"/>
+            <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-1 sm:gap-2 border border-slate-200 flex-1 xl:flex-none">
+              <CalendarIcon size={14} className="text-slate-500 ml-1 sm:ml-2 shrink-0"/>
+              <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-10 md:h-12 border-none bg-white font-bold rounded-xl shadow-sm text-xs sm:text-sm min-w-0 w-[130px] sm:w-auto"/>
+              <span className="text-xs font-bold text-slate-400 shrink-0">al</span>
+              <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-10 md:h-12 border-none bg-white font-bold rounded-xl shadow-sm text-xs sm:text-sm min-w-0 w-[130px] sm:w-auto"/>
             </div>
-            
+
             <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
-              <SelectTrigger className="h-14 w-[200px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg">
+              <SelectTrigger className="h-10 md:h-14 w-full sm:w-[200px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg">
                 {/* 🔥 SOLUCIÓN 2: Cambiamos <div> por <span> para no romper el HTML */}
                 <span className="flex items-center gap-2"><Filter size={14}/> <SelectValue placeholder="Todas las sedes" /></span>
               </SelectTrigger>

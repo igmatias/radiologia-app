@@ -196,14 +196,14 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
       {/* ----------------- CABECERA DEL PORTAL ----------------- */}
       
-      <div className="bg-neutral-900 relative overflow-hidden pb-12 pt-8">
+      <div className="bg-neutral-900 relative overflow-hidden pb-8 sm:pb-12 pt-5 sm:pt-8">
         <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/1a1a1a/000000?text=+')] opacity-40 bg-cover mix-blend-multiply"></div>
         <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600"></div>
         
         <div className="max-w-6xl mx-auto px-4 relative z-10">
           
           {/* Fila 1: Logo, Descarga Orden y Salir */}
-          <div className="flex justify-between items-center mb-8 border-b border-neutral-800 pb-6">
+          <div className="flex justify-between items-center mb-5 sm:mb-8 border-b border-neutral-800 pb-4 sm:pb-6">
             <Link href="/" className="flex items-center gap-3 group">
                <img src="/logo.png?v=2" alt="I-R Dental" className="h-8 md:h-10 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
                <div className="h-6 w-px bg-neutral-700 hidden sm:block"></div>
@@ -227,13 +227,13 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           {/* Fila 2: Perfil del Odontólogo */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5 w-full md:w-auto">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 border-2 border-brand-500/50 shadow-lg shadow-brand-900/40 flex items-center justify-center shrink-0">
-                <span className="text-2xl font-black text-white uppercase tracking-tighter">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 border-2 border-brand-500/50 shadow-lg shadow-brand-900/40 flex items-center justify-center shrink-0">
+                <span className="text-lg sm:text-2xl font-black text-white uppercase tracking-tighter">
                   {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
                 </span>
               </div>
-              <div className="w-full">
-                <h1 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
+              <div className="w-full min-w-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
                   Dr. {dentist.lastName}, {dentist.firstName}
                 </h1>
                 <div className="flex flex-wrap gap-3 mt-2">
@@ -312,18 +312,18 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           ) : (
             filteredOrders.map((order: any) => (
               <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-xl overflow-hidden bg-white border-l-[6px] border-l-brand-600">
-                <CardContent className="p-6 md:p-8">
+                <CardContent className="p-4 sm:p-6 md:p-8">
                   
                   {/* Cabecera del Paciente */}
-                  <div className="flex flex-col md:flex-row justify-between gap-4 border-b border-neutral-100 pb-5 mb-5">
-                    <div>
+                  <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-neutral-100 pb-4 mb-4">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Paciente</span>
                         <span className="bg-neutral-100 text-neutral-600 text-[10px] font-bold px-2 py-0.5 rounded border border-neutral-200 flex items-center gap-1">
                           <Hash size={10}/> Orden {order.code || 'S/D'}
                         </span>
                       </div>
-                      <h3 className="text-2xl font-bold uppercase text-neutral-900 leading-none">
+                      <h3 className="text-xl sm:text-2xl font-bold uppercase text-neutral-900 leading-none truncate">
                         {order.patient.lastName}, <span className="font-medium">{order.patient.firstName}</span>
                       </h3>
                       <p className="text-sm font-medium text-neutral-500 mt-2 flex items-center gap-1.5">

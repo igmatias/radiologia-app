@@ -81,57 +81,57 @@ export default function PortalMedicoLogin() {
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')] opacity-10 bg-cover bg-center mix-blend-luminosity z-0"></div>
       <div className="absolute top-0 left-0 w-full h-[120%] bg-gradient-to-b from-brand-600/20 to-transparent skew-y-6 transform -translate-y-1/2 z-0 pointer-events-none"></div>
 
-      <div className="w-full max-w-md z-10 space-y-6">
-        
+      <div className="w-full max-w-md z-10 space-y-3 sm:space-y-5">
+
         {/* Logo / Cabecera */}
-        <div className="text-center space-y-4 mb-8">
-          <div className="mx-auto w-52 h-auto flex items-center justify-center mb-6">
+        <div className="text-center space-y-2 mb-3 sm:mb-6">
+          <div className="mx-auto w-28 sm:w-44 h-auto flex items-center justify-center mb-3 sm:mb-5">
             <img
               src="/logo.png?v=2"
               alt="I-R Dental Logo"
-              className="w-full h-auto drop-shadow-[0_0_20px_rgba(220,38,38,0.4)]"
+              className="w-full h-auto drop-shadow-[0_0_20px_rgba(186,44,102,0.4)]"
             />
           </div>
-          <h1 className="text-2xl font-bold uppercase text-white tracking-widest">Portal Profesional</h1>
+          <h1 className="text-lg sm:text-2xl font-bold uppercase text-white tracking-widest">Portal Profesional</h1>
           <p className="text-xs font-semibold text-neutral-400">Acceso exclusivo para Odontólogos Derivantes</p>
         </div>
 
         {/* Tarjeta dinámica (Cambia según el paso) */}
         <Card className="border-t-4 border-t-brand-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
-          <CardContent className="p-8">
+          <CardContent className="p-5 sm:p-8">
             
             {step === "LOGIN" ? (
               // --- FORMULARIO DE INGRESO ---
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="mb-8">
-                  <h2 className="text-xl font-bold uppercase text-neutral-900">Iniciar Sesión</h2>
+                <div className="mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold uppercase text-neutral-900">Iniciar Sesión</h2>
                   <div className="w-12 h-1 bg-brand-600 mt-2 rounded-full"></div>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Matrícula (Prov. o Nac.)</label>
-                    <Input 
-                      placeholder="Ej: 12345" 
+                    <Input
+                      placeholder="Ej: 12345"
                       value={matricula}
                       onChange={(e) => setMatricula(e.target.value)}
-                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-lg font-medium"
+                      className="h-11 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-base font-medium"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Contraseña</label>
-                    <Input 
-                      type="password" 
-                      placeholder="Primer ingreso: tu apellido" 
+                    <Input
+                      type="password"
+                      placeholder="Primer ingreso: tu apellido"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-lg font-medium placeholder:text-sm"
+                      className="h-11 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-base font-medium placeholder:text-sm"
                     />
                   </div>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={loading}
-                    className="w-full h-12 mt-6 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
+                    className="w-full h-11 mt-3 sm:mt-5 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
                   >
                     {loading ? "Verificando..." : <>Ingresar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
                   </Button>
@@ -176,8 +176,8 @@ export default function PortalMedicoLogin() {
           </CardContent>
         </Card>
         
-        <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-8 flex items-center justify-center gap-1.5">
-          <ShieldCheck size={16} className="text-brand-500"/> 
+        <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-3 sm:mt-6 flex items-center justify-center gap-1.5">
+          <ShieldCheck size={16} className="text-brand-500"/>
           Plataforma Segura
         </p>
 

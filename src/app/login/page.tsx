@@ -59,25 +59,25 @@ export default function LoginPage() {
         ))}
       </div>
 
-      <div className="w-full max-w-md z-10 space-y-6">
+      <div className="w-full max-w-md z-10 space-y-3 sm:space-y-5">
 
         {/* Logo */}
-        <div className="text-center space-y-3 mb-8">
-          <div className="mx-auto w-32 h-auto flex items-center justify-center mb-6">
+        <div className="text-center space-y-2 mb-3 sm:mb-6">
+          <div className="mx-auto w-24 sm:w-32 h-auto flex items-center justify-center mb-2 sm:mb-4">
             <img
               src="/logo.png?v=1"
               alt="I-R Dental Logo"
               className="w-full h-auto"
             />
           </div>
-          <h1 className="text-2xl font-bold uppercase text-white tracking-widest">Acceso al Sistema</h1>
+          <h1 className="text-xl sm:text-2xl font-bold uppercase text-white tracking-widest">Acceso al Sistema</h1>
           <p className="text-xs font-semibold text-neutral-400">Panel interno — Solo personal autorizado</p>
         </div>
 
         {/* Card */}
         <Card className="border-t-4 border-t-brand-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
-          <CardContent className="p-8">
-            <div className="mb-8">
+          <CardContent className="p-5 sm:p-8">
+            <div className="mb-5 sm:mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center shrink-0">
                   <Lock size={20} />
@@ -121,7 +121,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 mt-6 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
+                className="w-full h-11 mt-3 sm:mt-5 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
               >
                 {loading ? "Verificando..." : <> Ingresar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
               </Button>
@@ -129,7 +129,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-8 flex items-center justify-center gap-1.5">
+        <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-3 sm:mt-6 flex items-center justify-center gap-1.5">
           <ShieldCheck size={16} className="text-brand-500" />
           Plataforma Segura
         </p>
