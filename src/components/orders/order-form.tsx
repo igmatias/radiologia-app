@@ -590,43 +590,43 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       })()}
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
-        <DialogContent className="sm:max-w-[780px] bg-slate-50 rounded-[2rem] border-t-8 border-slate-900 p-0 max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-[780px] bg-neutral-50 rounded-[2rem] border-t-8 border-brand-700 p-0 max-h-[90vh] overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-5 [&>button]:right-6 [&>button]:opacity-100 [&>button:hover]:opacity-80">
 
           {/* CABECERA FIJA */}
-          <div className="bg-slate-900 text-white px-8 py-6 shrink-0">
+          <div className="bg-brand-700 text-white px-8 py-6 shrink-0">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Historia Clínica</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-200 mb-1">Historia Clínica</p>
                 <h2 className="text-2xl font-black italic uppercase tracking-tight">
                   {form.watch("patient.lastName")}, {form.watch("patient.firstName")}
                 </h2>
                 <div className="flex flex-wrap gap-3 mt-2">
-                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1">
-                    <span className="text-slate-500">DNI</span> {form.watch("patient.dni")}
+                  <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
+                    <span className="text-brand-300">DNI</span> {form.watch("patient.dni")}
                   </span>
                   {form.watch("patient.birthDate") && (
-                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1">
-                      <span className="text-slate-500">Edad</span>{" "}
+                    <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
+                      <span className="text-brand-300">Edad</span>{" "}
                       {(() => { const b = new Date(form.watch("patient.birthDate")); const hoy = new Date(); let age = hoy.getFullYear() - b.getFullYear(); if (hoy < new Date(hoy.getFullYear(), b.getMonth(), b.getDate())) age--; return `${age} años`; })()}
                     </span>
                   )}
                   {form.watch("patient.phone") && (
-                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1">
-                      <span className="text-slate-500">Tel</span> {form.watch("patient.phone")}
+                    <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
+                      <span className="text-brand-300">Tel</span> {form.watch("patient.phone")}
                     </span>
                   )}
                 </div>
               </div>
               {/* Resumen rápido */}
-              <div className="text-right shrink-0">
+              <div className="text-right shrink-0 pr-8">
                 <p className="text-3xl font-black italic text-white">{patientHistory.length}</p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Visitas totales</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-brand-200">Visitas totales</p>
                 {patientHistory.length > 0 && (
                   <>
-                    <p className="text-sm font-black text-emerald-400 mt-1">
+                    <p className="text-sm font-black text-white mt-1">
                       ${patientHistory.reduce((acc: number, o: any) => acc + (Number(o.patientAmount) || 0), 0).toLocaleString('es-AR')}
                     </p>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total abonado</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-brand-200">Total abonado</p>
                   </>
                 )}
               </div>
@@ -636,28 +636,28 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           {/* LISTADO SCROLLEABLE */}
           <div className="overflow-y-auto flex-1 p-6 space-y-4">
             {patientHistory.length === 0 ? (
-              <div className="text-center py-16 text-slate-400">
+              <div className="text-center py-16 text-neutral-400">
                 <History size={40} className="mx-auto mb-3 opacity-30" />
                 <p className="font-black uppercase text-sm">Sin visitas anteriores</p>
               </div>
             ) : patientHistory.map((order: any, idx: number) => {
               const paymentMethods: Record<string, string> = { EFECTIVO: 'Efectivo', DEBITO: 'Débito', TARJETA_DEBITO: 'Débito', TARJETA_CREDITO: 'Crédito', MERCADOPAGO: 'MercadoPago', TRANSFERENCIA: 'Transferencia', OBRA_SOCIAL: 'O.S.' }
-              const statusColors: Record<string, string> = { PENDIENTE: 'bg-amber-100 text-amber-700', PROCESANDO: 'bg-blue-100 text-blue-700', LISTO_PARA_ENTREGA: 'bg-emerald-100 text-emerald-700', ENTREGADO: 'bg-slate-100 text-slate-600', CANCELADO: 'bg-brand-100 text-brand-700' }
+              const statusColors: Record<string, string> = { PENDIENTE: 'bg-amber-100 text-amber-700', PROCESANDO: 'bg-blue-100 text-blue-700', LISTO_PARA_ENTREGA: 'bg-emerald-100 text-emerald-700', ENTREGADO: 'bg-brand-50 text-brand-700', CANCELADO: 'bg-neutral-100 text-neutral-500' }
               const statusLabels: Record<string, string> = { PENDIENTE: 'Pendiente', PROCESANDO: 'En proceso', LISTO_PARA_ENTREGA: 'Listo', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' }
               return (
-                <div key={order.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div key={order.id} className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
 
                   {/* Fila superior: código, fecha, sede, estado */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 bg-slate-800 text-white">
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 bg-brand-600 text-white">
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">#{idx + 1}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-brand-200">#{idx + 1}</span>
                       <span className="text-sm font-black">{order.code || 'S/C'}</span>
-                      <span className="text-slate-500 text-xs">·</span>
-                      <span className="text-xs text-slate-300 font-bold">{new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      <span className="text-brand-300 text-xs">·</span>
+                      <span className="text-xs text-brand-100 font-bold">{new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase bg-slate-700 px-2 py-0.5 rounded text-slate-300">{order.branch?.name}</span>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${statusColors[order.status] || 'bg-slate-100 text-slate-600'}`}>{statusLabels[order.status] || order.status}</span>
+                      <span className="text-[10px] font-black uppercase bg-brand-800 px-2 py-0.5 rounded text-brand-100">{order.branch?.name}</span>
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${statusColors[order.status] || 'bg-neutral-100 text-neutral-600'}`}>{statusLabels[order.status] || order.status}</span>
                     </div>
                   </div>
 
@@ -665,30 +665,30 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
                     {/* Odontólogo derivante */}
                     <div className="flex items-center gap-2">
-                      <Stethoscope size={14} className="text-slate-400 shrink-0" />
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Derivó:</span>
-                      <span className="text-sm font-bold text-slate-700 uppercase">{order.dentist ? `${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular / Sin derivación'}</span>
+                      <Stethoscope size={14} className="text-brand-400 shrink-0" />
+                      <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Derivó:</span>
+                      <span className="text-sm font-bold text-neutral-700 uppercase">{order.dentist ? `${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular / Sin derivación'}</span>
                     </div>
 
                     {/* Prestaciones realizadas */}
                     {order.items?.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-2">Prestaciones realizadas</p>
+                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-2">Prestaciones realizadas</p>
                         <div className="space-y-1.5">
                           {order.items.map((item: any, i: number) => {
                             const teeth = item.metadata?.teeth || item.teeth || []
                             const locs = item.metadata?.locations || item.locations || []
                             return (
-                              <div key={i} className="flex flex-wrap items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span className="text-xs font-bold text-slate-800 uppercase flex-1">{item.procedure?.name}</span>
+                              <div key={i} className="flex flex-wrap items-center gap-2 bg-neutral-50 px-3 py-2 rounded-lg border border-neutral-100">
+                                <span className="text-xs font-bold text-neutral-800 uppercase flex-1">{item.procedure?.name}</span>
                                 {teeth.length > 0 && (
                                   <div className="flex gap-1 flex-wrap">
-                                    {teeth.map((t: any) => <span key={t} className="bg-slate-800 text-white text-[10px] font-black px-1.5 py-0.5 rounded">{t}</span>)}
+                                    {teeth.map((t: any) => <span key={t} className="bg-brand-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded">{t}</span>)}
                                   </div>
                                 )}
                                 {locs.length > 0 && (
                                   <div className="flex gap-1 flex-wrap">
-                                    {locs.map((l: string) => <span key={l} className="bg-slate-200 text-slate-700 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">{l}</span>)}
+                                    {locs.map((l: string) => <span key={l} className="bg-brand-50 text-brand-700 text-[10px] font-black px-1.5 py-0.5 rounded uppercase border border-brand-200">{l}</span>)}
                                   </div>
                                 )}
                               </div>
@@ -699,7 +699,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     )}
 
                     {/* Pagos */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-neutral-100">
                       <div className="flex flex-wrap gap-2">
                         {order.payments?.map((p: any, i: number) => (
                           <span key={i} className="text-[10px] font-black uppercase bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-1 rounded-lg">
@@ -708,7 +708,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         ))}
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] font-black uppercase text-slate-400">Total abonado</p>
+                        <p className="text-[9px] font-black uppercase text-neutral-400">Total abonado</p>
                         <p className="text-lg font-black text-emerald-600">${Number(order.patientAmount || order.totalAmount || 0).toLocaleString('es-AR')}</p>
                       </div>
                     </div>
