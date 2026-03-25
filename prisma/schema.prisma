@@ -196,8 +196,9 @@ model Procedure {
   name          String
   category      String?
   
-  requiresTooth Boolean     @default(false)
-  options       String[]    @default([])
+  requiresTooth       Boolean     @default(false)
+  options             String[]    @default([])
+  extraPhotoPrice     Float       @default(0)
 
   prices        Price[]
   orderItems    OrderItem[]

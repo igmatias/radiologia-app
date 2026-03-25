@@ -296,6 +296,23 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                               {(item.metadata?.teeth || item.teeth).map((tooth: any) => <span key={tooth} className="bg-brand-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{tooth}</span>)}
                             </div>
                           )}
+                          {item.metadata?.photos?.length > 0 && (
+                            <div className="mt-2 space-y-1.5">
+                              <span className="text-[9px] font-black text-slate-400 uppercase block">
+                                {item.metadata.photos.length} foto{item.metadata.photos.length !== 1 ? 's' : ''}
+                                {item.metadata.photos.length > (item.metadata.basePhotoCount ?? 5) && (
+                                  <span className="text-brand-400 ml-1">· {item.metadata.photos.length - (item.metadata.basePhotoCount ?? 5)} adicional{item.metadata.photos.length - (item.metadata.basePhotoCount ?? 5) > 1 ? 'es' : ''}</span>
+                                )}
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {item.metadata.photos.map((photo: string, pi: number) => (
+                                  <span key={pi} className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${pi >= (item.metadata.basePhotoCount ?? 5) ? 'bg-brand-700/50 text-brand-200 border border-brand-600/50' : 'bg-slate-700 text-slate-300'}`}>
+                                    {photo}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                    </div>

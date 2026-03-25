@@ -18,7 +18,7 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
   const [isLoading, setIsLoading] = useState(false)
   
   // Estado para el formulario
-  const [formData, setFormData] = useState({ id: "", code: "", name: "", category: "", requiresTooth: false, optionsString: "" })
+  const [formData, setFormData] = useState({ id: "", code: "", name: "", category: "", requiresTooth: false, optionsString: "", extraPhotoPrice: 0 })
 
   const filteredProcedures = useMemo(() => {
     const search = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -32,13 +32,14 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
 
   const openModal = (procedure: any = null) => {
     if (procedure) {
-      setFormData({ 
+      setFormData({
         id: procedure.id, code: procedure.code, name: procedure.name, category: procedure.category || "",
         requiresTooth: procedure.requiresTooth || false,
-        optionsString: procedure.options ? procedure.options.join(", ") : ""
+        optionsString: procedure.options ? procedure.options.join(", ") : "",
+        extraPhotoPrice: procedure.extraPhotoPrice || 0
       });
     } else {
-      setFormData({ id: "", code: "", name: "", category: "", requiresTooth: false, optionsString: "" });
+      setFormData({ id: "", code: "", name: "", category: "", requiresTooth: false, optionsString: "", extraPhotoPrice: 0 });
     }
     setIsModalOpen(true);
   }
@@ -59,7 +60,8 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
       name: formData.name.toUpperCase(),
       category: formData.category.toUpperCase(),
       requiresTooth: formData.requiresTooth,
-      options: optionsArray
+      options: optionsArray,
+      extraPhotoPrice: formData.extraPhotoPrice || 0
     });
 
     if (res.success) {
@@ -111,7 +113,8 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
                         <div className="flex flex-wrap gap-1">
                           {proc.requiresTooth && <span className="text-[9px] font-black bg-brand-100 text-brand-700 px-2 py-0.5 rounded uppercase border border-brand-200 inline-flex items-center gap-1"><ScanLine size={10} /> Odontograma</span>}
                           {proc.options && proc.options.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase border border-blue-200 inline-flex items-center gap-1"><Tag size={9} /> {proc.options.length} Opciones</span>}
-                          {!proc.requiresTooth && (!proc.options || proc.options.length === 0) && <span className="text-[10px] font-bold text-slate-300 uppercase italic">Directo</span>}
+                          {proc.extraPhotoPrice > 0 && <span className="text-[9px] font-black bg-pink-100 text-pink-700 px-2 py-0.5 rounded uppercase border border-pink-200 inline-flex items-center gap-1">📷 +${Number(proc.extraPhotoPrice).toLocaleString('es-AR')}/foto</span>}
+                          {!proc.requiresTooth && (!proc.options || proc.options.length === 0) && !(proc.extraPhotoPrice > 0) && <span className="text-[10px] font-bold text-slate-300 uppercase italic">Directo</span>}
                         </div>
                       </td>
                       <td className="p-4 pr-6 text-right opacity-30 group-hover:opacity-100 transition-opacity">
@@ -151,6 +154,21 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
                 <Label className="text-[10px] font-black uppercase text-slate-400">Opciones Múltiples (Separar con comas)</Label>
                 <textarea value={formData.optionsString} onChange={e => setFormData({...formData, optionsString: e.target.value.toUpperCase()})} placeholder="Ej: RICKETTS, STEINER, BJORK" className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700 resize-none h-16 shadow-inner" disabled={formData.requiresTooth}/>
                 <p className="text-[9px] text-slate-400 font-bold italic leading-tight">Uso: Para Trazados (Ricketts, Steiner) o Posiciones (Frente, Perfil). Si activás Odontograma, esto se ignora.</p>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-200">
+                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1.5">
+                  <span className="bg-brand-100 text-brand-700 px-1.5 py-0.5 rounded text-[9px]">FOTO</span>
+                  Precio por Foto Adicional ($)
+                </Label>
+                <Input
+                  type="number" min="0" step="1"
+                  value={formData.extraPhotoPrice}
+                  onChange={e => setFormData({...formData, extraPhotoPrice: parseFloat(e.target.value) || 0})}
+                  placeholder="0"
+                  className="h-10 font-black border-2 bg-slate-50 w-40"
+                />
+                <p className="text-[9px] text-slate-400 font-bold italic leading-tight">Se carga automáticamente al agregar una Fotografía Clínica. Dejar en 0 si no aplica.</p>
               </div>
             </div>
 
