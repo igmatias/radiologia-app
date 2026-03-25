@@ -296,9 +296,10 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
     // Si el estado es PARA_REPETIR lo guardamos, sino usamos el normal
     await prisma.order.update({
       where: { id: orderId },
-      data: { 
+      data: {
         status: newStatus as OrderStatus,
-        completedAt: newStatus === 'LISTO_PARA_ENTREGA' ? new Date() : undefined
+        attendedAt:  newStatus === 'PROCESANDO'          ? new Date() : undefined,
+        completedAt: newStatus === 'LISTO_PARA_ENTREGA'  ? new Date() : undefined,
       }
     });
     revalidatePath("/tecnico");

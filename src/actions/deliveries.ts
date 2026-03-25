@@ -64,9 +64,10 @@ export async function markAsDelivered(orderId: string, method: string) {
     // Actualizamos el estado a ENTREGADA
     await prisma.order.update({
       where: { id: orderId },
-      data: { 
+      data: {
         status: "ENTREGADA",
-        notes: `${existingNotes}Entregado vía: ${method}` 
+        deliveredAt: new Date(),
+        notes: `${existingNotes}Entregado vía: ${method}`
       }
     });
     
