@@ -270,7 +270,13 @@ export async function getPatientHistory(dni: string) {
   try {
     return await prisma.order.findMany({
       where: { patient: { dni } },
-      include: { branch: true, dentist: true, items: { include: { procedure: true } } },
+      include: {
+        branch: true,
+        dentist: true,
+        items: { include: { procedure: true } },
+        payments: true,
+        insurancePlan: { include: { insuranceProvider: true } }
+      },
       orderBy: { createdAt: 'desc' }
     })
   } catch (error) { return [] }
