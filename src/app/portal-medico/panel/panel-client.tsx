@@ -262,35 +262,34 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
       
       <div className="max-w-6xl mx-auto px-4 -mt-6 relative z-20 space-y-6">
         
-        {/* FILA DE CONTROLES: Buscador y Botón de Solicitudes */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 bg-white p-2 pl-4 rounded-xl shadow-md border border-neutral-200 flex items-center gap-3 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-600/20 transition-all">
-             <Search size={20} className="text-neutral-400"/>
-             <Input 
-               placeholder="Buscar paciente por apellido, nombre o DNI..." 
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               className="border-none shadow-none focus-visible:ring-0 text-base md:text-lg font-medium h-12 bg-transparent w-full"
-             />
-          </div>
-          
-          <Button 
+        {/* FILA DE CONTROLES: Buscador */}
+        <div className="bg-white p-2 pl-4 rounded-xl shadow-md border border-neutral-200 flex items-center gap-3 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-600/20 transition-all">
+           <Search size={18} className="text-neutral-400 shrink-0"/>
+           <Input
+             placeholder="Buscar por apellido, nombre o DNI..."
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+             className="border-none shadow-none focus-visible:ring-0 text-sm sm:text-base font-medium h-11 bg-transparent w-full"
+           />
+        </div>
+
+        {/* BOTONES: Nueva Solicitud + Orden PDF — siempre en la misma fila */}
+        <div className="flex gap-3">
+          <Button
             onClick={() => setShowTicketModal(true)}
-            className="h-16 md:h-16 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider px-6 rounded-xl shadow-md flex items-center justify-center gap-2 shrink-0 border border-neutral-700 hover:border-neutral-500 transition-all"
+            className="flex-1 h-12 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 border border-neutral-700 hover:border-neutral-500 transition-all text-xs sm:text-sm"
           >
-            <MessageSquarePlus size={20} className="text-brand-500" />
+            <MessageSquarePlus size={18} className="text-brand-500 shrink-0" />
             <span className="hidden sm:block">Crear Solicitud / Reclamo</span>
             <span className="sm:hidden">Nueva Solicitud</span>
           </Button>
-
-          {/* Botón Descarga Orden (Solo Móvil) */}
-          <a 
-            href="/orden.pdf" 
-            target="_blank" 
+          <a
+            href="/orden.pdf"
+            target="_blank"
             rel="noopener noreferrer"
-            className="md:hidden h-16 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider px-6 rounded-xl shadow-md flex items-center justify-center gap-2 shrink-0 transition-all"
+            className="flex-1 h-12 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all text-xs sm:text-sm"
           >
-            <Download size={20} />
+            <Download size={18} className="shrink-0" />
             Orden PDF
           </a>
         </div>

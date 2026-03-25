@@ -102,8 +102,8 @@ export default function AdminClient({ branches }: { branches: any[] }) {
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 md:gap-6">
           <div>
             <p className="text-xs font-black uppercase text-emerald-600 tracking-[0.3em] mb-1">Torre de Control</p>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2 md:gap-3">
-              <BarChart3 className="text-slate-900 shrink-0" size={28}/> Dashboard Manager
+            <h1 className="text-xl sm:text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2">
+              <BarChart3 className="text-slate-900 shrink-0" size={22}/> Dashboard Manager
             </h1>
           </div>
           <button
@@ -165,10 +165,12 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           {activeTab === "TESORERIA" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Cajas Fuertes por Sede</h2>
-                  <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-12 shadow-lg">
-                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar de Caja Fuerte
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h2 className="text-lg sm:text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2 min-w-0"><Vault className="text-amber-500 shrink-0" size={22}/> <span className="truncate">Cajas Fuertes por Sede</span></h2>
+                  <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-10 sm:h-12 shadow-lg shrink-0 text-xs sm:text-sm px-3 sm:px-4">
+                    <Briefcase size={14} className="mr-1 sm:mr-2 shrink-0"/>
+                    <span className="hidden sm:block">Retirar de Caja Fuerte</span>
+                    <span className="sm:hidden">Retirar</span>
                   </Button>
                 </div>
                 
@@ -291,19 +293,19 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                         <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay gastos en este período</p>
                       ) : (
                         data.movimientos.map((m: any) => (
-                          <div key={m.id} className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
-                                {m.type === 'RETIRO_DUENO' ? <Briefcase size={16}/> : m.type === 'A_CAJA_FUERTE' ? <Vault size={16}/> : <MinusCircle size={16}/>}
+                          <div key={m.id} className="flex justify-between items-center bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-100 gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
+                                {m.type === 'RETIRO_DUENO' ? <Briefcase size={14}/> : m.type === 'A_CAJA_FUERTE' ? <Vault size={14}/> : <MinusCircle size={14}/>}
                               </div>
-                              <div>
-                                <p className="text-xs font-black uppercase text-slate-900">{m.description}</p>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5 flex items-center gap-1">
-                                  {new Date(m.createdAt).toLocaleDateString('es-AR')} • {m.branch.name} • <span className="text-slate-800 font-black">{m.type.replace('_', ' ')}</span>
+                              <div className="min-w-0">
+                                <p className="text-xs font-black uppercase text-slate-900 truncate">{m.description}</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">
+                                  {new Date(m.createdAt).toLocaleDateString('es-AR')} · {m.branch.name} · <span className="text-slate-700">{m.type.replace(/_/g, ' ')}</span>
                                 </p>
                               </div>
                             </div>
-                            <p className="text-base font-black text-brand-600 italic">-${Number(m.amount).toLocaleString('es-AR')}</p>
+                            <p className="text-sm sm:text-base font-black text-brand-600 italic shrink-0">-${Number(m.amount).toLocaleString('es-AR')}</p>
                           </div>
                         ))
                       )}
