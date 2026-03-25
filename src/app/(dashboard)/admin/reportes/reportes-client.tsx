@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay } from "@/actions/reports"
-import { 
-  BarChart3, Receipt, FileSpreadsheet, Printer, Search, 
-  Stethoscope, Activity, User, X, ArrowUpDown
+import {
+  BarChart3, Receipt, FileSpreadsheet, Printer, Search,
+  Stethoscope, Activity, User, X, ArrowUpDown, EyeOff, Eye
 } from "lucide-react"
 
 export default function ReportesClient({ dentists, obrasSociales, branches }: { dentists: any[], obrasSociales: any[], branches: any[] }) {
@@ -25,6 +25,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   const [selectedBranch, setSelectedBranch] = useState<string>("ALL")
   const [sortBy, setSortBy] = useState<string>("PACIENTE_ASC")
   const [billingItems, setBillingItems] = useState<any[]>([])
+  const [ocultarCopago, setOcultarCopago] = useState(false)
   
   // Estados Dentistas
   const [dentistSearchTerm, setDentistSearchTerm] = useState("")
@@ -224,8 +225,13 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
     if (sortedBillingItems.length === 0) return toast.error("No hay datos para imprimir");
 
     const periodoStr = `${new Date(startDate).toLocaleDateString('es-AR')} al ${new Date(endDate).toLocaleDateString('es-AR')}`;
+    const labelTotales = ocultarCopago ? 'TOTAL:' : 'TOTALES:';
 
-    const filas = sortedBillingItems.map(item => `
+    const filas = sortedBillingItems.map(item => {
+      const copagoCell = ocultarCopago
+        ? ''
+        : `<td class="money">$${Number(item.patientCopay).toLocaleString('es-AR')}</td>`;
+      return `
       <tr>
         <td>${item.order.patient.lastName}, ${item.order.patient.firstName}</td>
         <td>${item.order.patient.affiliateNumber || '---'}</td>
@@ -234,99 +240,93 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
         <td class="bold">${(item as any).displayCode || item.procedure?.code || 'S/D'}</td>
         <td>${item.procedure?.name || ''}</td>
         <td class="money">$${Number(item.insuranceCoverage).toLocaleString('es-AR')}</td>
-        <td class="money copago">$${Number(item.patientCopay).toLocaleString('es-AR')}</td>
-      </tr>
-    `).join('');
+        ${copagoCell}
+      </tr>`;
+    }).join('');
 
-    const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Liquidación ${osNameSafe}</title>
-  <style>
-    @page {
-      size: A4 portrait;
-      margin: 22mm 12mm 18mm 12mm;
-      @top-left {
-        content: "I-R DENTAL  |  LIQUIDACIÓN: ${osNameSafe}";
-        font-size: 7.5pt; font-family: Arial, sans-serif; color: #555;
-      }
-      @top-right {
-        content: "Pág. " counter(page) " / " counter(pages);
-        font-size: 7.5pt; font-family: Arial, sans-serif; color: #555; font-weight: bold;
-      }
-      @bottom-center {
-        content: "Sede: ${branchNameSafe}  |  Período: ${periodoStr}";
-        font-size: 7pt; font-family: Arial, sans-serif; color: #888;
-      }
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 9pt; color: #111; background: white; }
-    .doc-header { border-bottom: 2.5px solid #1e293b; padding-bottom: 8px; margin-bottom: 10px; }
-    .doc-header h1 { font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .doc-header p { font-size: 9pt; color: #444; margin: 1px 0; }
-    .os-name { color: #cc0000; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; }
-    thead { display: table-header-group; }
-    tfoot { display: table-footer-group; }
-    th {
-      background: #f1f5f9;
-      border-top: 2px solid #1e293b;
-      border-bottom: 2px solid #1e293b;
-      padding: 6px 5px;
-      font-size: 8pt;
-      text-align: left;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    th.money { text-align: right; }
-    th.copago { color: #cc0000; }
-    td { border-bottom: 1px solid #e2e8f0; padding: 5px; font-size: 8.5pt; vertical-align: middle; }
-    tr:nth-child(even) td { background: #f8fafc; }
-    tr { page-break-inside: avoid; }
-    .money { text-align: right; }
-    .copago { color: #cc0000; font-weight: bold; }
-    .bold { font-weight: bold; }
-    .total-row td {
-      border-top: 2.5px solid #1e293b;
-      font-weight: bold;
-      font-size: 9.5pt;
-      background: #f1f5f9;
-      padding: 7px 5px;
-    }
-  </style>
-</head>
-<body>
-  <div class="doc-header">
-    <h1>Liquidación de Prestaciones</h1>
-    <p>Obra Social: <span class="os-name">${osNameSafe}</span></p>
-    <p>Sede: ${branchNameSafe}  |  Período: ${periodoStr}</p>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th style="width:19%">Paciente</th>
-        <th style="width:12%">Nro. Afiliado</th>
-        <th style="width:7%">Plan</th>
-        <th style="width:9%">Fecha</th>
-        <th style="width:9%">Código</th>
-        <th style="width:20%">Práctica</th>
-        <th class="money" style="width:12%">Valor OS</th>
-        <th class="money copago" style="width:12%">Copago</th>
-      </tr>
-    </thead>
-    <tbody>${filas}</tbody>
-    <tfoot>
-      <tr class="total-row">
-        <td colspan="6" style="text-align:right; padding-right:10px;">TOTALES:</td>
-        <td class="money">$${totalBillingOS.toLocaleString('es-AR')}</td>
-        <td class="money copago">$${totalBillingCopago.toLocaleString('es-AR')}</td>
-      </tr>
-    </tfoot>
-  </table>
-</body>
-</html>`;
+    const copagoCabecera = ocultarCopago ? '' : `<th class="money" style="width:12%">Copago</th>`;
+    const copagoPiePagina = ocultarCopago ? '' : `<td class="money">$${totalBillingCopago.toLocaleString('es-AR')}</td>`;
+    const practicaWidth = ocultarCopago ? '28%' : '20%';
+    const osWidth = ocultarCopago ? '14%' : '12%';
+
+    const html = [
+      '<!DOCTYPE html>',
+      '<html lang="es">',
+      '<head>',
+      '  <meta charset="UTF-8">',
+      `  <title>Liquidación ${osNameSafe}</title>`,
+      '  <style>',
+      '    @page {',
+      '      size: A4 portrait;',
+      '      margin: 22mm 12mm 18mm 12mm;',
+      '    }',
+      '    * { box-sizing: border-box; margin: 0; padding: 0; }',
+      '    body { font-family: Arial, sans-serif; font-size: 9pt; color: #111; background: white; filter: grayscale(100%); }',
+      '    .doc-header { border-bottom: 2.5px solid #333; padding-bottom: 8px; margin-bottom: 10px; }',
+      '    .doc-header h1 { font-size: 14pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }',
+      '    .doc-header p { font-size: 9pt; color: #444; margin: 1px 0; }',
+      '    .os-name { font-weight: bold; }',
+      '    .page-info { font-size: 7.5pt; color: #555; text-align: right; margin-bottom: 4px; }',
+      '    table { width: 100%; border-collapse: collapse; }',
+      '    thead { display: table-header-group; }',
+      '    tfoot { display: table-footer-group; }',
+      '    th {',
+      '      background: #e8e8e8;',
+      '      border-top: 2px solid #333;',
+      '      border-bottom: 2px solid #333;',
+      '      padding: 6px 5px;',
+      '      font-size: 8pt;',
+      '      text-align: left;',
+      '      font-weight: bold;',
+      '      text-transform: uppercase;',
+      '      letter-spacing: 0.04em;',
+      '    }',
+      '    th.money { text-align: right; }',
+      '    td { border-bottom: 1px solid #ccc; padding: 5px; font-size: 8.5pt; vertical-align: middle; }',
+      '    tr:nth-child(even) td { background: #f4f4f4; }',
+      '    tr { page-break-inside: avoid; }',
+      '    .money { text-align: right; }',
+      '    .bold { font-weight: bold; }',
+      '    .total-row td {',
+      '      border-top: 2.5px solid #333;',
+      '      font-weight: bold;',
+      '      font-size: 9.5pt;',
+      '      background: #e8e8e8;',
+      '      padding: 7px 5px;',
+      '    }',
+      '  </style>',
+      '</head>',
+      '<body>',
+      '  <div class="doc-header">',
+      '    <h1>Liquidación de Prestaciones</h1>',
+      `    <p>Obra Social: <span class="os-name">${osNameSafe}</span></p>`,
+      `    <p>Sede: ${branchNameSafe}  |  Período: ${periodoStr}</p>`,
+      '  </div>',
+      '  <table>',
+      '    <thead>',
+      '      <tr>',
+      `        <th style="width:19%">Paciente</th>`,
+      `        <th style="width:12%">Nro. Afiliado</th>`,
+      `        <th style="width:7%">Plan</th>`,
+      `        <th style="width:9%">Fecha</th>`,
+      `        <th style="width:9%">Código</th>`,
+      `        <th style="width:${practicaWidth}">Práctica</th>`,
+      `        <th class="money" style="width:${osWidth}">Valor OS</th>`,
+      `        ${copagoCabecera}`,
+      '      </tr>',
+      '    </thead>',
+      `    <tbody>${filas}</tbody>`,
+      '    <tfoot>',
+      '      <tr class="total-row">',
+      `        <td colspan="6" style="text-align:right; padding-right:10px;">${labelTotales}</td>`,
+      `        <td class="money">$${totalBillingOS.toLocaleString('es-AR')}</td>`,
+      `        ${copagoPiePagina}`,
+      '      </tr>',
+      '    </tfoot>',
+      '  </table>',
+      '</body>',
+      '</html>'
+    ].join('\n');
 
     const win = window.open('', '_blank', 'width=900,height=700');
     if (!win) return toast.error("Activá las ventanas emergentes para imprimir");
@@ -411,6 +411,14 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   </Select>
                 </div>
                 <div className="flex gap-2">
+                  <Button
+                    onClick={() => setOcultarCopago(v => !v)}
+                    className={`h-10 border-2 font-black uppercase text-xs shadow-sm transition-all ${ocultarCopago ? 'bg-amber-500 border-amber-600 text-white hover:bg-amber-600' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}`}
+                    title={ocultarCopago ? "Mostrar columna Copago" : "Ocultar columna Copago"}
+                  >
+                    {ocultarCopago ? <Eye size={14} className="mr-2"/> : <EyeOff size={14} className="mr-2"/>}
+                    {ocultarCopago ? "Copago Visible" : "Ocultar Copago"}
+                  </Button>
                   <Button onClick={handleExportExcel} className="h-10 bg-white border-2 border-slate-300 text-slate-800 hover:bg-slate-50 font-black uppercase text-xs shadow-sm"><FileSpreadsheet size={14} className="mr-2"/> Excel (.XLS)</Button>
                   <Button onClick={handlePrint} className="h-10 bg-red-700 hover:bg-red-800 text-white font-black uppercase text-xs shadow-sm"><Printer size={14} className="mr-2"/> PDF / Imprimir</Button>
                 </div>
@@ -436,7 +444,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                       <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300">CÓDIGO</th>
                       <th className="w-[18%] p-3 print:p-1.5 border-b-2 border-slate-300">PRÁCTICA</th>
                       <th className="w-[13%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right">VALOR OS</th>
-                      <th className="w-[11%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-red-700">COPAGO</th>
+                      {!ocultarCopago && <th className="w-[11%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-red-700">COPAGO</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -465,19 +473,21 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         </td>
 
                         {/* COLUMNA DE COPAGO EDITABLE */}
-                        <td className="p-3 print:p-1.5 text-right">
-                          <div className="flex justify-end items-center gap-1 print:hidden">
-                            <span className="text-red-300 font-bold">$</span>
-                            <Input
-                              type="number"
-                              defaultValue={item.patientCopay}
-                              onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)}
-                              className="h-8 w-32 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors"
-                              title="Modificar copago"
-                            />
-                          </div>
-                          <span className="hidden print:inline font-black text-[11px] italic text-red-700">${Number(item.patientCopay).toLocaleString('es-AR')}</span>
-                        </td>
+                        {!ocultarCopago && (
+                          <td className="p-3 print:p-1.5 text-right">
+                            <div className="flex justify-end items-center gap-1 print:hidden">
+                              <span className="text-red-300 font-bold">$</span>
+                              <Input
+                                type="number"
+                                defaultValue={item.patientCopay}
+                                onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)}
+                                className="h-8 w-32 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors"
+                                title="Modificar copago"
+                              />
+                            </div>
+                            <span className="hidden print:inline font-black text-[11px] italic text-red-700">${Number(item.patientCopay).toLocaleString('es-AR')}</span>
+                          </td>
+                        )}
 
                       </tr>
                     ))}
@@ -485,14 +495,16 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   <tfoot className="border-t-2 border-slate-400">
                     <tr>
                       <td colSpan={6} className="p-4 print:p-2 text-right font-black uppercase text-slate-800 print:text-xs">
-                        TOTALES:
+                        {ocultarCopago ? 'TOTAL:' : 'TOTALES:'}
                       </td>
                       <td className="p-4 print:p-2 text-right text-xl print:text-sm font-black italic text-slate-900 border-2 border-slate-300 bg-slate-50 print:border-none print:bg-white">
                         ${totalBillingOS.toLocaleString('es-AR')}
                       </td>
-                      <td className="p-4 print:p-2 text-right text-lg print:text-sm font-black italic text-red-700 bg-red-50 border-y-2 border-red-300 print:border-none print:bg-white">
-                        ${totalBillingCopago.toLocaleString('es-AR')}
-                      </td>
+                      {!ocultarCopago && (
+                        <td className="p-4 print:p-2 text-right text-lg print:text-sm font-black italic text-red-700 bg-red-50 border-y-2 border-red-300 print:border-none print:bg-white">
+                          ${totalBillingCopago.toLocaleString('es-AR')}
+                        </td>
+                      )}
                     </tr>
                   </tfoot>
                 </table>
