@@ -80,12 +80,12 @@ export default function Home() {
           <div className="flex items-center gap-4 md:gap-8">
             {/* Menú visible solo en PC */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#tecnologia" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Tecnología</a>
-              <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Servicios</a>
-              <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors uppercase">Sedes</a>
+              <a href="#tecnologia" className="text-sm font-semibold text-neutral-700 hover:text-brand-600 transition-colors uppercase">Tecnología</a>
+              <a href="#servicios" className="text-sm font-semibold text-neutral-700 hover:text-brand-600 transition-colors uppercase">Servicios</a>
+              <a href="#sedes" className="text-sm font-semibold text-neutral-700 hover:text-brand-600 transition-colors uppercase">Sedes</a>
             </div>
             {/* Botón CTA (Visible siempre, se achica en móvil) */}
-            <Link href="/portal-medico" className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 md:px-6 md:py-2.5 rounded text-xs md:text-sm font-bold transition-all shadow-md flex items-center gap-2">
+            <Link href="/portal-medico" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 md:px-6 md:py-2.5 rounded text-xs md:text-sm font-bold transition-all shadow-md flex items-center gap-2">
               <span className="hidden md:inline">PORTAL PROFESIONAL</span>
               <span className="md:hidden">PORTAL</span> {/* Texto más corto para que entre en celular */}
             </Link>
@@ -95,7 +95,7 @@ export default function Home() {
 
       {/* SECCIÓN HERO (PORTADA PRINCIPAL) */}
       <main className="flex-grow">
-        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[500px] md:min-h-[600px] flex items-center">
+        <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-brand-600 min-h-[500px] md:min-h-[600px] flex items-center">
           {/* Fondo Premium Fotográfico */}
           <div
             className="absolute inset-0 bg-cover bg-center bg-scroll z-0 opacity-20"
@@ -108,16 +108,16 @@ export default function Home() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
                 Tecnología de Vanguardia al Servicio del Profesional
               </h1>
-              <p className="text-lg md:text-xl text-neutral-300 mb-12 font-light border-l-4 border-red-600 pl-4 max-w-2xl">
+              <p className="text-lg md:text-xl text-neutral-300 mb-12 font-light border-l-4 border-brand-600 pl-4 max-w-2xl">
                 El resultado completa el análisis de su odontólogo para brindarle una mejor salud dental, respaldado por la mejor tecnología alemana.
               </p>
             </div>
 
             {/* ACCESOS DIRECTOS AL SISTEMA */}
             <div className="mt-8 max-w-md">
-              <div className="bg-white rounded-xl p-6 md:p-8 shadow-2xl border-t-4 border-red-600 hover:-translate-y-1 transition-all duration-300">
+              <div className="bg-white rounded-xl p-6 md:p-8 shadow-2xl border-t-4 border-brand-600 hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-red-50 p-3 rounded-full text-red-600">
+                  <div className="bg-brand-50 p-3 rounded-full text-brand-600">
                     <ToothIcon size={32} />
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-800">Profesionales</h3>
@@ -125,7 +125,7 @@ export default function Home() {
                 <p className="text-neutral-600 text-sm mb-8 h-auto md:h-10">
                   Acceso exclusivo a estudios derivados, tomografías 3D e informes detallados.
                 </p>
-                <Link href="/portal-medico" className="flex items-center justify-between w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-md">
+                <Link href="/portal-medico" className="flex items-center justify-between w-full bg-brand-600 hover:bg-brand-700 text-white px-6 py-4 rounded font-bold text-sm transition-colors shadow-md">
                   INGRESAR AL PORTAL <ChevronRight size={20} />
                 </Link>
               </div>
@@ -138,22 +138,22 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x-0 md:divide-x md:divide-neutral-700">
               <div className="flex flex-col items-center justify-center p-4">
-                <Award className="text-red-500 mb-3" size={36} />
+                <Award className="text-brand-500 mb-3" size={36} />
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">+40</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Años de Trayectoria</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
-                <Scan className="text-red-500 mb-3" size={36} />
+                <Scan className="text-brand-500 mb-3" size={36} />
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">HD / 3D</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Alta Resolución</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
-                <MapPin className="text-red-500 mb-3" size={36} />
+                <MapPin className="text-brand-500 mb-3" size={36} />
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">3</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Sedes Estratégicas</p>
               </div>
               <div className="flex flex-col items-center justify-center p-4">
-                <Zap className="text-red-500 mb-3" size={36} />
+                <Zap className="text-brand-500 mb-3" size={36} />
                 <h3 className="text-3xl md:text-4xl font-bold text-white mb-1">100%</h3>
                 <p className="text-neutral-400 text-sm font-semibold uppercase tracking-wider">Flujo Digital</p>
               </div>
@@ -226,7 +226,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
-                  <Clock className="text-red-600" size={24} /> Sin Turno Previo
+                  <Clock className="text-brand-600" size={24} /> Sin Turno Previo
                 </h4>
                 <p className="text-sm text-neutral-600">
                   No es necesario solicitar turno. Los estudios se realizan en cualquiera de nuestras sedes por orden de llegada.
@@ -234,7 +234,7 @@ export default function Home() {
               </div>
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
-                  <Activity className="text-red-600" size={24} /> Preparación
+                  <Activity className="text-brand-600" size={24} /> Preparación
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Los estudios que realizamos no requieren ninguna consideración o preparación especial previa.
@@ -242,7 +242,7 @@ export default function Home() {
               </div>
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
-                  <FileText className="text-red-600" size={24} /> Entrega
+                  <FileText className="text-brand-600" size={24} /> Entrega
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Se entregan en el momento, salvo las Tomografías en 3D y los trazados Cefalométricos que demoran 48 horas.
@@ -250,7 +250,7 @@ export default function Home() {
               </div>
               <div className="bg-white p-6 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
                 <h4 className="font-bold text-neutral-800 mb-3 flex items-center gap-2">
-                  <ShieldCheck className="text-red-600" size={24} /> Obras Sociales
+                  <ShieldCheck className="text-brand-600" size={24} /> Obras Sociales
                 </h4>
                 <p className="text-sm text-neutral-600">
                   Ofrecemos una amplia cobertura. Tenemos descuentos para todas las obras sociales, aún aquellas que no estén en la lista.
@@ -269,23 +269,23 @@ export default function Home() {
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-12 md:gap-16">
             <div className="lg:w-1/2">
-              <div className="inline-block bg-red-600/20 border border-red-500/50 px-4 py-1.5 rounded-full mb-6">
-                <span className="text-xs md:text-sm font-bold tracking-widest text-red-500 uppercase">Calidad y Precisión Alemana</span>
+              <div className="inline-block bg-brand-600/20 border border-brand-500/50 px-4 py-1.5 rounded-full mb-6">
+                <span className="text-xs md:text-sm font-bold tracking-widest text-brand-500 uppercase">Calidad y Precisión Alemana</span>
               </div>
               <h3 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">Equipamiento <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">Dentsply Sirona AXEOS</span></h3>
               <p className="text-neutral-300 text-base md:text-lg mb-8 font-light leading-relaxed">
                 El <strong>AXEOS</strong> es uno de los sistemas de radiodiagnóstico dental más avanzados del mundo. Desarrollado por <strong>Dentsply Sirona</strong> — líder mundial en tecnología odontológica — combina radiografía panorámica 2D, cefalometría y tomografía cone beam 3D en un único equipo de altísima precisión, con la dosis de radiación más baja posible para el paciente.
               </p>
               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Imágenes panorámicas y 3D de resolución excepcional en un solo equipo.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Dosis de radiación optimizada: máxima imagen, mínima exposición.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> FOV flexible: desde periapicales hasta reconstrucciones craneofaciales completas.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Posicionamiento inteligente y ergonómico para pacientes de cualquier edad.</li>
-                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-red-500 shrink-0"/> Compatible con los principales softwares de planificación implantológica.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-brand-500 shrink-0"/> Imágenes panorámicas y 3D de resolución excepcional en un solo equipo.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-brand-500 shrink-0"/> Dosis de radiación optimizada: máxima imagen, mínima exposición.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-brand-500 shrink-0"/> FOV flexible: desde periapicales hasta reconstrucciones craneofaciales completas.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-brand-500 shrink-0"/> Posicionamiento inteligente y ergonómico para pacientes de cualquier edad.</li>
+                 <li className="flex items-center gap-3 font-medium text-sm md:text-base"><CheckCircle2 className="text-brand-500 shrink-0"/> Compatible con los principales softwares de planificación implantológica.</li>
               </ul>
             </div>
             <div className="lg:w-1/2 relative w-full">
-               <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
+               <div className="absolute -inset-4 bg-brand-600/20 blur-3xl rounded-full"></div>
                {/* Imagen representativa de un escáner/tecnología médica */}
                <img
                  src="/salarx.jpg"
@@ -305,7 +305,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               
               {/* Servicio 1 */}
-              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
                   <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías en 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -320,7 +320,7 @@ export default function Home() {
               </div>
 
               {/* Servicio 2 */}
-              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
                   <img src="https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -335,7 +335,7 @@ export default function Home() {
               </div>
 
               {/* Servicio 3 */}
-              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
                   <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -350,7 +350,7 @@ export default function Home() {
               </div>
 
               {/* Servicio 4 */}
-              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
                   <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -365,7 +365,7 @@ export default function Home() {
               </div>
 
               {/* Servicio 5 */}
-              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col lg:col-span-2">
+              <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col lg:col-span-2">
                 <div className="h-48 overflow-hidden relative">
                   <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -387,7 +387,7 @@ export default function Home() {
         <section className="py-20 bg-white border-t border-neutral-200">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-neutral-800 uppercase mb-12 pb-2 text-center flex items-center justify-center gap-3">
-              <HelpCircle className="text-red-600" size={32} /> Preguntas Frecuentes
+              <HelpCircle className="text-brand-600" size={32} /> Preguntas Frecuentes
             </h2>
             <div className="space-y-6">
               <div className="bg-neutral-50 p-6 rounded-xl border border-neutral-200">
@@ -407,12 +407,12 @@ export default function Home() {
         </section>
 
         {/* BANNER: DESCARGA DE ORDEN MÉDICA */}
-        <section className="bg-red-600 py-12 md:py-16 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/cc0000/990000?text=+')] opacity-20 bg-cover mix-blend-multiply"></div>
+        <section className="bg-brand-600 py-12 md:py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/BA2C66/9e2457?text=+')] opacity-20 bg-cover mix-blend-multiply"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="text-white text-center md:text-left">
               <h2 className="text-2xl md:text-3xl font-bold mb-3">¿Odontólogo Derivante?</h2>
-              <p className="text-red-100 text-sm md:text-base max-w-xl">
+              <p className="text-brand-100 text-sm md:text-base max-w-xl">
                 Si se quedó sin talonarios físicos, puede descargar nuestra orden de derivación oficial en formato PDF, lista para imprimir y entregar a sus pacientes.
               </p>
             </div>
@@ -420,7 +420,7 @@ export default function Home() {
               href="/orden.pdf" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="bg-white hover:bg-neutral-100 text-red-600 px-8 py-4 rounded-xl font-bold transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-3 whitespace-nowrap"
+              className="bg-white hover:bg-neutral-100 text-brand-600 px-8 py-4 rounded-xl font-bold transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-3 whitespace-nowrap"
             >
               <Download size={24} /> 
               DESCARGAR ORDEN
@@ -437,7 +437,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Sede Quilmes */}
-              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-brand-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Olavarria%2088,%20Quilmes&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -449,7 +449,7 @@ export default function Home() {
                   className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
                 <div className="p-8 flex-grow">
-                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Quilmes</h3>
+                  <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Quilmes</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
                     <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">OLAVARRIA 88</span></li>
                     <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4253-5947</span></li>
@@ -459,7 +459,7 @@ export default function Home() {
               </div>
 
               {/* Sede Avellaneda */}
-              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-brand-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=9%20de%20Julio%2064,%20Avellaneda&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -471,7 +471,7 @@ export default function Home() {
                   className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
                 <div className="p-8 flex-grow">
-                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Avellaneda</h3>
+                  <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Avellaneda</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
                     <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">9 de Julio 64 - 2do. "A"</span></li>
                     <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4210-0148</span></li>
@@ -481,7 +481,7 @@ export default function Home() {
               </div>
 
               {/* Sede Lomas de Zamora */}
-              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-red-300 transition-colors shadow-lg flex flex-col">
+              <div className="bg-white rounded-xl overflow-hidden border border-neutral-200 hover:border-brand-300 transition-colors shadow-lg flex flex-col">
                 <iframe 
                   src="https://maps.google.com/maps?q=Espa%C3%B1a%20156,%20Lomas%20de%20Zamora&t=&z=15&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
@@ -493,7 +493,7 @@ export default function Home() {
                   className="bg-neutral-200 grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
                 ></iframe>
                 <div className="p-8 flex-grow">
-                  <h3 className="text-2xl font-bold text-red-600 uppercase mb-6">Lomas de Zamora</h3>
+                  <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Lomas de Zamora</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
                     <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">ESPAÑA 156 - Planta Baja</span></li>
                     <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4222-1111</span></li>
@@ -508,7 +508,7 @@ export default function Home() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-red-600 relative z-10">
+      <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-brand-600 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-neutral-800 pb-8 mb-8">
             <div>
@@ -516,10 +516,10 @@ export default function Home() {
             </div>
             {/* REDES SOCIALES (NUEVO) */}
             <div className="flex gap-4">
-              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-red-600 hover:text-white transition-colors">
+              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-red-600 hover:text-white transition-colors">
+              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
                 <Facebook size={20} />
               </a>
             </div>
