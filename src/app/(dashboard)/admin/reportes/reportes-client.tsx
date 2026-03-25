@@ -10,8 +10,9 @@ import { toast } from "sonner"
 import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay } from "@/actions/reports"
 import {
   BarChart3, Receipt, FileSpreadsheet, Printer, Search,
-  Stethoscope, Activity, User, X, ArrowUpDown, EyeOff, Eye
+  Activity, User, X, ArrowUpDown, EyeOff, Eye
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 export default function ReportesClient({ dentists, obrasSociales, branches }: { dentists: any[], obrasSociales: any[], branches: any[] }) {
   const [activeTab, setActiveTab] = useState<'FACTURACION' | 'DENTISTAS'>('FACTURACION')
@@ -541,7 +542,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                     const d = dentists.find(doc => String(doc.id) === String(selectedDentist));
                     return d && (
                       <div className="h-14 px-5 bg-brand-700 text-white rounded-xl text-lg font-black italic flex items-center justify-between shadow-md">
-                        <div className="flex items-center gap-2 uppercase"><Stethoscope size={20} /> {d.lastName}, {d.firstName}</div>
+                        <div className="flex items-center gap-2 uppercase"><ToothIcon size={20} /> {d.lastName}, {d.firstName}</div>
                         <button type="button" onClick={() => {setSelectedDentist(""); setDentistStats(null);}} className="bg-brand-900 hover:bg-brand-800 p-2 rounded-full transition-colors" title="Cambiar Odontólogo"><X size={16} /></button>
                       </div>
                     )

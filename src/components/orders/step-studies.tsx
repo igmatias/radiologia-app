@@ -3,7 +3,8 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, Plus, Check, Settings2, X, Stethoscope, ScanLine, MapPin, UserCheck, AlertCircle } from "lucide-react"
+import { Search, Plus, Check, Settings2, X, ScanLine, MapPin, UserCheck, AlertCircle } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 import { QuickDentistForm } from "./quick-dentist-form"
 
 interface StepStudiesProps {
@@ -120,7 +121,7 @@ export function StepStudies({
               {/* Nombre seleccionado */}
               <div className="flex items-center justify-between bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-md">
                 <div className="flex items-center gap-2.5">
-                  <Stethoscope size={18} />
+                  <ToothIcon size={18} />
                   <span className="font-black uppercase italic text-sm tracking-wide">
                     {selectedDentist.lastName}, {selectedDentist.firstName}
                   </span>

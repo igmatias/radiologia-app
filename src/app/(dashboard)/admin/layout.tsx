@@ -2,9 +2,10 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  Stethoscope, Building2, ShieldCheck, CreditCard,
+  Building2, ShieldCheck, CreditCard,
   LayoutDashboard, Receipt, ClipboardList, LogOut, Settings2
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 import { logoutUser } from "@/actions/auth"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Facturación", icon: Receipt, href: "/admin/reportes" }, 
     { name: "Prácticas", icon: ClipboardList, href: "/admin/estudios" },
     { name: "Usuarios", icon: ShieldCheck, href: "/admin/usuarios" },
-    { name: "Odontólogos", icon: Stethoscope, href: "/admin/dentistas" },
+    { name: "Odontólogos", icon: href: "/admin/dentistas" },
     { name: "Obras Sociales", icon: CreditCard, href: "/admin/obras-sociales" },
     { name: "Sedes", icon: Building2, href: "/admin/sedes" },
   ]

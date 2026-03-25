@@ -9,9 +9,10 @@ import { getPatientResults } from "@/actions/portal"
 import { usePathname } from "next/navigation" 
 import { 
   ShieldCheck, Activity, Image as ImageIcon, Download, 
-  Calendar, Stethoscope, MapPin, Hash, CheckCircle2, History,
+  Calendar, MapPin, Hash, CheckCircle2, History,
   FileText, ExternalLink // 👉 Importamos un par de iconos nuevos
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 export default function ResultadosClient() { 
   
@@ -148,7 +149,7 @@ export default function ResultadosClient() {
               {/* Médico y Sede */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="flex items-start gap-3 bg-brand-50/50 p-4 rounded-xl border border-brand-100">
-                  <Stethoscope size={20} className="text-brand-700 shrink-0"/>
+                  <ToothIcon size={20} className="text-brand-700 shrink-0"/>
                   <div>
                     <p className="text-[10px] font-black uppercase text-slate-400">Médico Solicitante</p>
                     <p className="text-sm font-black uppercase text-slate-800">{order.dentist ? `Dr. ${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular'}</p>

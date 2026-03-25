@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import {
-  Clock, Play, CheckCircle, Stethoscope, RefreshCw, LogOut,
+  Clock, Play, CheckCircle, RefreshCw, LogOut,
   Phone, Cake, Send, Hash, Calendar, MapPin, Mail,
   MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 import RadiationIcon from "@/components/icons/radiation-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { updateOrderStatusAction } from "@/actions/orders"
@@ -339,7 +340,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                 {/* 👉 CHIPS DINÁMICOS INTELIGENTES (Cruce de Columnas) */}
                 <div className="bg-slate-50 p-3 rounded-[1rem] border border-slate-100">
                    <div className="flex items-start gap-2">
-                     <Stethoscope size={14} className="text-slate-400 mt-0.5 shrink-0"/> 
+                     <ToothIcon size={14} className="text-slate-400 mt-0.5 shrink-0"/> 
                      <div className="flex flex-col w-full overflow-hidden">
                         <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Odontólogo Derivante</span>
                         

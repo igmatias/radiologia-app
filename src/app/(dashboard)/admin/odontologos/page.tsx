@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { DentistImport } from "@/components/admin/dentist-import"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Stethoscope, Mail, Phone, Hash } from "lucide-react"
+import { Mail, Phone, Hash } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 export default async function AdminDentistsPage() {
   const dentists = await prisma.dentist.findMany({
@@ -27,7 +28,7 @@ export default async function AdminDentistsPage() {
             <CardContent className="p-5">
               <div className="flex justify-between items-start mb-3">
                 <div className="bg-brand-50 p-2 rounded-lg">
-                  <Stethoscope className="h-5 w-5 text-brand-700" />
+                  <ToothIcon className="h-5 w-5 text-brand-700" />
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] font-black px-2 py-0.5 bg-blue-50 text-blue-700 rounded uppercase">

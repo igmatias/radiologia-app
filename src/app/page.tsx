@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { 
+import ToothIcon from "@/components/icons/tooth-icon"
+import {
   MapPin, 
   Phone, 
   Mail, 
@@ -27,24 +28,6 @@ export const metadata = {
   description: 'Instituto Radiodiagnóstico Dentomaxilofacial S.A. Tecnología de vanguardia al servicio del profesional. Sedes en Quilmes, Avellaneda y Lomas de Zamora.',
 }
 
-// Ícono personalizado de Diente para la interfaz
-const ToothIcon = ({ size = 24, className = "" }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M10 21c-2.43 0-4.14-1.93-4.57-4.19L4.2 8.7A3.2 3.2 0 0 1 7.27 5h9.46a3.2 3.2 0 0 1 3.07 3.7l-1.23 8.11C18.14 19.07 16.43 21 14 21a3.64 3.64 0 0 1-2-.6 3.64 3.64 0 0 1-2 .6Z" />
-    <path d="M12 11v10" />
-  </svg>
-)
 
 export default function Home() {
   return (

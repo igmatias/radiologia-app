@@ -14,8 +14,9 @@ import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 import {
-  AlertTriangle, History, Calendar, Stethoscope
+  AlertTriangle, History, Calendar
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 import { OrderHeader } from "./order-header"
 import { Step, Line } from "./step-indicator"
@@ -665,7 +666,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
                     {/* Odontólogo derivante */}
                     <div className="flex items-center gap-2">
-                      <Stethoscope size={14} className="text-brand-400 shrink-0" />
+                      <ToothIcon size={14} className="text-brand-400 shrink-0" />
                       <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Derivó:</span>
                       <span className="text-sm font-bold text-neutral-700 uppercase">{order.dentist ? `${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular / Sin derivación'}</span>
                     </div>

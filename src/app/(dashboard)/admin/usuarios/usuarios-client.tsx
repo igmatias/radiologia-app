@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { 
-  Users, Stethoscope, Key, ShieldCheck, UserPlus, MapPin, CheckCircle2, XCircle, Search
+  Users, Key, ShieldCheck, UserPlus, MapPin, CheckCircle2, XCircle, Search
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 export default function UsuariosClient({ initialUsers, initialDentists, branches }: any) {
   const router = useRouter()
@@ -98,7 +99,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
           onClick={() => setActiveTab("ODONTOLOGOS")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs transition-all ${activeTab === "ODONTOLOGOS" ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
         >
-          <Stethoscope size={16}/> Odontólogos
+          <ToothIcon size={16}/> Odontólogos
         </button>
       </div>
 

@@ -12,11 +12,12 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import QRCode from "react-qr-code"
 import { useRouter } from "next/navigation"
 import { 
-  FileCheck, Clock, CheckCircle2, User, Stethoscope, Mail, 
+  FileCheck, Clock, CheckCircle2, User, Mail, 
   Smartphone, UserCheck, RefreshCw, Send, Printer, QrCode, Search, 
   UploadCloud, Link as LinkIcon, Copy, XCircle, FileText, ExternalLink,
   ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Package, PauseCircle
 } from "lucide-react"
+import ToothIcon from "@/components/icons/tooth-icon"
 
 export default function EntregasClient({ branches }: { branches: any[] }) {
   const router = useRouter()
