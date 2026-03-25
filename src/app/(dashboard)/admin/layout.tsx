@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Facturación", icon: Receipt, href: "/admin/reportes" }, 
     { name: "Prácticas", icon: ClipboardList, href: "/admin/estudios" },
     { name: "Usuarios", icon: ShieldCheck, href: "/admin/usuarios" },
-    { name: "Odontólogos", icon: href: "/admin/dentistas" },
+    { name: "Odontólogos", icon: ToothIcon, href: "/admin/dentistas" },
     { name: "Obras Sociales", icon: CreditCard, href: "/admin/obras-sociales" },
     { name: "Sedes", icon: Building2, href: "/admin/sedes" },
   ]
