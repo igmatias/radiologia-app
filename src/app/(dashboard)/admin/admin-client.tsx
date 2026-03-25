@@ -9,13 +9,16 @@ import { getAdminDashboardData, retirarDeBoveda } from "@/actions/admin-stats"
 import { getDashboardMetrics } from "@/actions/finances" 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  TrendingUp, Activity, Calendar as CalendarIcon, Wallet, 
-  Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock, 
-  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3
+import {
+  TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
+  Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
+  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, LogOut
 } from "lucide-react"
+import { logoutUser } from "@/actions/auth"
+import { useRouter } from "next/navigation"
 
 export default function AdminClient({ branches }: { branches: any[] }) {
+  const router = useRouter()
   // 🔥 ESCUDO ANTI-ERRORES DE HIDRATACIÓN
   const [isMounted, setIsMounted] = useState(false)
 
@@ -77,7 +80,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
     setLoading(true)
     const res = await retirarDeBoveda(datosRetiro.branchId, parseFloat(datosRetiro.amount), datosRetiro.description)
     if (res.success) {
-      toast.success("¡Retiro registrado al bolsillo con éxito! 💸")
+      toast.success("¡Retiro de Caja Fuerte registrado con éxito! 💸")
       setRetiroModal(false)
       setDatosRetiro({ branchId: "", amount: "", description: "" })
       cargarDatos()
@@ -102,8 +105,20 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <BarChart3 className="text-slate-900" size={32}/> Dashboard Manager
             </h1>
           </div>
+          <button
+            onClick={async () => { await logoutUser(); router.push("/login") }}
+            className="md:hidden flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-red-50 hover:text-red-600 border border-slate-200 transition-all"
+          >
+            <LogOut size={15}/> Salir
+          </button>
           
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={async () => { await logoutUser(); router.push("/login") }}
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-red-50 hover:text-red-600 border border-slate-200 transition-all h-12"
+            >
+              <LogOut size={15}/> Cerrar Sesión
+            </button>
             <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
               <span className="text-[10px] font-black uppercase text-slate-500 ml-3 mr-1"><CalendarIcon size={14}/></span>
               <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-12 border-none bg-white font-bold rounded-xl shadow-sm"/>
@@ -152,7 +167,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Cajas Fuertes por Sede</h2>
                   <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-12 shadow-lg">
-                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar al Bolsillo
+                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar de Caja Fuerte
                   </Button>
                 </div>
                 
@@ -381,7 +396,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           </DialogHeader>
           <div className="py-2 space-y-6">
             <p className="text-sm font-bold text-slate-500 uppercase leading-relaxed">
-              Estás por retirar plata física de una de las Cajas Fuertes.
+              Registrá un retiro físico de una de las Cajas Fuertes.
             </p>
             
             <Select value={datosRetiro.branchId} onValueChange={v => setDatosRetiro({...datosRetiro, branchId: v})}>

@@ -1,13 +1,20 @@
 "use client"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Stethoscope, Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, Settings
+  LayoutDashboard, Receipt, ClipboardList, LogOut
 } from "lucide-react"
+import { logoutUser } from "@/actions/auth"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await logoutUser()
+    router.push("/login")
+  }
 
   const menuItems = [
     { name: "Resumen", icon: LayoutDashboard, href: "/admin" },
@@ -25,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* BARRA LATERAL (SIDEBAR) */}
       <aside className="w-64 bg-neutral-900 text-slate-300 flex flex-col hidden md:flex shrink-0">
         <div className="p-5 border-b border-neutral-800 flex items-center gap-3">
-          <img src="/logo.png?v=1" alt="I-R Dental" className="h-6 brightness-0 invert opacity-80" />
+          <img src="/logo.png?v=1" alt="I-R Dental" className="h-6" />
           <div>
             <h2 className="text-xs font-black text-white uppercase tracking-widest">Panel Admin</h2>
             <p className="text-[9px] uppercase font-bold text-neutral-500 tracking-widest">Configuración</p>
@@ -45,6 +52,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )
           })}
         </nav>
+
+        {/* Footer del sidebar - Logout */}
+        <div className="p-4 border-t border-neutral-800">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase text-sm text-slate-400 hover:bg-red-900/50 hover:text-red-400 transition-all"
+          >
+            <LogOut size={18} />
+            Cerrar Sesión
+          </button>
+        </div>
       </aside>
 
       {/* CONTENEDOR DERECHO */}
