@@ -97,8 +97,8 @@ export default function Home() {
       <main className="flex-grow">
         <section className="relative bg-neutral-900 overflow-hidden border-b-[8px] border-red-600 min-h-[500px] md:min-h-[600px] flex items-center">
           {/* Fondo Premium Fotográfico */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-fixed z-0 opacity-30 mix-blend-luminosity" 
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-scroll z-0 opacity-20"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')" }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-transparent z-0"></div>
@@ -264,7 +264,7 @@ export default function Home() {
         <section id="tecnologia" className="py-20 md:py-24 bg-neutral-900 text-white relative overflow-hidden">
           {/* Imagen de RX Panorámica */}
           <div className="absolute inset-0 opacity-20">
-            <img src="https://images.unsplash.com/photo-1570625686884-3c8115663ec4?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover mix-blend-luminosity" alt="RX Panorámica Dental" />
+            <img src="https://images.unsplash.com/photo-1570625686884-3c8115663ec4?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover grayscale opacity-80" alt="RX Panorámica Dental" />
           </div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-12 md:gap-16">
@@ -307,7 +307,7 @@ export default function Home() {
               {/* Servicio 1 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Tomografías en 3D" />
+                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías en 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Activity size={32} />
@@ -322,7 +322,7 @@ export default function Home() {
               {/* Servicio 2 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Intraorales" />
+                  <img src="https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Scan size={32} />
@@ -337,7 +337,7 @@ export default function Home() {
               {/* Servicio 3 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Placas Extraorales" />
+                  <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <FileText size={32} />
@@ -352,7 +352,7 @@ export default function Home() {
               {/* Servicio 4 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100" alt="Fotografías Clínicas" />
+                  <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Camera size={32} />
@@ -367,7 +367,7 @@ export default function Home() {
               {/* Servicio 5 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-red-200 transition-all duration-300 group flex flex-col lg:col-span-2">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 mix-blend-luminosity opacity-90 group-hover:mix-blend-normal group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
+                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <ToothIcon size={32} />
@@ -512,7 +512,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-neutral-800 pb-8 mb-8">
             <div>
-              <img src="/logo.png?v=1" alt="I-R Dental" className="h-10 w-auto brightness-0 invert opacity-80 hover:opacity-100 transition-opacity" />
+              <img src="/logo.png?v=2" alt="I-R Dental" className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity" />
             </div>
             {/* REDES SOCIALES (NUEVO) */}
             <div className="flex gap-4">
