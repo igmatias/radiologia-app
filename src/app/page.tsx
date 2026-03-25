@@ -54,7 +54,8 @@ export default function Home() {
       <div className="bg-black text-neutral-300 py-2 text-sm hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex gap-6">
-            <span className="flex items-center gap-2"><Mail size={14} /> info@irdental.com.ar</span>
+            <span className="flex items-center gap-2"><Mail size={14} /> info@irdental.com</span>
+            <span className="flex items-center gap-2"><Phone size={14} /> 0810.333.4507</span>
             <span className="flex items-center gap-2"><Clock size={14} /> Lunes a Viernes: 9 a 17:30 hs | Sábados: 9 a 12:30 hs</span>
           </div>
           <div>
@@ -451,9 +452,9 @@ export default function Home() {
                 <div className="p-8 flex-grow">
                   <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Quilmes</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
-                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">OLAVARRIA 88</span></li>
-                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4253-5947</span></li>
-                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-3333-3333</span></li>
+                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Olavarría 88</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">4253-5947</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <a href="https://wa.me/5491158209986" target="_blank" rel="noopener noreferrer" className="font-medium text-base text-green-700 hover:underline">11-5820-9986</a></li>
                   </ul>
                 </div>
               </div>
@@ -474,8 +475,8 @@ export default function Home() {
                   <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Avellaneda</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
                     <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">9 de Julio 64 - 2do. "A"</span></li>
-                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4210-0148</span></li>
-                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-5555-9999</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">4201-0148</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <a href="https://wa.me/5491138657094" target="_blank" rel="noopener noreferrer" className="font-medium text-base text-green-700 hover:underline">11-3865-7094</a></li>
                   </ul>
                 </div>
               </div>
@@ -495,9 +496,9 @@ export default function Home() {
                 <div className="p-8 flex-grow">
                   <h3 className="text-2xl font-bold text-brand-600 uppercase mb-6">Lomas de Zamora</h3>
                   <ul className="space-y-4 text-sm text-neutral-700">
-                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">ESPAÑA 156 - Planta Baja</span></li>
-                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">Tel. 4222-1111</span></li>
-                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base text-green-700">Whatsapp. 11-6666-9999</span></li>
+                    <li className="flex items-start gap-4"><MapPin className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">España 156 - PB</span></li>
+                    <li className="flex items-start gap-4"><Phone className="text-neutral-400 mt-0.5 shrink-0" size={18} /> <span className="font-medium text-base">4244-0148</span></li>
+                    <li className="flex items-start gap-4"><MessageCircle className="text-green-600 mt-0.5 shrink-0" size={18} /> <a href="https://wa.me/5491170442131" target="_blank" rel="noopener noreferrer" className="font-medium text-base text-green-700 hover:underline">11-7044-2131</a></li>
                   </ul>
                 </div>
               </div>
@@ -515,11 +516,14 @@ export default function Home() {
               <img src="/logo.png?v=2" alt="I-R Dental" className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity" />
             </div>
             {/* REDES SOCIALES (NUEVO) */}
-            <div className="flex gap-4">
-              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
+            <div className="flex items-center gap-4">
+              <a href="mailto:info@irdental.com" className="text-neutral-400 hover:text-white transition-colors flex items-center gap-2 text-sm">
+                <Mail size={16} /> info@irdental.com
+              </a>
+              <a href="https://www.instagram.com/ir.dental" target="_blank" rel="noopener noreferrer" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
+              <a href="http://www.facebook.com/pages/I-R-DENTAL/176182132448514" target="_blank" rel="noopener noreferrer" className="bg-neutral-800 p-3 rounded-full hover:bg-brand-600 hover:text-white transition-colors">
                 <Facebook size={20} />
               </a>
             </div>
@@ -536,17 +540,17 @@ export default function Home() {
         {/* Opciones (Se muestran al pasar el mouse por encima) */}
         <div className="flex-col gap-3 mb-4 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300 translate-y-4 group-hover:translate-y-0 flex">
           
-          <a href="https://wa.me/5491133333333" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+          <a href="https://wa.me/5491158209986" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
             <span className="font-bold text-neutral-700 text-sm">Quilmes</span>
             <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
           </a>
 
-          <a href="https://wa.me/5491155559999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+          <a href="https://wa.me/5491138657094" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
             <span className="font-bold text-neutral-700 text-sm">Avellaneda</span>
             <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
           </a>
 
-          <a href="https://wa.me/5491166669999" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
+          <a href="https://wa.me/5491170442131" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-lg hover:bg-neutral-50 hover:scale-105 transition-all border border-neutral-100">
             <span className="font-bold text-neutral-700 text-sm">Lomas de Zamora</span>
             <div className="bg-green-500 text-white p-2 rounded-full"><MessageCircle size={20} /></div>
           </a>
