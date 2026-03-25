@@ -163,11 +163,6 @@ export default function Home() {
 
         {/* SECCIÓN: 40 ANIVERSARIO */}
         <section className="relative bg-neutral-950 py-16 md:py-24 overflow-hidden border-b-4 border-amber-500">
-          {/* Sala de rayos como fondo */}
-          <div className="absolute inset-0">
-            <img src="/salarx.png" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" alt="" />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-neutral-950/60"></div>
           {/* Cubos decorativos */}
           <img src="/cubito.png" className="absolute right-8 top-8 w-20 h-20 opacity-[0.07] rotate-12 select-none pointer-events-none" alt="" />
           <img src="/cubito.png" className="absolute right-40 bottom-8 w-10 h-10 opacity-[0.07] -rotate-6 select-none pointer-events-none" alt="" />
@@ -178,11 +173,13 @@ export default function Home() {
 
               {/* Logo 40 años */}
               <div className="flex-shrink-0 flex items-center justify-center">
-                <img
-                  src="/40anoshq.png"
-                  alt="40 Años I-R Dental"
-                  className="w-44 md:w-72 h-auto drop-shadow-[0_0_40px_rgba(245,158,11,0.3)]"
-                />
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-black/50 ring-1 ring-amber-400/30">
+                  <img
+                    src="/40anoshq.png"
+                    alt="40 Años I-R Dental"
+                    className="w-36 md:w-56 h-auto"
+                  />
+                </div>
               </div>
 
               {/* Texto del aniversario */}
@@ -291,9 +288,9 @@ export default function Home() {
                <div className="absolute -inset-4 bg-red-600/20 blur-3xl rounded-full"></div>
                {/* Imagen representativa de un escáner/tecnología médica */}
                <img
-                 src="/cbct2.jpeg"
+                 src="/salarx.jpg"
                  className="relative rounded-2xl shadow-2xl border border-neutral-700/50 w-full object-cover h-[350px] md:h-[500px]"
-                 alt="Equipo CBCT Dentsply Sirona AXEOS"
+                 alt="Sala de Rayos I-R Dental"
                />
             </div>
           </div>
