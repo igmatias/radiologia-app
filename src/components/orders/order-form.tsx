@@ -327,7 +327,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
         patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
         teeth: [], locations: [], quantity: 1,
-        metadata: isPhotos(procedure?.name) ? { photos: [], basePhotoCount: 5, extraPricePerPhoto: 0 } : {}
+        metadata: isPhotos(procedure?.name) ? { photos: ['FRENTE', 'PERFIL', 'OCLUSION FRENTE', 'IZQUIERDA', 'DERECHA'], basePhotoCount: 5, extraPricePerPhoto: 0 } : {}
       }])
       if (isPhotos(procedure?.name) || procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
     }
