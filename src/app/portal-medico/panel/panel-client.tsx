@@ -12,7 +12,7 @@ import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
-  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock
 } from "lucide-react"
 import Link from "next/link"
 
@@ -202,56 +202,57 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
         
         <div className="max-w-6xl mx-auto px-4 relative z-10">
           
-          {/* Fila 1: Logo, Descarga Orden y Salir */}
+          {/* Fila 1: Logo + acciones */}
           <div className="flex justify-between items-center mb-5 sm:mb-8 border-b border-neutral-800 pb-4 sm:pb-6">
             <Link href="/" className="flex items-center gap-3 group">
                <img src="/logo.png?v=2" alt="I-R Dental" className="h-8 md:h-10 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
                <div className="h-6 w-px bg-neutral-700 hidden sm:block"></div>
                <span className="text-brand-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs hidden sm:block">Portal Profesional</span>
             </Link>
-            <div className="flex gap-3">
-              <a 
-                href="/orden.pdf" 
-                target="_blank" 
+            <div className="flex items-center gap-2">
+              <a
+                href="/orden.pdf"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hidden md:flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-md border border-neutral-700 transition-all"
               >
                 <Download size={14} className="text-brand-500" /> Descargar Orden PDF
               </a>
-              <Button onClick={handleLogout} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-brand-600/20 px-3 py-2 h-auto text-xs uppercase font-bold transition-colors">
-                <LogOut size={16} className="sm:mr-2"/> <span className="hidden sm:block">Cerrar Sesión</span>
+              {/* Ajustes — ícono en mobile, texto en desktop */}
+              <Button
+                onClick={() => setShowProfileModal(true)}
+                variant="ghost"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-700 px-2.5 py-2 h-auto transition-colors rounded-lg"
+                title="Ajustes del Perfil"
+              >
+                <Settings size={17} className="sm:mr-1.5"/>
+                <span className="hidden sm:block text-xs font-bold uppercase">Ajustes</span>
+              </Button>
+              <Button onClick={handleLogout} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-brand-600/20 px-2.5 py-2 h-auto text-xs uppercase font-bold transition-colors rounded-lg">
+                <LogOut size={17} className="sm:mr-1.5"/> <span className="hidden sm:block">Salir</span>
               </Button>
             </div>
           </div>
 
           {/* Fila 2: Perfil del Odontólogo */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex items-center gap-5 w-full md:w-auto">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 border-2 border-brand-500/50 shadow-lg shadow-brand-900/40 flex items-center justify-center shrink-0">
-                <span className="text-lg sm:text-2xl font-black text-white uppercase tracking-tighter">
-                  {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 border-2 border-brand-500/50 shadow-lg shadow-brand-900/40 flex items-center justify-center shrink-0">
+              <span className="text-lg sm:text-2xl font-black text-white uppercase tracking-tighter">
+                {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
+                Dr. {dentist.lastName}, {dentist.firstName}
+              </h1>
+              <div className="flex flex-wrap gap-2 mt-1.5">
+                <span className="text-xs font-bold text-neutral-400 uppercase bg-neutral-800 px-2 py-0.5 rounded border border-neutral-700">
+                  MP: {dentist.matriculaProv || '---'}
+                </span>
+                <span className="text-xs font-bold text-neutral-400 uppercase bg-neutral-800 px-2 py-0.5 rounded border border-neutral-700">
+                  MN: {dentist.matriculaNac || '---'}
                 </span>
               </div>
-              <div className="w-full min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
-                  Dr. {dentist.lastName}, {dentist.firstName}
-                </h1>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  <span className="text-xs font-bold text-neutral-400 uppercase bg-neutral-800 px-2 py-1 rounded border border-neutral-700">
-                    MP: {dentist.matriculaProv || '---'}
-                  </span>
-                  <span className="text-xs font-bold text-neutral-400 uppercase bg-neutral-800 px-2 py-1 rounded border border-neutral-700">
-                    MN: {dentist.matriculaNac || '---'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex w-full md:w-auto">
-              <Button onClick={() => setShowProfileModal(true)} variant="outline" className="h-12 w-full md:w-auto md:px-6 bg-neutral-800/80 border border-neutral-700 hover:bg-neutral-700 text-neutral-300 hover:text-white shrink-0 shadow-lg transition-colors flex items-center justify-center">
-                <Settings size={18} className="mr-2" />
-                <span className="text-xs font-bold uppercase tracking-widest">Ajustes del Perfil</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -309,132 +310,126 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
               <p className="text-sm text-neutral-500">No hay ningún paciente que coincida con "{searchTerm}".</p>
             </div>
           ) : (
-            filteredOrders.map((order: any) => (
-              <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-xl overflow-hidden bg-white border-l-[6px] border-l-brand-600">
-                <CardContent className="p-4 sm:p-6 md:p-8">
-                  
-                  {/* Cabecera del Paciente */}
-                  <div className="flex flex-col md:flex-row justify-between gap-3 border-b border-neutral-100 pb-4 mb-4">
+            filteredOrders.map((order: any) => {
+              const hasResults = (order.images && order.images.length > 0) || order.externalLink
+              const statusColor = order.status === 'ENTREGADA' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : order.status === 'LISTA' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200'
+              const statusLabel = order.status === 'ENTREGADA' ? 'Entregado' : order.status === 'LISTA' ? 'Listo para retirar' : 'En proceso'
+
+              return (
+              <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-2xl overflow-hidden bg-white">
+                {/* Barra superior de color según estado */}
+                <div className={`h-1.5 w-full ${order.status === 'ENTREGADA' ? 'bg-emerald-500' : order.status === 'LISTA' ? 'bg-amber-400' : 'bg-neutral-300'}`}/>
+                <CardContent className="p-4 sm:p-6">
+
+                  {/* ── ENCABEZADO: Paciente + Estado + Fecha ── */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Paciente</span>
-                        <span className="bg-neutral-100 text-neutral-600 text-[10px] font-bold px-2 py-0.5 rounded border border-neutral-200 flex items-center gap-1">
-                          <Hash size={10}/> Orden {order.code || 'S/D'}
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider ${statusColor}`}>{statusLabel}</span>
+                        <span className="bg-neutral-100 text-neutral-500 text-[10px] font-bold px-2 py-0.5 rounded border border-neutral-200 flex items-center gap-1">
+                          <Hash size={9}/> {order.code || 'S/D'}
                         </span>
                       </div>
-                      <h3 className="text-xl sm:text-2xl font-bold uppercase text-neutral-900 leading-none truncate">
+                      <h3 className="text-lg sm:text-xl font-black uppercase text-neutral-900 leading-tight truncate">
                         {order.patient.lastName}, <span className="font-medium">{order.patient.firstName}</span>
                       </h3>
-                      <p className="text-sm font-medium text-neutral-500 mt-2 flex items-center gap-1.5">
-                         <span className="uppercase text-[10px] font-bold tracking-widest">DNI:</span> {order.patient.dni}
+                      <p className="text-xs font-medium text-neutral-400 mt-0.5">
+                        DNI {order.patient.dni} {order.patient.obraSocial ? `· ${order.patient.obraSocial}` : ''}
                       </p>
                     </div>
-                    <div className="text-left md:text-right bg-neutral-50 p-4 rounded-lg border border-neutral-200 shrink-0 self-start md:self-center">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-1">Fecha del Estudio</p>
-                      <p className="text-lg font-bold text-neutral-800 flex items-center md:justify-end gap-2">
-                        <Calendar size={18} className="text-brand-600"/> {new Date(order.createdAt).toLocaleDateString('es-AR')}
+                    <div className="text-right shrink-0 bg-neutral-50 px-3 py-2 rounded-xl border border-neutral-100">
+                      <p className="text-[9px] font-bold uppercase text-neutral-400 tracking-widest">Fecha</p>
+                      <p className="text-sm font-bold text-neutral-800 flex items-center justify-end gap-1 mt-0.5">
+                        <Calendar size={13} className="text-brand-600"/>
+                        {new Date(order.createdAt).toLocaleDateString('es-AR')}
                       </p>
                     </div>
                   </div>
-                  
-                  {/* DETALLE DE PRÁCTICAS, PIEZAS Y SECTORES */}
-                  <div className="mb-6">
-                     <p className="text-[10px] font-bold uppercase text-neutral-500 tracking-widest mb-3 flex items-center gap-1.5">
-                       <CheckCircle2 size={14} className="text-green-600"/> Prácticas Realizadas
-                     </p>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                       {order.items.map((item: any, i: number) => (
-                         <div key={item.id || i} className="bg-neutral-50 p-4 rounded-lg border border-neutral-200 flex flex-col justify-center">
-                           <p className="font-bold uppercase text-neutral-800 text-sm leading-tight mb-2">{item.procedure?.name}</p>
-                           
-                           {/* Piezas / Sectores */}
-                           <div className="flex flex-wrap gap-x-4 gap-y-2">
-                             {(item.metadata?.teeth || item.teeth)?.length > 0 && (
-                               <div className="flex items-center gap-1.5">
-                                 <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Piezas:</span>
-                                 <div className="flex flex-wrap gap-1">
-                                   {(item.metadata?.teeth || item.teeth).map((tooth: any) => (
-                                     <span key={tooth} className="bg-neutral-900 text-white text-xs font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                       {tooth}
-                                     </span>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
 
-                             {(item.metadata?.locations || item.locations)?.length > 0 && (
-                               <div className="flex items-center gap-1.5">
-                                 <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Sector:</span>
-                                 <div className="flex flex-wrap gap-1">
-                                   {(item.metadata?.locations || item.locations).map((loc: string) => (
-                                     <span key={loc} className="bg-neutral-200 text-neutral-800 text-xs font-bold px-2 py-0.5 rounded border border-neutral-300 uppercase">
-                                       {loc}
-                                     </span>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
-                           </div>
-                         </div>
-                       ))}
-                     </div>
+                  {/* ── PRÁCTICAS ── */}
+                  <div className="mb-4">
+                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-2 flex items-center gap-1.5">
+                      <CheckCircle2 size={12} className="text-emerald-500"/> Prácticas realizadas
+                    </p>
+                    <div className="space-y-2">
+                      {order.items.map((item: any, i: number) => {
+                        const teeth = item.metadata?.teeth || item.teeth || []
+                        const locs  = item.metadata?.locations || item.locations || []
+                        return (
+                          <div key={item.id || i} className="flex items-start gap-3 bg-neutral-50 px-3 py-2.5 rounded-xl border border-neutral-100">
+                            <span className="w-5 h-5 rounded-full bg-brand-600 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">{i+1}</span>
+                            <div className="min-w-0">
+                              <p className="font-bold uppercase text-neutral-800 text-xs leading-tight">{item.procedure?.name}</p>
+                              {(teeth.length > 0 || locs.length > 0) && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {teeth.map((t: any) => (
+                                    <span key={t} className="bg-neutral-800 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">Pza {t}</span>
+                                  ))}
+                                  {locs.map((l: string) => (
+                                    <span key={l} className="bg-neutral-200 text-neutral-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{l}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
 
-                  {/* 👉 ARCHIVOS: FOTOS, PDFS Y LINKS EXTERNOS */}
-                  <div className="bg-neutral-100 p-5 rounded-xl border border-neutral-200 space-y-4">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
-                      <ImageIcon className="text-brand-600" size={18}/> Resultados y Descargas
+                  {/* ── RESULTADOS Y DESCARGAS ── */}
+                  <div className={`rounded-xl border p-4 space-y-3 ${hasResults ? 'bg-neutral-50 border-neutral-200' : 'bg-neutral-50/50 border-dashed border-neutral-200'}`}>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
+                      <ImageIcon size={12} className="text-brand-600"/> Resultados y Descargas
                     </h4>
 
-                    {(!order.images || order.images.length === 0) && !order.externalLink ? (
-                      <div className="bg-white p-4 rounded-lg border border-neutral-200 text-center">
-                         <p className="text-sm font-medium text-neutral-500">El estudio se encuentra en proceso. Los resultados estarán disponibles aquí a la brevedad.</p>
+                    {!hasResults ? (
+                      <div className="flex items-center gap-3 bg-white rounded-lg p-3 border border-neutral-100">
+                        <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center shrink-0">
+                          <Clock size={14} className="text-neutral-400"/>
+                        </div>
+                        <p className="text-xs font-medium text-neutral-500">Estudio en proceso — los resultados aparecerán aquí a la brevedad.</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        
-                        {/* LINK EXTERNO DE DRIVE/WETRANSFER (Tomografías) */}
+                      <div className="space-y-2">
                         {order.externalLink && (
-                          <a 
-                            href={order.externalLink} 
-                            target="_blank" 
-                            rel="noreferrer" 
-                            className="flex items-center justify-between bg-white border border-neutral-200 p-4 rounded-lg hover:border-brand-600 hover:shadow-md transition-all group"
+                          <a
+                            href={order.externalLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between bg-white border border-neutral-200 px-4 py-3 rounded-xl hover:border-brand-600 hover:shadow-sm transition-all group"
                           >
-                            <div className="flex items-center gap-4">
-                               <div className="bg-brand-50 p-2 rounded text-brand-600">
-                                  <ExternalLink size={24} />
-                               </div>
-                               <div>
-                                 <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-0.5">Visor DICOM / Tomografía 3D</p>
-                                 <p className="text-sm font-bold text-neutral-900 group-hover:text-brand-600 transition-colors">Abrir enlace externo de descarga</p>
-                               </div>
+                            <div className="flex items-center gap-3">
+                              <div className="bg-brand-50 p-2 rounded-lg text-brand-600 shrink-0">
+                                <ExternalLink size={18}/>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Visor 3D / DICOM</p>
+                                <p className="text-sm font-bold text-neutral-900 group-hover:text-brand-600 transition-colors">Abrir estudio en visor externo</p>
+                              </div>
                             </div>
-                            <ChevronRight size={20} className="text-neutral-400 group-hover:text-brand-600 group-hover:translate-x-1 transition-all" />
+                            <ChevronRight size={18} className="text-neutral-300 group-hover:text-brand-600 group-hover:translate-x-1 transition-all shrink-0"/>
                           </a>
                         )}
 
-                        {/* GALERÍA DE IMÁGENES Y PDFS (Panorámicas / Cefalometría) */}
                         {order.images && order.images.length > 0 && (
-                          <div className="flex flex-wrap gap-4 pt-2">
+                          <div className="flex flex-wrap gap-2 pt-1">
                             {order.images.map((img: string, idx: number) => {
                               const isPDF = img.toLowerCase().includes('.pdf')
-                              
                               return (
-                                <a key={idx} href={img} target="_blank" rel="noreferrer" className="relative group block h-32 w-40 rounded-lg overflow-hidden border border-neutral-300 shadow-sm bg-neutral-900 shrink-0">
+                                <a key={idx} href={img} target="_blank" rel="noreferrer"
+                                   className="relative group block rounded-xl overflow-hidden border border-neutral-200 shadow-sm bg-neutral-900 shrink-0"
+                                   style={{ width: '5.5rem', height: '5rem' }}>
                                   {isPDF ? (
-                                    <div className="w-full h-full bg-neutral-800 text-neutral-300 flex flex-col items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                                      <FileText size={32} className="mb-2 text-brand-500" />
-                                      <span className="text-[10px] font-bold uppercase tracking-widest">Informe PDF</span>
+                                    <div className="w-full h-full bg-neutral-800 text-neutral-300 flex flex-col items-center justify-center">
+                                      <FileText size={24} className="mb-1 text-brand-400"/>
+                                      <span className="text-[9px] font-bold uppercase">PDF</span>
                                     </div>
                                   ) : (
-                                    <img src={img} alt={`Placa ${idx+1}`} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                                    <img src={img} alt={`Imagen ${idx+1}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
                                   )}
-                                  
-                                  {/* Overlay hover */}
-                                  <div className="absolute inset-0 bg-brand-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm">
-                                    <Search size={20} className="mb-2"/>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-center">Visualizar</span>
+                                  <div className="absolute inset-0 bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Search size={16} className="text-white"/>
                                   </div>
                                 </a>
                               )
@@ -447,7 +442,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
                 </CardContent>
               </Card>
-            ))
+            )})
           )}
         </div>
       </div>
