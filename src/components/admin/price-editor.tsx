@@ -209,8 +209,8 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                   {filteredProcedures.map((proc: any) => {
                     // Buscamos los precios actuales de este estudio en la OS seleccionada
                     const priceRecord = selectedOS?.priceList?.prices.find((p: any) => p.procedureId === proc.id);
-                    const insuranceValue = priceRecord?.insuranceCoverage || 0;
-                    const patientValue = priceRecord?.patientCopay || 0;
+                    const insuranceValue = Number(priceRecord?.insuranceCoverage || 0);
+                    const patientValue = Number(priceRecord?.patientCopay || 0);
                     const totalValue = insuranceValue + patientValue;
 
                     const isUpdating = updatingId === proc.id;
@@ -255,7 +255,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                         {/* TOTAL AUTOMÁTICO */}
                         <td className="p-4 pr-6 text-right">
                           <span className={`text-lg font-black italic ${totalValue > 0 ? 'text-slate-900' : 'text-slate-300'}`}>
-                            ${totalValue}
+                            ${totalValue.toLocaleString('es-AR')}
                           </span>
                         </td>
                       </tr>

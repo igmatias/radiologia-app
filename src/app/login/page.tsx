@@ -67,7 +67,7 @@ export default function LoginPage() {
             <img
               src="/logo.png?v=1"
               alt="I-R Dental Logo"
-              className="w-full h-auto brightness-0 invert"
+              className="w-full h-auto"
             />
           </div>
           <h1 className="text-2xl font-bold uppercase text-white tracking-widest">Acceso al Sistema</h1>

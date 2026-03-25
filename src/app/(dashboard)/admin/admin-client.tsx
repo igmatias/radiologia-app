@@ -180,7 +180,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                         <div className="absolute -right-6 -top-6 text-slate-800 opacity-50"><Vault size={120}/></div>
                         <CardContent className="p-6 relative z-10">
                           <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1 flex items-center gap-1.5"><MapPin size={12}/> Sede {boveda.branch.name}</p>
-                          <p className="text-4xl font-black italic mt-2">${boveda.balance.toLocaleString('es-AR')}</p>
+                          <p className="text-4xl font-black italic mt-2">${Number(boveda.balance).toLocaleString('es-AR')}</p>
                           <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase">Fondos acumulados intocables por el personal</p>
                         </CardContent>
                       </Card>
@@ -293,7 +293,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                                 </p>
                               </div>
                             </div>
-                            <p className="text-base font-black text-red-600 italic">-${m.amount.toLocaleString('es-AR')}</p>
+                            <p className="text-base font-black text-red-600 italic">-${Number(m.amount).toLocaleString('es-AR')}</p>
                           </div>
                         ))
                       )}

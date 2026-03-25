@@ -319,8 +319,8 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                       <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300">FECHA</th>
                       <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300">CÓDIGO</th>
                       <th className="w-[18%] p-3 print:p-1.5 border-b-2 border-slate-300">PRÁCTICA</th>
-                      <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right">VALOR OS</th>
-                      <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-red-700">COPAGO</th>
+                      <th className="w-[13%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right">VALOR OS</th>
+                      <th className="w-[11%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-red-700">COPAGO</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -337,12 +337,12 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         <td className="p-3 print:p-1.5 text-right">
                           <div className="flex justify-end items-center gap-1 print:hidden">
                             <span className="text-slate-400 font-bold">$</span>
-                            <Input 
-                              type="number" 
-                              defaultValue={item.insuranceCoverage} 
-                              onBlur={(e) => handleUpdatePrice(item.id, Number(e.target.value), index)} 
-                              className="h-8 w-20 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors" 
-                              title="Modificar valor OS" 
+                            <Input
+                              type="number"
+                              defaultValue={item.insuranceCoverage}
+                              onBlur={(e) => handleUpdatePrice(item.id, Number(e.target.value), index)}
+                              className="h-8 w-24 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors"
+                              title="Modificar valor OS"
                             />
                           </div>
                           <span className="hidden print:inline font-black text-[11px] italic text-slate-900">${item.insuranceCoverage}</span>
@@ -356,7 +356,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                               type="number" 
                               defaultValue={item.patientCopay} 
                               onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)} 
-                              className="h-8 w-20 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors" 
+                              className="h-8 w-24 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors" 
                               title="Modificar copago" 
                             />
                           </div>
