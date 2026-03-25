@@ -4,11 +4,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { 
-  Clock, Play, CheckCircle, Stethoscope, RefreshCw, LogOut, 
-  Activity, Phone, Cake, Send, Hash, Calendar, MapPin, Mail, 
+import {
+  Clock, Play, CheckCircle, Stethoscope, RefreshCw, LogOut,
+  Phone, Cake, Send, Hash, Calendar, MapPin, Mail,
   MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer
 } from "lucide-react"
+import RadiationIcon from "@/components/icons/radiation-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { updateOrderStatusAction } from "@/actions/orders"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -190,7 +191,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-brand-700 gap-4 border border-slate-200">
         <div>
           <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
-            <Activity className="text-brand-700" size={28} /> Sala de Rayos
+            <RadiationIcon className="text-brand-700" size={28} /> Sala de Rayos
           </h1>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">

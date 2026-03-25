@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Monitor, Activity, Send, Settings } from "lucide-react"
+import { Monitor, Send, Settings } from "lucide-react"
+import RadiationIcon from "@/components/icons/radiation-icon"
 
 export default function DashboardLayout({
   children,
@@ -26,7 +27,7 @@ export default function DashboardLayout({
           </Link>
           <Link href="/tecnico">
             <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer">
-              <Activity size={14} /> <span className="hidden sm:inline">Técnico</span>
+              <RadiationIcon size={14} /> <span className="hidden sm:inline">Técnico</span>
             </span>
           </Link>
           <Link href="/entregas">
