@@ -333,6 +333,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
     win.document.write(html);
     win.document.close();
     win.onload = () => { win.focus(); win.print(); };
+    win.onafterprint = () => win.close();
   }
 
   return (

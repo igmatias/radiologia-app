@@ -240,36 +240,42 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-slate-900">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><Activity className="text-slate-900"/> Cajas de Mostrador</h3>
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                      {data.cajasDiarias.length === 0 ? (
-                        <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay cajas registradas en este período</p>
-                      ) : (
-                        data.cajasDiarias.map((caja: any) => (
-                          <div key={caja.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <p className="font-black uppercase text-slate-900">{caja.branch.name}</p>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">{new Date(caja.date).toLocaleDateString('es-AR')} • Abierta por {caja.openedBy}</p>
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Banknote className="text-slate-900"/> Métodos de Cobro</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Distribución del total recaudado</p>
+                    {data.porcentajes.length === 0 ? (
+                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay cobros registrados en este período</p>
+                    ) : (
+                      <div className="space-y-5">
+                        {(() => {
+                          const labels: Record<string, string> = {
+                            EFECTIVO: 'Efectivo',
+                            MERCADOPAGO: 'MercadoPago',
+                            TARJETA_DEBITO: 'Tarjeta Débito',
+                            TARJETA_CREDITO: 'Tarjeta Crédito',
+                            TRANSFERENCIA: 'Transferencia',
+                            SALDO: 'Saldo a Favor',
+                          };
+                          return data.porcentajes.map((m: any) => (
+                            <div key={m.metodo}>
+                              <div className="flex justify-between items-end mb-1.5">
+                                <span className="text-sm font-black uppercase text-slate-700">{labels[m.metodo] || m.metodo}</span>
+                                <span className="text-right leading-none">
+                                  <span className="text-base font-black italic text-slate-900">${m.monto.toLocaleString('es-AR')}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 ml-2">({m.porcentaje}%)</span>
+                                </span>
                               </div>
-                              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 ${caja.status === 'ABIERTA' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                                {caja.status === 'ABIERTA' ? <Unlock size={10}/> : <Lock size={10}/>} {caja.status}
-                              </span>
+                              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
+                                <div className="bg-slate-800 h-3 rounded-full transition-all duration-700 ease-out" style={{ width: `${m.porcentaje}%` }} />
+                              </div>
                             </div>
-                            <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-100 mt-2">
-                              <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Arrancó con</p>
-                                <p className="font-bold text-slate-700">${caja.startBalance.toLocaleString('es-AR')}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{caja.status === 'ABIERTA' ? 'Dinero Esperado' : 'Cierre Declarado'}</p>
-                                <p className="font-black text-lg text-slate-900">${(caja.endBalance || 0).toLocaleString('es-AR')}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                          ));
+                        })()}
+                        <div className="flex justify-between items-center pt-4 border-t-2 border-slate-200 mt-2">
+                          <span className="text-xs font-black uppercase text-slate-500 tracking-widest">Total Recaudado</span>
+                          <span className="text-2xl font-black italic text-slate-900">${data.totalFacturado.toLocaleString('es-AR')}</span>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -372,7 +378,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                               <p className="text-xs font-bold uppercase truncate pr-2">{doc.name}</p>
                             </div>
                             <span className="text-sm font-black italic bg-slate-950 px-3 py-1.5 rounded-xl text-emerald-400 shrink-0 border border-emerald-900/50">
-                              {doc.count} pts
+                              {doc.count} pac.
                             </span>
                           </div>
                         ))}
