@@ -64,7 +64,7 @@ export default function QuickDentistForm({ onSuccess }: { onSuccess: () => void 
         </Select>
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full bg-red-700 h-14 text-white text-lg rounded-2xl shadow-xl hover:bg-red-800 transition-all">
+      <Button type="submit" disabled={loading} className="w-full bg-brand-700 h-14 text-white text-lg rounded-2xl shadow-xl hover:bg-brand-800 transition-all">
         {loading ? "GUARDANDO..." : "REGISTRAR PROFESIONAL ✓"}
       </Button>
     </form>

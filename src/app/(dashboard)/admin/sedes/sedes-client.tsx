@@ -105,10 +105,10 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
             <Card 
               key={branch.id} 
               onClick={() => setSelectedBranch(branch)}
-              className={`cursor-pointer transition-all border-2 rounded-xl ${selectedBranch?.id === branch.id ? 'border-red-700 bg-red-50 shadow-md' : 'border-slate-200 hover:border-red-300'}`}
+              className={`cursor-pointer transition-all border-2 rounded-xl ${selectedBranch?.id === branch.id ? 'border-brand-700 bg-brand-50 shadow-md' : 'border-slate-200 hover:border-brand-300'}`}
             >
               <CardContent className="p-4 flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${selectedBranch?.id === branch.id ? 'bg-red-700 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <div className={`p-2 rounded-lg ${selectedBranch?.id === branch.id ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-500'}`}>
                   <Building2 size={20} />
                 </div>
                 <div>
@@ -129,7 +129,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
           <Card className="border-none shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-5">
               <CardTitle className="font-black italic uppercase flex items-center gap-2 text-lg">
-                <MapPin className="text-red-500"/> Información de la Sede
+                <MapPin className="text-brand-500"/> Información de la Sede
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -151,7 +151,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                   <Input name="phone" defaultValue={selectedBranch.phone} className="h-12 font-bold border-2" />
                 </div>
                 <div className="md:col-span-2 flex justify-end mt-2">
-                  <Button type="submit" disabled={isBranchLoading} className="bg-red-700 hover:bg-red-800 h-12 px-8 font-black uppercase italic rounded-xl shadow-lg">
+                  <Button type="submit" disabled={isBranchLoading} className="bg-brand-700 hover:bg-brand-800 h-12 px-8 font-black uppercase italic rounded-xl shadow-lg">
                     <Save size={18} className="mr-2" /> {isBranchLoading ? "Guardando..." : "Guardar Cambios"}
                   </Button>
                 </div>
@@ -164,12 +164,12 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* EQUIPOS DE RAYOS */}
-              <Card className="border-none shadow-lg rounded-2xl overflow-hidden border-t-4 border-red-700 flex flex-col h-[500px]">
+              <Card className="border-none shadow-lg rounded-2xl overflow-hidden border-t-4 border-brand-700 flex flex-col h-[500px]">
                 <div className="bg-slate-50 p-4 border-b flex justify-between items-center shrink-0">
                   <h3 className="font-black uppercase italic text-slate-800 flex items-center gap-2">
-                    <Activity size={18} className="text-red-700" /> Salas y Equipos
+                    <Activity size={18} className="text-brand-700" /> Salas y Equipos
                   </h3>
-                  <Button size="sm" onClick={() => openEqModal('RAYOS')} className="h-8 bg-red-100 text-red-700 hover:bg-red-200 font-bold text-xs">+ Agregar</Button>
+                  <Button size="sm" onClick={() => openEqModal('RAYOS')} className="h-8 bg-brand-100 text-brand-700 hover:bg-brand-200 font-bold text-xs">+ Agregar</Button>
                 </div>
                 <CardContent className="p-0 overflow-y-auto flex-1">
                   <div className="divide-y divide-slate-100">
@@ -184,7 +184,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                           </div>
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="sm" onClick={() => openEqModal('RAYOS', eq)} className="text-blue-600 hover:bg-blue-50 h-8 w-8 p-0"><MonitorSmartphone size={14}/></Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEquipment(eq.id)} className="text-red-600 hover:bg-red-50 h-8 w-8 p-0"><Trash2 size={14}/></Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEquipment(eq.id)} className="text-brand-600 hover:bg-brand-50 h-8 w-8 p-0"><Trash2 size={14}/></Button>
                           </div>
                         </div>
                       ))
@@ -241,7 +241,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                           
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 shrink-0 ml-2">
                             <Button variant="ghost" size="sm" onClick={() => openEqModal('PC', eq)} className="text-blue-600 hover:bg-blue-50 h-8 w-8 p-0 border shadow-sm"><MonitorSmartphone size={14}/></Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEquipment(eq.id)} className="text-red-600 hover:bg-red-50 h-8 w-8 p-0 border shadow-sm"><Trash2 size={14}/></Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteEquipment(eq.id)} className="text-brand-600 hover:bg-brand-50 h-8 w-8 p-0 border shadow-sm"><Trash2 size={14}/></Button>
                           </div>
                         </div>
                       ))
@@ -263,7 +263,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
 
       {/* MODAL UNIVERSAL PARA EQUIPOS Y PCS */}
       <Dialog open={isEqModalOpen} onOpenChange={setIsEqModalOpen}>
-        <DialogContent className={`sm:max-w-[425px] bg-white rounded-3xl border-t-8 outline-none ${eqData.type === 'PC' ? 'border-blue-600' : 'border-red-700'}`}>
+        <DialogContent className={`sm:max-w-[425px] bg-white rounded-3xl border-t-8 outline-none ${eqData.type === 'PC' ? 'border-blue-600' : 'border-brand-700'}`}>
           <DialogHeader>
             <DialogTitle className="text-2xl font-black italic uppercase">
               {eqData.id ? 'Editar' : 'Nuevo'} {eqData.type === 'PC' ? 'Computadora' : 'Equipo Clínico'}
@@ -292,7 +292,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
               </div>
             )}
 
-            <Button onClick={handleSaveEquipment} disabled={isEqLoading} className={`w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 ${eqData.type === 'PC' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-700 hover:bg-red-800'}`}>
+            <Button onClick={handleSaveEquipment} disabled={isEqLoading} className={`w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 ${eqData.type === 'PC' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-brand-700 hover:bg-brand-800'}`}>
               {isEqLoading ? "GUARDANDO..." : "GUARDAR ✓"}
             </Button>
           </div>

@@ -160,7 +160,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       {icon}
       <span className="flex-1 uppercase tracking-wide text-xs">{label}</span>
       {badge ? (
-        <span className="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full min-w-[26px] text-center leading-none">{badge}</span>
+        <span className="bg-brand-500 text-white text-xs font-black px-2.5 py-1 rounded-full min-w-[26px] text-center leading-none">{badge}</span>
       ) : active ? (
         <ChevronRight size={14} className="opacity-60" />
       ) : null}
@@ -182,10 +182,10 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
         {/* Navegación */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navBtn("Nueva Orden", <UserPlus size={16}/>, () => { setActiveTab("NUEVA_ORDEN"); setResetTrigger(prev=>prev+1); }, activeTab === "NUEVA_ORDEN", "bg-red-700")}
+          {navBtn("Nueva Orden", <UserPlus size={16}/>, () => { setActiveTab("NUEVA_ORDEN"); setResetTrigger(prev=>prev+1); }, activeTab === "NUEVA_ORDEN", "bg-brand-700")}
           {navBtn("Órdenes", <LayoutGrid size={16}/>, () => setActiveTab("ORDENES"), activeTab === "ORDENES", "bg-slate-700", dailyOrderCount || undefined)}
           {navBtn("Caja", <Banknote size={16}/>, () => setActiveTab("CAJA"), activeTab === "CAJA", "bg-emerald-700")}
-          {navBtn("Saldos", <Wallet size={16}/>, () => setActiveTab("SALDOS"), activeTab === "SALDOS", "bg-red-800", saldosFiltrados.length || undefined)}
+          {navBtn("Saldos", <Wallet size={16}/>, () => setActiveTab("SALDOS"), activeTab === "SALDOS", "bg-brand-800", saldosFiltrados.length || undefined)}
 
           <div className="pt-2 border-t border-slate-800 mt-2">
             {navBtn("Entregas", <Send size={16}/>, () => router.push("/entregas"), false, "bg-slate-700")}
@@ -211,14 +211,14 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
       {activeTab === "SALDOS" && (
         <div className="max-w-4xl animate-in fade-in duration-300">
-           <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-red-700 p-8">
-              <h3 className="text-3xl font-black uppercase italic text-slate-900 mb-8 flex items-center gap-3"><Clock size={32} className="text-red-700"/> Saldos Pendientes</h3>
+           <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-brand-700 p-8">
+              <h3 className="text-3xl font-black uppercase italic text-slate-900 mb-8 flex items-center gap-3"><Clock size={32} className="text-brand-700"/> Saldos Pendientes</h3>
               <div className="space-y-4">
                 {saldosFiltrados.length === 0 ? <p className="text-center py-10 text-slate-400 font-bold uppercase">No hay deudas en esta sede</p> : 
                   saldosFiltrados.map((s: any) => (
                     <div key={s.id} className="bg-slate-50 p-5 rounded-2xl flex justify-between items-center border border-slate-200">
                        <div><p className="text-lg font-black uppercase text-slate-800">{s.order?.patient?.lastName}, {s.order?.patient?.firstName}</p><p className="text-xs font-bold text-slate-500 uppercase">DNI: {s.order?.patient?.dni}</p></div>
-                       <div className="text-right"><p className="text-3xl font-black text-red-600 italic">${s.amount.toLocaleString('es-AR')}</p><Button onClick={() => setSaldoSeleccionado(s)} className="mt-2 bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-xs h-10 px-6 rounded-xl">Ingresar Pago</Button></div>
+                       <div className="text-right"><p className="text-3xl font-black text-brand-600 italic">${s.amount.toLocaleString('es-AR')}</p><Button onClick={() => setSaldoSeleccionado(s)} className="mt-2 bg-emerald-600 hover:bg-emerald-700 font-black uppercase text-xs h-10 px-6 rounded-xl">Ingresar Pago</Button></div>
                     </div>
                   ))
                 }
@@ -319,7 +319,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     {[
                       { t: "Inicio", v: Number(estadoCaja.caja.startBalance), c: "text-slate-500" },
                       { t: "Cobros Efectivo", v: estadoCaja.ingresosEfectivo, c: "text-emerald-600" },
-                      { t: "Salidas", v: estadoCaja.salidasEfectivo, c: "text-red-600" },
+                      { t: "Salidas", v: estadoCaja.salidasEfectivo, c: "text-brand-600" },
                       { t: "EN CAJÓN", v: estadoCaja.totalEnCajon, c: "text-slate-900 font-black", bg: "bg-emerald-50 border-emerald-200 shadow-inner" }
                     ].map((item, i) => (
                       <div key={i} className={`p-4 rounded-2xl border border-slate-100 bg-slate-50/50 ${item.bg || ''}`}>
@@ -388,7 +388,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       estadoCaja.movimientos.map((m: any) => (
                         <div key={m.id} className="flex justify-between items-center bg-slate-50 px-4 py-3.5 rounded-2xl border border-slate-100 group transition-all hover:bg-white hover:shadow-md">
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : m.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : m.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 text-brand-600'}`}>
                               {m.type === 'A_CAJA_FUERTE' ? <Vault size={17}/> : m.type === 'INGRESO' ? <Plus size={17}/> : <MinusCircle size={17}/>}
                             </div>
                             <div>
@@ -397,10 +397,10 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <p className={`text-xl font-black ${m.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <p className={`text-xl font-black ${m.type === 'INGRESO' ? 'text-emerald-600' : 'text-brand-600'}`}>
                               {m.type === 'INGRESO' ? '+' : '-'}${Number(m.amount).toLocaleString('es-AR')}
                             </p>
-                            <button onClick={() => handleBorrarMovimiento(m.id)} className="text-slate-300 hover:text-red-600 transition-colors p-1.5 opacity-0 group-hover:opacity-100"><Trash2 size={17}/></button>
+                            <button onClick={() => handleBorrarMovimiento(m.id)} className="text-slate-300 hover:text-brand-600 transition-colors p-1.5 opacity-0 group-hover:opacity-100"><Trash2 size={17}/></button>
                           </div>
                         </div>
                       ))
@@ -470,7 +470,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       </Button>
                       <Button
                         onClick={() => { if (!efectivoFisico) return toast.error("Ingresá el monto contado."); setCierreModal(true); }}
-                        className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-base rounded-2xl shadow-xl shadow-red-500/20 transition-transform active:scale-95"
+                        className="w-full h-16 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase tracking-widest text-base rounded-2xl shadow-xl shadow-brand-500/20 transition-transform active:scale-95"
                       >
                         <Lock size={18} className="mr-2"/> Cierre de Turno
                       </Button>
@@ -504,7 +504,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
       <Dialog open={cierreModal} onOpenChange={setCierreModal}>
         <DialogContent className="sm:max-w-[450px] bg-white rounded-[3rem] border-none shadow-2xl p-8 outline-none">
-          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-red-600">Finalizar Turno</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-brand-600">Finalizar Turno</DialogTitle></DialogHeader>
           <div className="py-2 space-y-6">
             <div className="bg-slate-50 p-8 rounded-3xl text-center border-2 border-slate-100">
               <p className="text-xs font-black uppercase text-slate-400 mb-2 italic">Efectivo Físico a Resguardar</p>
@@ -514,7 +514,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                <Label className="text-[10px] font-black uppercase text-slate-400 ml-2">Observaciones de Cierre</Label>
                <Input placeholder="Opcional..." value={notasCierre} onChange={e => setNotasCierre(e.target.value)} className="h-14 rounded-2xl border-2 font-bold px-6"/>
             </div>
-            <Button onClick={handleCerrarCaja} disabled={loading} className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95">Confirmar Cierre Final</Button>
+            <Button onClick={handleCerrarCaja} disabled={loading} className="w-full h-16 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95">Confirmar Cierre Final</Button>
           </div>
         </DialogContent>
       </Dialog>

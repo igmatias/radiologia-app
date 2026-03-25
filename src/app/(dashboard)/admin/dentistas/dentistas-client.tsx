@@ -94,7 +94,7 @@ export default function DentistasClient({ initialDentists = [] }: any) {
     <div className="p-8 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-3">
-          <UserPlus className="text-red-700" size={32} /> Gestión de Odontólogos
+          <UserPlus className="text-brand-700" size={32} /> Gestión de Odontólogos
         </h1>
         <div className="flex gap-3">
           <UIButton variant="outline" onClick={handleClean} disabled={isCleaning} className="border-2 border-amber-500 text-amber-600 font-black italic uppercase text-xs rounded-xl">
@@ -106,11 +106,11 @@ export default function DentistasClient({ initialDentists = [] }: any) {
           </label>
           <Dialog>
             <DialogTrigger asChild>
-              <UIButton className="bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl shadow-lg transition-all text-sm">
+              <UIButton className="bg-brand-700 hover:bg-brand-800 text-white font-bold rounded-xl shadow-lg transition-all text-sm">
                 <UserPlus size={18} className="mr-2"/> NUEVO PROFESIONAL
               </UIButton>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white rounded-3xl border-t-8 border-red-700 p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[500px] bg-white rounded-3xl border-t-8 border-brand-700 p-0 overflow-hidden">
               <DialogHeader className="p-6 pb-0">
                 <DialogTitle className="text-xl font-black italic uppercase text-center">Nuevo Odontólogo</DialogTitle>
               </DialogHeader>
@@ -126,7 +126,7 @@ export default function DentistasClient({ initialDentists = [] }: any) {
             <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
             <Input 
               placeholder="Escribe para buscar (Apellido, Nombre o Matrícula)..." 
-              className="pl-10 h-12 bg-white border-2 rounded-2xl focus:ring-red-700 font-bold" 
+              className="pl-10 h-12 bg-white border-2 rounded-2xl focus:ring-brand-700 font-bold" 
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
@@ -146,13 +146,13 @@ export default function DentistasClient({ initialDentists = [] }: any) {
             <TableBody>
               {filtered.length > 0 ? (
                 filtered.map((d: any) => (
-                  <TableRow key={d.id} className="hover:bg-red-50/50 transition-colors">
+                  <TableRow key={d.id} className="hover:bg-brand-50/50 transition-colors">
                     <TableCell className="font-bold uppercase text-sm px-6 py-4">{d.lastName}, {d.firstName}</TableCell>
                     <TableCell className="text-xs font-mono">{d.matriculaProv || '-'} / {d.matriculaNac || '-'}</TableCell>
                     <TableCell className="text-xs text-slate-600 font-medium">{d.email || '-'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1 items-start">
-                        <span className="text-[10px] font-black uppercase px-2 py-1 bg-red-100 text-red-700 rounded-md italic">
+                        <span className="text-[10px] font-black uppercase px-2 py-1 bg-brand-100 text-brand-700 rounded-md italic">
                           {d.resultPreference || 'AMBAS'}
                         </span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase">
@@ -164,7 +164,7 @@ export default function DentistasClient({ initialDentists = [] }: any) {
                       <UIButton variant="ghost" size="icon" className="text-slate-400 hover:text-blue-600" onClick={() => setEditingDentist(d)}>
                         <Edit size={18} />
                       </UIButton>
-                      <UIButton variant="ghost" size="icon" className="text-slate-400 hover:text-red-700" onClick={() => handleDelete(d.id)}>
+                      <UIButton variant="ghost" size="icon" className="text-slate-400 hover:text-brand-700" onClick={() => handleDelete(d.id)}>
                         <Trash2 size={18} />
                       </UIButton>
                     </TableCell>

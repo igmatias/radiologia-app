@@ -64,7 +64,7 @@ export function DentistImport() {
       <div className="flex-1 text-center md:text-left">
         <h3 className="text-lg font-black text-slate-800 uppercase italic tracking-tighter">Importar Odontólogos</h3>
         <p className="text-sm text-slate-500 max-w-md">
-          El archivo debe tener las columnas: <span className="font-mono text-red-600 text-[11px]">Apellido, Nombre, Matricula Provincial, Matricula Nacional, E-Mail...</span>
+          El archivo debe tener las columnas: <span className="font-mono text-brand-600 text-[11px]">Apellido, Nombre, Matricula Provincial, Matricula Nacional, E-Mail...</span>
         </p>
       </div>
       <div className="relative group">

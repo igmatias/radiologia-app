@@ -157,7 +157,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
     if (diffMins < 0) return { text: "0 min", color: "text-emerald-500", bg: "bg-emerald-50" };
     if (diffMins <= 15) return { text: `${diffMins} min`, color: "text-emerald-600", bg: "bg-emerald-100" };
     if (diffMins <= 30) return { text: `${diffMins} min`, color: "text-amber-600", bg: "bg-amber-100 animate-pulse" };
-    return { text: `${diffMins} min`, color: "text-white", bg: "bg-red-600 animate-pulse" };
+    return { text: `${diffMins} min`, color: "text-white", bg: "bg-brand-600 animate-pulse" };
   }
 
   const filteredOrders = orders.filter((o: any) => {
@@ -172,14 +172,14 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
     <div className="min-h-screen bg-slate-50 p-6 space-y-6">
       
       <Dialog open={showBranchModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[450px] bg-white rounded-[2.5rem] border-t-8 border-red-700 p-8 outline-none">
+        <DialogContent className="sm:max-w-[450px] bg-white rounded-[2.5rem] border-t-8 border-brand-700 p-8 outline-none">
           <DialogHeader>
             <DialogTitle className="text-3xl font-black italic uppercase text-center tracking-tighter text-slate-900">Configurar Sede</DialogTitle>
             <p className="text-center text-xs font-black uppercase text-slate-400 tracking-[0.2em] mt-2">Hola, {session?.userName} • Seleccioná tu puesto de hoy</p>
           </DialogHeader>
           <div className="grid gap-3 py-6">
             {branches.map((branch: any) => (
-              <Button key={branch.id} onClick={() => handleSelectBranch(branch.id)} className="h-14 text-base font-black italic uppercase bg-slate-900 hover:bg-red-700 text-white rounded-2xl transition-all shadow-lg group">
+              <Button key={branch.id} onClick={() => handleSelectBranch(branch.id)} className="h-14 text-base font-black italic uppercase bg-slate-900 hover:bg-brand-700 text-white rounded-2xl transition-all shadow-lg group">
                 <MapPin className="mr-3 group-hover:animate-bounce" size={18} /> {branch.name}
               </Button>
             ))}
@@ -187,13 +187,13 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-red-700 gap-4 border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-brand-700 gap-4 border border-slate-200">
         <div>
           <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
-            <Activity className="text-red-700" size={28} /> Sala de Rayos
+            <Activity className="text-brand-700" size={28} /> Sala de Rayos
           </h1>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] font-black uppercase text-white bg-red-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
+            <span className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
               SEDE: {branches.find((b:any) => b.id === session?.branchId)?.name || "---"}
             </span>
             <span className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">• Op: {session?.userName}</span>
@@ -201,13 +201,13 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         </div>
 
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-red-700 hover:bg-red-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-red-900 active:border-b-0 active:translate-y-px transition-all">
+          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
             <Send size={16} className="mr-2"/> Panel Entregas
           </Button>
           <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-10 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
-            <MapPin size={16} className="mr-2 text-red-700"/> Sede
+            <MapPin size={16} className="mr-2 text-brand-700"/> Sede
           </Button>
-          <Button onClick={handleLogout} variant="ghost" className="text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all h-10 w-10 p-0" title="Cerrar sesión"><LogOut size={20} /></Button>
+          <Button onClick={handleLogout} variant="ghost" className="text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-xl transition-all h-10 w-10 p-0" title="Cerrar sesión"><LogOut size={20} /></Button>
         </div>
       </div>
 
@@ -251,7 +251,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                       )}
                     </div>
                     <h3 className="text-2xl font-black uppercase italic text-slate-900 leading-none pt-2 tracking-tighter truncate" title={`${order.patient.lastName}, ${order.patient.firstName}`}>
-                      {order.patient.lastName}, <span className="text-red-700">{order.patient.firstName}</span>
+                      {order.patient.lastName}, <span className="text-brand-700">{order.patient.firstName}</span>
                     </h3>
                   </div>
                 </div>
@@ -262,14 +262,14 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                       <Phone size={14} className="text-slate-400 shrink-0" />
                       <div className="flex justify-between items-center w-full overflow-hidden">
                         <span className="text-xs font-bold leading-none truncate">{order.patient.phone || 'S/D'}</span>
-                        {order.patient.phone && <button onClick={() => handleCopy(order.patient.phone, 'Teléfono')} className="text-slate-300 hover:text-red-700 transition-colors opacity-0 group-hover/copy:opacity-100"><Copy size={12} /></button>}
+                        {order.patient.phone && <button onClick={() => handleCopy(order.patient.phone, 'Teléfono')} className="text-slate-300 hover:text-brand-700 transition-colors opacity-0 group-hover/copy:opacity-100"><Copy size={12} /></button>}
                       </div>
                    </div>
                    <div className="flex items-center gap-2 text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 group/copy">
                       <Mail size={14} className="text-slate-400 shrink-0" />
                       <div className="flex justify-between items-center w-full overflow-hidden">
                         <span className="text-[10px] font-bold leading-none truncate lowercase">{order.patient.email || 'S/D'}</span>
-                        {order.patient.email && <button onClick={() => handleCopy(order.patient.email, 'E-mail')} className="text-slate-300 hover:text-red-700 transition-colors opacity-0 group-hover/copy:opacity-100"><Copy size={12} /></button>}
+                        {order.patient.email && <button onClick={() => handleCopy(order.patient.email, 'E-mail')} className="text-slate-300 hover:text-brand-700 transition-colors opacity-0 group-hover/copy:opacity-100"><Copy size={12} /></button>}
                       </div>
                    </div>
                 </div>
@@ -286,12 +286,12 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                 <div className="bg-slate-900 p-4 rounded-[1.5rem] shadow-inner text-white flex-1 flex flex-col">
                    <div className="space-y-2 mb-4">
                       {order.items.map((item: any, i: number) => (
-                        <div key={i} className="bg-slate-800 p-3 rounded-xl border-l-4 border-red-700">
+                        <div key={i} className="bg-slate-800 p-3 rounded-xl border-l-4 border-brand-700">
                           <p className="font-black uppercase text-sm tracking-tight leading-tight">{item.procedure.name}</p>
                           {(item.metadata?.teeth || item.teeth)?.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1.5 items-center">
                               <span className="text-[9px] font-black text-slate-400 uppercase">Piezas:</span>
-                              {(item.metadata?.teeth || item.teeth).map((tooth: any) => <span key={tooth} className="bg-red-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{tooth}</span>)}
+                              {(item.metadata?.teeth || item.teeth).map((tooth: any) => <span key={tooth} className="bg-brand-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{tooth}</span>)}
                             </div>
                           )}
                         </div>
@@ -300,8 +300,8 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
 
                    <div className="mt-auto bg-slate-800/80 p-3 rounded-xl border border-slate-700">
                      <div className="flex justify-between items-center mb-3">
-                       <h4 className="font-black uppercase text-slate-300 flex items-center gap-1.5 text-[9px] tracking-widest"><ImageIcon size={12} className="text-red-500"/> Archivos</h4>
-                       <Button variant="ghost" size="sm" onClick={() => { setActiveOrderId(order.id); fileInputRef.current?.click(); }} disabled={uploadingOrder === order.id} className="h-6 text-[9px] px-2 bg-red-700/20 text-red-400 hover:bg-red-700 hover:text-white font-black uppercase rounded-md">
+                       <h4 className="font-black uppercase text-slate-300 flex items-center gap-1.5 text-[9px] tracking-widest"><ImageIcon size={12} className="text-brand-500"/> Archivos</h4>
+                       <Button variant="ghost" size="sm" onClick={() => { setActiveOrderId(order.id); fileInputRef.current?.click(); }} disabled={uploadingOrder === order.id} className="h-6 text-[9px] px-2 bg-brand-700/20 text-brand-400 hover:bg-brand-700 hover:text-white font-black uppercase rounded-md">
                          {uploadingOrder === order.id ? <Loader2 size={10} className="mr-1 animate-spin"/> : <UploadCloud size={10} className="mr-1"/>} Subir
                        </Button>
                      </div>
@@ -317,7 +317,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                               )}
                               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                                 <a href={imgUrl} target="_blank" rel="noreferrer" className="p-1 bg-white/20 rounded-full hover:bg-white text-slate-900 transition-colors"><Search size={12}/></a>
-                                <button onClick={async () => { if(confirm("¿Eliminar archivo?")) { await deleteImageFromOrder(order.id, imgUrl); router.refresh(); } }} className="p-1 bg-red-600 rounded-full hover:bg-red-700 text-white transition-colors"><Trash2 size={12}/></button>
+                                <button onClick={async () => { if(confirm("¿Eliminar archivo?")) { await deleteImageFromOrder(order.id, imgUrl); router.refresh(); } }} className="p-1 bg-brand-600 rounded-full hover:bg-brand-700 text-white transition-colors"><Trash2 size={12}/></button>
                               </div>
                             </div>
                           ))}

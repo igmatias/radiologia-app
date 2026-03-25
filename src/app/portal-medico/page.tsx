@@ -79,7 +79,7 @@ export default function PortalMedicoLogin() {
 
       {/* Fondo decorativo corporativo (Estilo I-R Dental) */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=1920')] opacity-10 bg-cover bg-center mix-blend-luminosity z-0"></div>
-      <div className="absolute top-0 left-0 w-full h-[120%] bg-gradient-to-b from-red-600/20 to-transparent skew-y-6 transform -translate-y-1/2 z-0 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-full h-[120%] bg-gradient-to-b from-brand-600/20 to-transparent skew-y-6 transform -translate-y-1/2 z-0 pointer-events-none"></div>
 
       <div className="w-full max-w-md z-10 space-y-6">
         
@@ -97,7 +97,7 @@ export default function PortalMedicoLogin() {
         </div>
 
         {/* Tarjeta dinámica (Cambia según el paso) */}
-        <Card className="border-t-4 border-t-red-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
+        <Card className="border-t-4 border-t-brand-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
           <CardContent className="p-8">
             
             {step === "LOGIN" ? (
@@ -105,7 +105,7 @@ export default function PortalMedicoLogin() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="mb-8">
                   <h2 className="text-xl font-bold uppercase text-neutral-900">Iniciar Sesión</h2>
-                  <div className="w-12 h-1 bg-red-600 mt-2 rounded-full"></div>
+                  <div className="w-12 h-1 bg-brand-600 mt-2 rounded-full"></div>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
@@ -115,7 +115,7 @@ export default function PortalMedicoLogin() {
                       placeholder="Ej: 12345" 
                       value={matricula}
                       onChange={(e) => setMatricula(e.target.value)}
-                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-red-600 rounded-lg text-lg font-medium"
+                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-lg font-medium"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -125,13 +125,13 @@ export default function PortalMedicoLogin() {
                       placeholder="Primer ingreso: tu apellido" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-red-600 rounded-lg text-lg font-medium placeholder:text-sm"
+                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-lg font-medium placeholder:text-sm"
                     />
                   </div>
                   <Button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full h-12 mt-6 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2 group"
+                    className="w-full h-12 mt-6 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
                   >
                     {loading ? "Verificando..." : <>Ingresar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
                   </Button>
@@ -141,8 +141,8 @@ export default function PortalMedicoLogin() {
               // --- FORMULARIO DE CAMBIO DE CLAVE (Primer Ingreso) ---
               <div className="animate-in slide-in-from-right-8 duration-500">
                 <div className="mb-8 text-center flex flex-col items-center">
-                  <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                    <Lock size={28} className="text-red-600" />
+                  <div className="bg-brand-50 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                    <Lock size={28} className="text-brand-600" />
                   </div>
                   <h2 className="text-xl font-bold uppercase text-neutral-900 leading-tight mb-2">Seguridad de la Cuenta</h2>
                   <p className="text-sm text-neutral-500">
@@ -158,7 +158,7 @@ export default function PortalMedicoLogin() {
                       placeholder="Mínimo 6 caracteres" 
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-red-600 rounded-lg text-lg font-medium"
+                      className="h-12 bg-neutral-50 border-neutral-200 focus-visible:ring-brand-600 rounded-lg text-lg font-medium"
                       autoFocus
                     />
                   </div>
@@ -177,7 +177,7 @@ export default function PortalMedicoLogin() {
         </Card>
         
         <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-8 flex items-center justify-center gap-1.5">
-          <ShieldCheck size={16} className="text-red-500"/> 
+          <ShieldCheck size={16} className="text-brand-500"/> 
           Plataforma Segura
         </p>
 

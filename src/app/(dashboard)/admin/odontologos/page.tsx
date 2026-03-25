@@ -26,8 +26,8 @@ export default async function AdminDentistsPage() {
           <Card key={d.id} className="hover:shadow-md transition-shadow border-slate-100">
             <CardContent className="p-5">
               <div className="flex justify-between items-start mb-3">
-                <div className="bg-red-50 p-2 rounded-lg">
-                  <Stethoscope className="h-5 w-5 text-red-700" />
+                <div className="bg-brand-50 p-2 rounded-lg">
+                  <Stethoscope className="h-5 w-5 text-brand-700" />
                 </div>
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] font-black px-2 py-0.5 bg-blue-50 text-blue-700 rounded uppercase">

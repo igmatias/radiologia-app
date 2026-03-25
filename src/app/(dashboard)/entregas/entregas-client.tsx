@@ -188,7 +188,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     const pref = getDeliveryPreference(order);
 
     return (
-      <Card className={`border-none shadow-lg rounded-[2rem] border-t-8 transition-all ${isDelayed ? 'border-t-amber-500 bg-amber-50/20' : debt > 0 ? 'border-t-red-600 bg-red-50/30' : 'border-t-emerald-500 bg-white'}`}>
+      <Card className={`border-none shadow-lg rounded-[2rem] border-t-8 transition-all ${isDelayed ? 'border-t-amber-500 bg-amber-50/20' : debt > 0 ? 'border-t-brand-600 bg-brand-50/30' : 'border-t-emerald-500 bg-white'}`}>
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-3">
             <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Orden #{order.code || order.dailyId}</p>
@@ -202,11 +202,11 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
           </div>
           
           <h3 className="text-2xl font-black uppercase text-slate-900 mb-1 truncate">
-            {order.patient?.lastName}, <span className={debt > 0 ? "text-red-700" : "text-emerald-700"}>{order.patient?.firstName}</span>
+            {order.patient?.lastName}, <span className={debt > 0 ? "text-brand-700" : "text-emerald-700"}>{order.patient?.firstName}</span>
           </h3>
           
           {debt > 0 ? (
-            <div className="bg-red-100 border-2 border-red-200 text-red-800 p-3 rounded-xl mb-4 mt-2 flex justify-between items-center shadow-sm">
+            <div className="bg-brand-100 border-2 border-brand-200 text-brand-800 p-3 rounded-xl mb-4 mt-2 flex justify-between items-center shadow-sm">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={20} className="animate-pulse"/>
                 <span className="font-black uppercase text-xs">Saldo Pendiente</span>
@@ -258,13 +258,13 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
       <div className="space-y-6 relative print:hidden">
         
         {/* HEADER PRINCIPAL */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-red-700 gap-4 border border-slate-200">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-brand-700 gap-4 border border-slate-200">
           <div>
             <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
-              <Send className="text-red-700" size={28} /> Logística y Entregas
+              <Send className="text-brand-700" size={28} /> Logística y Entregas
             </h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-black uppercase text-white bg-red-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
+              <span className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
                 SEDE: {branches.find((b:any) => b.id === session.branchId)?.name || "---"}
               </span>
               <span className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">• {session.userName}</span>
@@ -275,7 +275,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
             <Button onClick={() => router.push('/recepcion')} className="flex-1 md:flex-none h-10 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px transition-all">
               <ArrowLeft size={14} className="mr-2"/> Recepción
             </Button>
-            <Button onClick={() => router.push('/tecnico')} className="flex-1 md:flex-none h-10 px-4 rounded-xl bg-red-700 hover:bg-red-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-red-900 active:border-b-0 active:translate-y-px transition-all">
+            <Button onClick={() => router.push('/tecnico')} className="flex-1 md:flex-none h-10 px-4 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
               <ArrowLeft size={14} className="mr-2"/> Sala de Rayos
             </Button>
           </div>
@@ -299,7 +299,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         {activeTab === "HOY" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in">
             <div className="space-y-4">
-              <h2 className="text-xl font-black italic uppercase text-slate-800 border-b-2 border-slate-200 pb-2 flex items-center gap-2"><Clock className="text-red-700" size={24}/> Por Entregar</h2>
+              <h2 className="text-xl font-black italic uppercase text-slate-800 border-b-2 border-slate-200 pb-2 flex items-center gap-2"><Clock className="text-brand-700" size={24}/> Por Entregar</h2>
               
               {loading ? <p className="text-center py-10 font-bold uppercase text-slate-400 animate-pulse">Buscando estudios listos...</p> : pending.length === 0 ? <p className="text-center py-10 font-black uppercase text-emerald-500 italic text-xl">¡Todo entregado! ✓</p> : pending.map(order => (
                 <OrderCard key={order.id} order={order} />
@@ -347,7 +347,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                                   <div key={idx} className="relative group w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 overflow-hidden">
                                     {isPDF ? <FileText size={16} className="text-slate-400" /> : <img src={img} alt="placa" className="w-full h-full object-cover opacity-80"/>}
                                     <a href={img} target="_blank" rel="noreferrer" className="absolute inset-0"></a>
-                                    <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 shadow-md"><XCircle size={10}/></button>
+                                    <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-brand-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 shadow-md"><XCircle size={10}/></button>
                                   </div>
                                 );
                               })}
@@ -399,7 +399,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         {activeTab === "BUSCADOR" && (
           <div className="max-w-3xl mx-auto space-y-6 animate-in slide-in-from-bottom-4">
             <form onSubmit={executeSearch} className="bg-white p-2 pl-4 rounded-[2rem] shadow-lg border-2 border-slate-200 flex items-center gap-3">
-               <Search size={24} className="text-red-700"/>
+               <Search size={24} className="text-brand-700"/>
                <Input placeholder="DNI, Apellido o Nº de Orden..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border-none shadow-none focus-visible:ring-0 text-lg font-bold h-14 bg-transparent uppercase" autoFocus />
                <Button type="submit" disabled={isSearching} className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black uppercase italic shadow-md transition-all active:scale-95">Buscar</Button>
             </form>
@@ -413,7 +413,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                 const pref = getDeliveryPreference(order);
 
                 return (
-                  <Card key={order.id} className={`shadow-md rounded-[2rem] border-t-8 overflow-hidden hover:shadow-lg transition-all ${debt > 0 ? 'border-t-red-600' : 'border-t-emerald-500'}`}>
+                  <Card key={order.id} className={`shadow-md rounded-[2rem] border-t-8 overflow-hidden hover:shadow-lg transition-all ${debt > 0 ? 'border-t-brand-600' : 'border-t-emerald-500'}`}>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-4">
                         <div>
@@ -429,7 +429,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                           <p className="text-xs font-bold text-slate-500 mt-1">DNI {order.patient?.dni} | Orden #{order.code || order.dailyId}</p>
                           
                           {debt > 0 && (
-                            <span className="inline-flex mt-2 text-[10px] font-black uppercase text-red-700 bg-red-100 px-2 py-1 rounded-md border border-red-200">
+                            <span className="inline-flex mt-2 text-[10px] font-black uppercase text-brand-700 bg-brand-100 px-2 py-1 rounded-md border border-brand-200">
                               ⚠️ Adeuda ${debt.toLocaleString('es-AR')}
                             </span>
                           )}

@@ -103,27 +103,27 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
       {/* MODAL: MI PERFIL */}
       <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
-        <DialogContent className="sm:max-w-[450px] bg-white rounded-2xl border-t-8 border-red-600 p-8 outline-none">
+        <DialogContent className="sm:max-w-[450px] bg-white rounded-2xl border-t-8 border-brand-600 p-8 outline-none">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold uppercase tracking-tight text-neutral-900 flex items-center gap-2">
-              <Settings className="text-red-600" size={24}/> Preferencias
+              <Settings className="text-brand-600" size={24}/> Preferencias
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Teléfono (WhatsApp)</Label>
-              <Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-red-600" placeholder="Ej: 1123456789" />
+              <Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="Ej: 1123456789" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Correo Electrónico</Label>
-              <Input value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} type="email" className="h-12 font-medium bg-neutral-50 focus-visible:ring-red-600" placeholder="doctor@email.com" />
+              <Input value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} type="email" className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="doctor@email.com" />
             </div>
             
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-200">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Formato Entrega</Label>
                 <Select value={profileData.deliveryMethod} onValueChange={(v) => setProfileData({...profileData, deliveryMethod: v})}>
-                  <SelectTrigger className="h-12 font-bold uppercase text-xs bg-neutral-50 focus:ring-red-600"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12 font-bold uppercase text-xs bg-neutral-50 focus:ring-brand-600"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="DIGITAL" className="font-medium text-sm">Digital</SelectItem>
                     <SelectItem value="IMPRESA" className="font-medium text-sm">Impreso</SelectItem>
@@ -134,7 +134,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Vía Principal</Label>
                 <Select value={profileData.resultPreference} onValueChange={(v) => setProfileData({...profileData, resultPreference: v})}>
-                  <SelectTrigger className="h-12 font-bold uppercase text-xs bg-neutral-50 focus:ring-red-600"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12 font-bold uppercase text-xs bg-neutral-50 focus:ring-brand-600"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="WHATSAPP" className="font-medium text-sm">WhatsApp</SelectItem>
                     <SelectItem value="E-MAIL" className="font-medium text-sm">E-Mail</SelectItem>
@@ -152,10 +152,10 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
       {/* MODAL: NUEVA SOLICITUD (TICKET) */}
       <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}>
-        <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl border-t-8 border-red-600 p-8 outline-none">
+        <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl border-t-8 border-brand-600 p-8 outline-none">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold uppercase tracking-tight text-neutral-900 flex items-center gap-2">
-              <MessageSquarePlus className="text-red-600" size={24}/> Centro de Solicitudes
+              <MessageSquarePlus className="text-brand-600" size={24}/> Centro de Solicitudes
             </DialogTitle>
             <DialogDescription className="text-neutral-500">
               Enviá una consulta directa al equipo de recepción de I-R Dental. Te responderemos a la brevedad.
@@ -166,7 +166,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Motivo de la consulta</Label>
               <Select value={ticketSubject} onValueChange={setTicketSubject}>
-                <SelectTrigger className="h-12 font-bold bg-neutral-50 focus:ring-red-600"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-12 font-bold bg-neutral-50 focus:ring-brand-600"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ESTUDIO_FALTANTE" className="font-medium">Falta subir un estudio a mi portal</SelectItem>
                   <SelectItem value="ERROR_DATOS" className="font-medium">Error en los datos de un paciente</SelectItem>
@@ -182,11 +182,11 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                 placeholder="Por favor, incluya nombre del paciente, DNI o fecha aproximada del estudio para agilizar la búsqueda..." 
                 value={ticketMessage}
                 onChange={e => setTicketMessage(e.target.value)}
-                className="flex w-full rounded-md border border-neutral-200 text-sm ring-offset-white placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px] bg-neutral-50 font-medium resize-none focus-visible:ring-red-600 p-3"
+                className="flex w-full rounded-md border border-neutral-200 text-sm ring-offset-white placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[120px] bg-neutral-50 font-medium resize-none focus-visible:ring-brand-600 p-3"
               />
             </div>
             
-            <Button type="submit" disabled={loadingTicket} className="w-full h-12 mt-4 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg transition-all flex items-center justify-center gap-2">
+            <Button type="submit" disabled={loadingTicket} className="w-full h-12 mt-4 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg transition-all flex items-center justify-center gap-2">
               {loadingTicket ? "Enviando..." : "Enviar Solicitud"}
             </Button>
           </form>
@@ -198,7 +198,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
       
       <div className="bg-neutral-900 relative overflow-hidden pb-12 pt-8">
         <div className="absolute inset-0 bg-[url('https://placehold.co/1920x400/1a1a1a/000000?text=+')] opacity-40 bg-cover mix-blend-multiply"></div>
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600"></div>
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600"></div>
         
         <div className="max-w-6xl mx-auto px-4 relative z-10">
           
@@ -207,7 +207,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             <Link href="/" className="flex items-center gap-3 group">
                <img src="/logo.png?v=2" alt="I-R Dental" className="h-8 md:h-10 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
                <div className="h-6 w-px bg-neutral-700 hidden sm:block"></div>
-               <span className="text-red-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs hidden sm:block">Portal Profesional</span>
+               <span className="text-brand-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs hidden sm:block">Portal Profesional</span>
             </Link>
             <div className="flex gap-3">
               <a 
@@ -216,9 +216,9 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                 rel="noopener noreferrer"
                 className="hidden md:flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-md border border-neutral-700 transition-all"
               >
-                <Download size={14} className="text-red-500" /> Descargar Orden PDF
+                <Download size={14} className="text-brand-500" /> Descargar Orden PDF
               </a>
-              <Button onClick={handleLogout} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-red-600/20 px-3 py-2 h-auto text-xs uppercase font-bold transition-colors">
+              <Button onClick={handleLogout} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-brand-600/20 px-3 py-2 h-auto text-xs uppercase font-bold transition-colors">
                 <LogOut size={16} className="sm:mr-2"/> <span className="hidden sm:block">Cerrar Sesión</span>
               </Button>
             </div>
@@ -227,7 +227,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           {/* Fila 2: Perfil del Odontólogo */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5 w-full md:w-auto">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-700 to-red-900 border-2 border-red-500/50 shadow-lg shadow-red-900/40 flex items-center justify-center shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 border-2 border-brand-500/50 shadow-lg shadow-brand-900/40 flex items-center justify-center shrink-0">
                 <span className="text-2xl font-black text-white uppercase tracking-tighter">
                   {dentist.lastName?.charAt(0)}{dentist.firstName?.charAt(0)}
                 </span>
@@ -264,7 +264,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
         
         {/* FILA DE CONTROLES: Buscador y Botón de Solicitudes */}
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 bg-white p-2 pl-4 rounded-xl shadow-md border border-neutral-200 flex items-center gap-3 focus-within:border-red-600 focus-within:ring-2 focus-within:ring-red-600/20 transition-all">
+          <div className="flex-1 bg-white p-2 pl-4 rounded-xl shadow-md border border-neutral-200 flex items-center gap-3 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-600/20 transition-all">
              <Search size={20} className="text-neutral-400"/>
              <Input 
                placeholder="Buscar paciente por apellido, nombre o DNI..." 
@@ -278,7 +278,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             onClick={() => setShowTicketModal(true)}
             className="h-16 md:h-16 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider px-6 rounded-xl shadow-md flex items-center justify-center gap-2 shrink-0 border border-neutral-700 hover:border-neutral-500 transition-all"
           >
-            <MessageSquarePlus size={20} className="text-red-500" />
+            <MessageSquarePlus size={20} className="text-brand-500" />
             <span className="hidden sm:block">Crear Solicitud / Reclamo</span>
             <span className="sm:hidden">Nueva Solicitud</span>
           </Button>
@@ -288,7 +288,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             href="/orden.pdf" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="md:hidden h-16 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider px-6 rounded-xl shadow-md flex items-center justify-center gap-2 shrink-0 transition-all"
+            className="md:hidden h-16 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider px-6 rounded-xl shadow-md flex items-center justify-center gap-2 shrink-0 transition-all"
           >
             <Download size={20} />
             Orden PDF
@@ -311,7 +311,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             </div>
           ) : (
             filteredOrders.map((order: any) => (
-              <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-xl overflow-hidden bg-white border-l-[6px] border-l-red-600">
+              <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-xl overflow-hidden bg-white border-l-[6px] border-l-brand-600">
                 <CardContent className="p-6 md:p-8">
                   
                   {/* Cabecera del Paciente */}
@@ -333,7 +333,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                     <div className="text-left md:text-right bg-neutral-50 p-4 rounded-lg border border-neutral-200 shrink-0 self-start md:self-center">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-1">Fecha del Estudio</p>
                       <p className="text-lg font-bold text-neutral-800 flex items-center md:justify-end gap-2">
-                        <Calendar size={18} className="text-red-600"/> {new Date(order.createdAt).toLocaleDateString('es-AR')}
+                        <Calendar size={18} className="text-brand-600"/> {new Date(order.createdAt).toLocaleDateString('es-AR')}
                       </p>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                   {/* 👉 ARCHIVOS: FOTOS, PDFS Y LINKS EXTERNOS */}
                   <div className="bg-neutral-100 p-5 rounded-xl border border-neutral-200 space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-2">
-                      <ImageIcon className="text-red-600" size={18}/> Resultados y Descargas
+                      <ImageIcon className="text-brand-600" size={18}/> Resultados y Descargas
                     </h4>
 
                     {(!order.images || order.images.length === 0) && !order.externalLink ? (
@@ -400,18 +400,18 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                             href={order.externalLink} 
                             target="_blank" 
                             rel="noreferrer" 
-                            className="flex items-center justify-between bg-white border border-neutral-200 p-4 rounded-lg hover:border-red-600 hover:shadow-md transition-all group"
+                            className="flex items-center justify-between bg-white border border-neutral-200 p-4 rounded-lg hover:border-brand-600 hover:shadow-md transition-all group"
                           >
                             <div className="flex items-center gap-4">
-                               <div className="bg-red-50 p-2 rounded text-red-600">
+                               <div className="bg-brand-50 p-2 rounded text-brand-600">
                                   <ExternalLink size={24} />
                                </div>
                                <div>
                                  <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-0.5">Visor DICOM / Tomografía 3D</p>
-                                 <p className="text-sm font-bold text-neutral-900 group-hover:text-red-600 transition-colors">Abrir enlace externo de descarga</p>
+                                 <p className="text-sm font-bold text-neutral-900 group-hover:text-brand-600 transition-colors">Abrir enlace externo de descarga</p>
                                </div>
                             </div>
-                            <ChevronRight size={20} className="text-neutral-400 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
+                            <ChevronRight size={20} className="text-neutral-400 group-hover:text-brand-600 group-hover:translate-x-1 transition-all" />
                           </a>
                         )}
 
@@ -425,7 +425,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                                 <a key={idx} href={img} target="_blank" rel="noreferrer" className="relative group block h-32 w-40 rounded-lg overflow-hidden border border-neutral-300 shadow-sm bg-neutral-900 shrink-0">
                                   {isPDF ? (
                                     <div className="w-full h-full bg-neutral-800 text-neutral-300 flex flex-col items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity">
-                                      <FileText size={32} className="mb-2 text-red-500" />
+                                      <FileText size={32} className="mb-2 text-brand-500" />
                                       <span className="text-[10px] font-bold uppercase tracking-widest">Informe PDF</span>
                                     </div>
                                   ) : (
@@ -433,7 +433,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                                   )}
                                   
                                   {/* Overlay hover */}
-                                  <div className="absolute inset-0 bg-red-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm">
+                                  <div className="absolute inset-0 bg-brand-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-sm">
                                     <Search size={20} className="mb-2"/>
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-center">Visualizar</span>
                                   </div>

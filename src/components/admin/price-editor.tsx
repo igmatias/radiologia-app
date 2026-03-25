@@ -122,7 +122,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
         <Card className="border-none shadow-lg rounded-2xl overflow-hidden">
           <CardHeader className="bg-slate-50 border-b pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-800 flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-red-700" />
+              <Building2 className="h-4 w-4 text-brand-700" />
               Directorio de Mutuales
             </CardTitle>
           </CardHeader>
@@ -144,14 +144,14 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
             {!isCreating ? (
               <Button
                 variant="outline"
-                className="w-full border-dashed text-slate-500 h-12 hover:border-red-500 hover:text-red-700 transition-all font-bold uppercase text-xs"
+                className="w-full border-dashed text-slate-500 h-12 hover:border-brand-500 hover:text-brand-700 transition-all font-bold uppercase text-xs"
                 onClick={() => setIsCreating(true)}
               >
                 <Plus className="h-4 w-4 mr-2" /> Cargar Nueva Mutual
               </Button>
             ) : (
-              <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-red-200 animate-in fade-in zoom-in duration-200 shadow-inner">
-                <label className="text-[10px] font-black uppercase text-red-700 tracking-widest">Nombre de la Mutual</label>
+              <div className="space-y-3 p-4 bg-slate-50 rounded-xl border border-brand-200 animate-in fade-in zoom-in duration-200 shadow-inner">
+                <label className="text-[10px] font-black uppercase text-brand-700 tracking-widest">Nombre de la Mutual</label>
                 <Input
                   placeholder="EJ: OSDE, IOMA..."
                   value={newOSName}
@@ -160,7 +160,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                   autoFocus
                 />
                 <div className="flex gap-2 pt-1">
-                  <Button className="flex-1 bg-red-700 hover:bg-red-800 font-bold uppercase text-xs h-10" onClick={handleCreate}>Guardar ✓</Button>
+                  <Button className="flex-1 bg-brand-700 hover:bg-brand-800 font-bold uppercase text-xs h-10" onClick={handleCreate}>Guardar ✓</Button>
                   <Button variant="outline" className="h-10 px-3 hover:bg-slate-200" onClick={() => setIsCreating(false)}><X className="h-4 w-4" /></Button>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
             {selectedOS && (
               <Button
                 variant="ghost"
-                className="w-full text-slate-400 hover:bg-red-50 hover:text-red-700 transition-colors text-[10px] font-bold uppercase mt-8"
+                className="w-full text-slate-400 hover:bg-brand-50 hover:text-brand-700 transition-colors text-[10px] font-bold uppercase mt-8"
                 onClick={handleDelete}
               >
                 <Trash2 className="h-3 w-3 mr-2" /> Eliminar {selectedOS.name}
@@ -198,10 +198,10 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
 
       {/* PANEL DERECHO: TARIFARIO */}
       <Card className="md:col-span-2 xl:col-span-3 border-none shadow-xl rounded-2xl overflow-hidden">
-        <CardHeader className="bg-slate-900 text-white space-y-4 p-6 border-b-8 border-red-700">
+        <CardHeader className="bg-slate-900 text-white space-y-4 p-6 border-b-8 border-brand-700">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-              <Calculator className="text-red-500" />
+              <Calculator className="text-brand-500" />
               {selectedOS ? `Aranceles: ${selectedOS.name}` : "Configuración de Precios"}
             </CardTitle>
           </div>
@@ -210,7 +210,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input
               placeholder="BUSCAR ESTUDIO (EJ: PERIAPICAL, 09.01)..."
-              className="pl-10 h-12 text-sm bg-slate-800 border-slate-700 text-white font-bold uppercase placeholder:text-slate-500 focus-visible:ring-red-500"
+              className="pl-10 h-12 text-sm bg-slate-800 border-slate-700 text-white font-bold uppercase placeholder:text-slate-500 focus-visible:ring-brand-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -232,7 +232,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                   <tr>
                     <th className="p-4 pl-6 border-b-2 border-slate-200">Código / Estudio</th>
                     <th className="p-4 w-36 text-center border-b-2 border-slate-200">Cubre Mutual</th>
-                    <th className="p-4 w-36 text-center border-b-2 border-slate-200 bg-red-50 text-red-800">Copago Paciente</th>
+                    <th className="p-4 w-36 text-center border-b-2 border-slate-200 bg-brand-50 text-brand-800">Copago Paciente</th>
                     <th className="p-4 w-28 text-right pr-6 border-b-2 border-slate-200">Total</th>
                     <th className="p-4 w-36 text-center border-b-2 border-slate-200 bg-amber-50 text-amber-800">Cód. OS</th>
                   </tr>
@@ -249,7 +249,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                     return (
                       <tr key={proc.id} className={`hover:bg-slate-50 transition-colors ${isUpdating ? 'bg-amber-50' : ''}`}>
                         <td className="p-4 pl-6">
-                          <p className="text-[10px] text-red-700 font-black uppercase mb-0.5">{proc.code}</p>
+                          <p className="text-[10px] text-brand-700 font-black uppercase mb-0.5">{proc.code}</p>
                           <p className="text-sm font-black text-slate-800 uppercase leading-tight">{proc.name}</p>
                         </td>
 
@@ -267,12 +267,12 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                         </td>
 
                         {/* COPAGO PACIENTE */}
-                        <td className="p-4 bg-red-50/30">
+                        <td className="p-4 bg-brand-50/30">
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 text-xs font-bold">$</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-500 text-xs font-bold">$</span>
                             <Input
                               type="number"
-                              className="pl-7 w-full text-center font-black text-red-700 border-2 border-red-200 focus-visible:ring-red-500 bg-white h-10 shadow-sm"
+                              className="pl-7 w-full text-center font-black text-brand-700 border-2 border-brand-200 focus-visible:ring-brand-500 bg-white h-10 shadow-sm"
                               defaultValue={patientValue}
                               onBlur={(e) => handlePriceUpdate(proc.id, 'patient', e.target.value, insuranceValue, patientValue)}
                             />

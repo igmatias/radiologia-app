@@ -48,10 +48,10 @@ export function StepStudies({
     <div className="space-y-6 animate-in slide-in-from-right">
 
       {/* ===== ODONTÓLOGO SOLICITANTE ===== */}
-      <div className={`rounded-2xl border-2 shadow-lg transition-all duration-300 ${dentistId ? 'border-emerald-400' : 'border-red-500'}`}>
+      <div className={`rounded-2xl border-2 shadow-lg transition-all duration-300 ${dentistId ? 'border-emerald-400' : 'border-brand-500'}`}>
 
         {/* Header con color fuerte */}
-        <div className={`px-5 py-3.5 flex items-center justify-between transition-colors rounded-t-2xl ${dentistId ? 'bg-emerald-600' : 'bg-red-600'}`}>
+        <div className={`px-5 py-3.5 flex items-center justify-between transition-colors rounded-t-2xl ${dentistId ? 'bg-emerald-600' : 'bg-brand-600'}`}>
           <div className="flex items-center gap-2.5 text-white">
             {dentistId
               ? <UserCheck size={20} className="shrink-0" />
@@ -83,7 +83,7 @@ export function StepStudies({
         </div>
 
         {/* Cuerpo del buscador / seleccionado */}
-        <div className={`p-4 transition-colors rounded-b-2xl ${dentistId ? 'bg-emerald-50/60' : 'bg-red-50/40'}`}>
+        <div className={`p-4 transition-colors rounded-b-2xl ${dentistId ? 'bg-emerald-50/60' : 'bg-brand-50/40'}`}>
           {!dentistId ? (
             <div className="relative">
               <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
@@ -91,7 +91,7 @@ export function StepStudies({
                 placeholder="Escribí APELLIDO o MATRÍCULA..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-sm uppercase font-bold border-2 border-red-200 bg-white focus-visible:ring-red-400 rounded-xl"
+                className="pl-12 h-12 text-sm uppercase font-bold border-2 border-brand-200 bg-white focus-visible:ring-brand-400 rounded-xl"
                 autoFocus
               />
               {searchTerm && (
@@ -101,7 +101,7 @@ export function StepStudies({
                   ) : filteredDentists.map((d: any) => (
                     <div
                       key={d.id}
-                      className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 text-sm"
+                      className="p-4 hover:bg-brand-50 cursor-pointer border-b last:border-0 text-sm"
                       onClick={() => { form.setValue("dentistId", d.id); setSearchTerm("") }}
                     >
                       <span className="font-black uppercase italic text-slate-900">
@@ -159,7 +159,7 @@ export function StepStudies({
           <div className="flex items-center gap-2">
             <span className="font-black uppercase text-sm text-slate-800 tracking-wider">Prácticas</span>
             {selectedCount > 0 && (
-              <span className="bg-red-700 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+              <span className="bg-brand-700 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
                 {selectedCount} seleccionada{selectedCount > 1 ? 's' : ''}
               </span>
             )}
@@ -189,7 +189,7 @@ export function StepStudies({
                 key={p.id}
                 className={`flex items-stretch rounded-2xl border-2 transition-all duration-150 ${
                   isSelected
-                    ? 'bg-red-50 border-red-600 shadow-md'
+                    ? 'bg-brand-50 border-brand-600 shadow-md'
                     : 'bg-white border-slate-100 hover:border-slate-300 hover:shadow-sm'
                 }`}
               >
@@ -201,7 +201,7 @@ export function StepStudies({
                 >
                   {/* Check / Plus */}
                   <div className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-colors ${
-                    isSelected ? 'bg-red-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'
+                    isSelected ? 'bg-brand-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'
                   }`}>
                     {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </div>
@@ -210,7 +210,7 @@ export function StepStudies({
                   <div className="flex-1 min-w-0">
                     {/* Código */}
                     <span className={`inline-block text-[10px] font-black uppercase px-1.5 py-0.5 rounded mb-1 ${
-                      isSelected ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'
+                      isSelected ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500'
                     }`}>
                       {p.code}
                     </span>
@@ -222,7 +222,7 @@ export function StepStudies({
                     {isSelected && (hasTeeth || hasLocations) && (
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {hasTeeth && (
-                          <span className="inline-flex items-center gap-1 text-xs font-black bg-red-100 text-red-800 px-2 py-0.5 rounded-lg border border-red-200">
+                          <span className="inline-flex items-center gap-1 text-xs font-black bg-brand-100 text-brand-800 px-2 py-0.5 rounded-lg border border-brand-200">
                             <ScanLine size={11} />
                             Piezas: {selectedItem.teeth.join(', ')}
                           </span>
@@ -249,7 +249,7 @@ export function StepStudies({
                   <button
                     type="button"
                     onClick={() => setActiveConfigId(p.id)}
-                    className="px-3 mr-2 my-2 shrink-0 bg-slate-900 hover:bg-red-700 text-white rounded-xl transition-colors shadow-sm flex items-center"
+                    className="px-3 mr-2 my-2 shrink-0 bg-slate-900 hover:bg-brand-700 text-white rounded-xl transition-colors shadow-sm flex items-center"
                     title="Configurar piezas o posición"
                   >
                     <Settings2 className="h-4 w-4" />

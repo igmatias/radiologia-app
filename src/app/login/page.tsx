@@ -75,16 +75,16 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <Card className="border-t-4 border-t-red-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
+        <Card className="border-t-4 border-t-brand-600 shadow-2xl rounded-2xl overflow-hidden bg-white">
           <CardContent className="p-8">
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center shrink-0">
                   <Lock size={20} />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold uppercase text-neutral-900">Iniciar Sesión</h2>
-                  <div className="w-10 h-1 bg-red-600 mt-1 rounded-full" />
+                  <div className="w-10 h-1 bg-brand-600 mt-1 rounded-full" />
                 </div>
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function LoginPage() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="h-12 border-2 font-bold text-base rounded-xl pl-11 focus-visible:ring-red-600"
+                    className="h-12 border-2 font-bold text-base rounded-xl pl-11 focus-visible:ring-brand-600"
                     placeholder="Ej: GomezMaria"
                     autoComplete="username"
                   />
@@ -113,7 +113,7 @@ export default function LoginPage() {
                   maxLength={4}
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-                  className="h-12 text-center text-3xl tracking-[1em] font-bold border-2 rounded-xl focus-visible:ring-red-600"
+                  className="h-12 text-center text-3xl tracking-[1em] font-bold border-2 rounded-xl focus-visible:ring-brand-600"
                   placeholder="••••"
                 />
               </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 mt-6 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2 group"
+                className="w-full h-12 mt-6 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-2 group"
               >
                 {loading ? "Verificando..." : <> Ingresar <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
               </Button>
@@ -130,7 +130,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-neutral-500 font-bold uppercase tracking-widest mt-8 flex items-center justify-center gap-1.5">
-          <ShieldCheck size={16} className="text-red-500" />
+          <ShieldCheck size={16} className="text-brand-500" />
           Plataforma Segura
         </p>
       </div>

@@ -351,7 +351,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
 
       <div className="flex gap-4 print:hidden">
         <Button onClick={() => setActiveTab('FACTURACION')} className={`h-14 flex-1 rounded-2xl text-lg font-black uppercase italic transition-all ${activeTab === 'FACTURACION' ? 'bg-slate-900 text-white shadow-lg scale-[1.02]' : 'bg-white text-slate-500 hover:bg-slate-50 border-2'}`}><Receipt className="mr-2"/> Facturación OS</Button>
-        <Button onClick={() => setActiveTab('DENTISTAS')} className={`h-14 flex-1 rounded-2xl text-lg font-black uppercase italic transition-all ${activeTab === 'DENTISTAS' ? 'bg-red-700 text-white shadow-lg scale-[1.02]' : 'bg-white text-slate-500 hover:bg-slate-50 border-2'}`}><BarChart3 className="mr-2"/> Métricas Derivantes</Button>
+        <Button onClick={() => setActiveTab('DENTISTAS')} className={`h-14 flex-1 rounded-2xl text-lg font-black uppercase italic transition-all ${activeTab === 'DENTISTAS' ? 'bg-brand-700 text-white shadow-lg scale-[1.02]' : 'bg-white text-slate-500 hover:bg-slate-50 border-2'}`}><BarChart3 className="mr-2"/> Métricas Derivantes</Button>
       </div>
 
       {activeTab === 'FACTURACION' && (
@@ -363,7 +363,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social / Prepaga</Label>
                   <Select value={selectedOS} onValueChange={setSelectedOS}>
-                    <SelectTrigger className="h-14 font-black uppercase border-2 border-slate-200 focus:border-red-700 text-sm"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
+                    <SelectTrigger className="h-14 font-black uppercase border-2 border-slate-200 focus:border-brand-700 text-sm"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
                     <SelectContent className="font-black uppercase italic">
                       {/* Convertimos a String explícitamente */}
                       {obrasSociales.map(os => <SelectItem key={os.id} value={String(os.id)}>{os.name}</SelectItem>)}
@@ -389,7 +389,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-14 font-bold border-2" />
                 </div>
               </div>
-              <Button onClick={handleSearchBilling} disabled={loading} className="w-full mt-4 h-14 bg-red-700 hover:bg-red-800 text-white font-black uppercase italic rounded-xl shadow-md"><Search size={18} className="mr-2"/> {loading ? "Buscando..." : "Generar Liquidación"}</Button>
+              <Button onClick={handleSearchBilling} disabled={loading} className="w-full mt-4 h-14 bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic rounded-xl shadow-md"><Search size={18} className="mr-2"/> {loading ? "Buscando..." : "Generar Liquidación"}</Button>
             </CardContent>
           </Card>
 
@@ -421,7 +421,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                     {ocultarCopago ? "Copago Visible" : "Ocultar Copago"}
                   </Button>
                   <Button onClick={handleExportExcel} className="h-10 bg-white border-2 border-slate-300 text-slate-800 hover:bg-slate-50 font-black uppercase text-xs shadow-sm"><FileSpreadsheet size={14} className="mr-2"/> Excel (.XLS)</Button>
-                  <Button onClick={handlePrint} className="h-10 bg-red-700 hover:bg-red-800 text-white font-black uppercase text-xs shadow-sm"><Printer size={14} className="mr-2"/> PDF / Imprimir</Button>
+                  <Button onClick={handlePrint} className="h-10 bg-brand-700 hover:bg-brand-800 text-white font-black uppercase text-xs shadow-sm"><Printer size={14} className="mr-2"/> PDF / Imprimir</Button>
                 </div>
               </div>
 
@@ -429,7 +429,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                 <div className="border-b-2 border-slate-400 pb-4 mb-6">
                   <h2 className="text-2xl font-black uppercase italic text-slate-800 leading-tight">Liquidación de Prestaciones</h2>
                   <div className="mt-2">
-                    <p className="text-sm font-bold uppercase text-slate-700">Obra Social: <span className="font-black text-red-700">{osNameSafe}</span></p>
+                    <p className="text-sm font-bold uppercase text-slate-700">Obra Social: <span className="font-black text-brand-700">{osNameSafe}</span></p>
                     <p className="text-xs font-bold uppercase text-slate-600">Sede: {branchNameSafe}</p>
                     <p className="text-xs font-bold uppercase text-slate-600">Período: {new Date(startDate).toLocaleDateString('es-AR')} al {new Date(endDate).toLocaleDateString('es-AR')}</p>
                   </div>
@@ -445,7 +445,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                       <th className="w-[10%] p-3 print:p-1.5 border-b-2 border-slate-300">CÓDIGO</th>
                       <th className="w-[18%] p-3 print:p-1.5 border-b-2 border-slate-300">PRÁCTICA</th>
                       <th className="w-[13%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right">VALOR OS</th>
-                      {!ocultarCopago && <th className="w-[11%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-red-700">COPAGO</th>}
+                      {!ocultarCopago && <th className="w-[11%] p-3 print:p-1.5 border-b-2 border-slate-300 text-right text-brand-700">COPAGO</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -466,7 +466,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                               type="number"
                               defaultValue={item.insuranceCoverage}
                               onBlur={(e) => handleUpdatePrice(item.id, Number(e.target.value), index)}
-                              className="h-8 w-32 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors"
+                              className="h-8 w-32 text-right font-black text-slate-900 border-2 bg-slate-50 focus:bg-white focus:border-brand-700 transition-colors"
                               title="Modificar valor OS"
                             />
                           </div>
@@ -477,16 +477,16 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         {!ocultarCopago && (
                           <td className="p-3 print:p-1.5 text-right">
                             <div className="flex justify-end items-center gap-1 print:hidden">
-                              <span className="text-red-300 font-bold">$</span>
+                              <span className="text-brand-300 font-bold">$</span>
                               <Input
                                 type="number"
                                 defaultValue={item.patientCopay}
                                 onBlur={(e) => handleUpdateCopago(item.id, Number(e.target.value), index)}
-                                className="h-8 w-32 text-right font-black text-red-700 border-2 border-red-200 bg-red-50 focus:bg-white focus:border-red-700 transition-colors"
+                                className="h-8 w-32 text-right font-black text-brand-700 border-2 border-brand-200 bg-brand-50 focus:bg-white focus:border-brand-700 transition-colors"
                                 title="Modificar copago"
                               />
                             </div>
-                            <span className="hidden print:inline font-black text-[11px] italic text-red-700">${Number(item.patientCopay).toLocaleString('es-AR')}</span>
+                            <span className="hidden print:inline font-black text-[11px] italic text-brand-700">${Number(item.patientCopay).toLocaleString('es-AR')}</span>
                           </td>
                         )}
 
@@ -502,7 +502,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         ${totalBillingOS.toLocaleString('es-AR')}
                       </td>
                       {!ocultarCopago && (
-                        <td className="p-4 print:p-2 text-right text-lg print:text-sm font-black italic text-red-700 bg-red-50 border-y-2 border-red-300 print:border-none print:bg-white">
+                        <td className="p-4 print:p-2 text-right text-lg print:text-sm font-black italic text-brand-700 bg-brand-50 border-y-2 border-brand-300 print:border-none print:bg-white">
                           ${totalBillingCopago.toLocaleString('es-AR')}
                         </td>
                       )}
@@ -518,7 +518,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
       {/* PESTAÑA DENTISTAS OMITIDA POR BREVEDAD */}
       {activeTab === 'DENTISTAS' && (
         <div className="space-y-6 animate-in fade-in print:hidden">
-          <Card className="border-none shadow-md rounded-[2rem] bg-white border-t-8 border-red-700">
+          <Card className="border-none shadow-md rounded-[2rem] bg-white border-t-8 border-brand-700">
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div className="space-y-2 md:col-span-2">
@@ -526,11 +526,11 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   {!selectedDentist ? (
                     <div className="relative shadow-sm rounded-xl">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                      <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={dentistSearchTerm} onChange={(e) => setDentistSearchTerm(e.target.value)} className="pl-12 h-14 uppercase font-bold border-2 focus-visible:ring-red-700 bg-slate-50 text-lg" />
+                      <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={dentistSearchTerm} onChange={(e) => setDentistSearchTerm(e.target.value)} className="pl-12 h-14 uppercase font-bold border-2 focus-visible:ring-brand-700 bg-slate-50 text-lg" />
                       {dentistSearchTerm && (
                         <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold max-h-[300px] overflow-y-auto">
                           {filteredDentists.map((d: any) => (
-                            <div key={d.id} className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm text-slate-700 hover:text-red-700" onClick={() => { setSelectedDentist(String(d.id)); setDentistSearchTerm(""); }}>
+                            <div key={d.id} className="p-4 hover:bg-brand-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm text-slate-700 hover:text-brand-700" onClick={() => { setSelectedDentist(String(d.id)); setDentistSearchTerm(""); }}>
                               {d.lastName}, {d.firstName} {d.matriculaProv ? `(MP: ${d.matriculaProv})` : ''}
                             </div>
                           ))}
@@ -540,9 +540,9 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                   ) : (() => {
                     const d = dentists.find(doc => String(doc.id) === String(selectedDentist));
                     return d && (
-                      <div className="h-14 px-5 bg-red-700 text-white rounded-xl text-lg font-black italic flex items-center justify-between shadow-md">
+                      <div className="h-14 px-5 bg-brand-700 text-white rounded-xl text-lg font-black italic flex items-center justify-between shadow-md">
                         <div className="flex items-center gap-2 uppercase"><Stethoscope size={20} /> {d.lastName}, {d.firstName}</div>
-                        <button type="button" onClick={() => {setSelectedDentist(""); setDentistStats(null);}} className="bg-red-900 hover:bg-red-950 p-2 rounded-full transition-colors" title="Cambiar Odontólogo"><X size={16} /></button>
+                        <button type="button" onClick={() => {setSelectedDentist(""); setDentistStats(null);}} className="bg-brand-900 hover:bg-brand-800 p-2 rounded-full transition-colors" title="Cambiar Odontólogo"><X size={16} /></button>
                       </div>
                     )
                   })()}
@@ -557,17 +557,17 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
           {dentistStats && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4">
               <div className="lg:col-span-1 space-y-4">
-                <Card className="border-none shadow-lg bg-red-700 text-white rounded-3xl overflow-hidden relative"><div className="absolute right-[-20px] top-[-20px] opacity-20"><Activity size={120} /></div><CardContent className="p-6 relative"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-200 mb-1">Total Estudios</p><h2 className="text-6xl font-black tracking-tighter italic">{dentistStats.totalProcedures}</h2></CardContent></Card>
+                <Card className="border-none shadow-lg bg-brand-700 text-white rounded-3xl overflow-hidden relative"><div className="absolute right-[-20px] top-[-20px] opacity-20"><Activity size={120} /></div><CardContent className="p-6 relative"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-200 mb-1">Total Estudios</p><h2 className="text-6xl font-black tracking-tighter italic">{dentistStats.totalProcedures}</h2></CardContent></Card>
                 <Card className="border-none shadow-md bg-slate-900 text-white rounded-3xl"><CardContent className="p-6"><div className="flex items-center gap-2 mb-2"><User size={16} className="text-slate-400" /><p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Pacientes Diferentes</p></div><h2 className="text-4xl font-black tracking-tighter italic">{dentistStats.totalPatients}</h2></CardContent></Card>
               </div>
               <Card className="lg:col-span-2 border-none shadow-lg bg-white rounded-3xl">
-                <CardHeader className="border-b p-5 bg-slate-50"><CardTitle className="text-sm font-black uppercase text-slate-800 flex items-center gap-2"><BarChart3 className="text-red-700" size={18}/> Desglose</CardTitle></CardHeader>
+                <CardHeader className="border-b p-5 bg-slate-50"><CardTitle className="text-sm font-black uppercase text-slate-800 flex items-center gap-2"><BarChart3 className="text-brand-700" size={18}/> Desglose</CardTitle></CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-5">
                     {dentistStats.chartData.map((data: any, idx: number) => (
                       <div key={idx}>
-                        <div className="flex justify-between items-end mb-1"><span className="font-black uppercase text-slate-700 text-sm truncate pr-4">{data.name}</span><span className="font-black italic text-red-700">{data.count} <span className="text-[10px] text-slate-400">({data.percentage}%)</span></span></div>
-                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner"><div className="bg-red-600 h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${data.percentage}%` }}></div></div>
+                        <div className="flex justify-between items-end mb-1"><span className="font-black uppercase text-slate-700 text-sm truncate pr-4">{data.name}</span><span className="font-black italic text-brand-700">{data.count} <span className="text-[10px] text-slate-400">({data.percentage}%)</span></span></div>
+                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner"><div className="bg-brand-600 h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${data.percentage}%` }}></div></div>
                       </div>
                     ))}
                   </div>

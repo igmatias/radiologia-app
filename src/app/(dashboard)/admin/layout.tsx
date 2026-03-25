@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* BARRA LATERAL (SIDEBAR) */}
       <aside className="w-64 bg-neutral-900 text-slate-300 flex flex-col hidden md:flex shrink-0">
         <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-red-700 flex items-center justify-center shrink-0 shadow-lg shadow-red-900/40">
+          <div className="w-9 h-9 rounded-xl bg-brand-700 flex items-center justify-center shrink-0 shadow-lg shadow-brand-900/40">
             <ShieldCheck size={18} className="text-white" />
           </div>
           <div>
@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             
             return (
               <Link key={item.name} href={item.href}>
-                <span className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase text-sm transition-all ${isActive ? 'bg-red-700 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}>
+                <span className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase text-sm transition-all ${isActive ? 'bg-brand-700 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}>
                   <item.icon size={18} />
                   {item.name}
                 </span>
@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-neutral-800">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase text-sm text-slate-400 hover:bg-red-900/50 hover:text-red-400 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase text-sm text-slate-400 hover:bg-brand-900/50 hover:text-brand-400 transition-all"
           >
             <LogOut size={18} />
             Cerrar Sesión

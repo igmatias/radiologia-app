@@ -129,7 +129,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
       <div className="space-y-6 relative print:hidden">
         
         {/* HEADER PRINCIPAL */}
-        <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] shadow-xl border-t-8 border-red-700 text-white">
+        <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] shadow-xl border-t-8 border-brand-700 text-white">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             
             <div className="space-y-4">
@@ -143,7 +143,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                 </Button>
                 <Button 
                   onClick={() => router.push('/tecnico')}
-                  className="bg-red-700 hover:bg-red-800 text-white px-4 py-2 h-auto rounded-xl font-black uppercase italic text-[10px] border-b-[3px] border-red-900 active:border-b-0 active:translate-y-px transition-all"
+                  className="bg-brand-700 hover:bg-brand-800 text-white px-4 py-2 h-auto rounded-xl font-black uppercase italic text-[10px] border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all"
                 >
                   <ArrowLeft size={14} className="mr-2"/> Sala de Rayos
                 </Button>
@@ -151,7 +151,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               
               <div>
                 <h1 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-                  <Send className="text-red-700" size={36} /> Logística y Entregas
+                  <Send className="text-brand-700" size={36} /> Logística y Entregas
                 </h1>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">
                   SEDE: {branches.find((b:any) => b.id === session.branchId)?.name} • {session.userName}
@@ -177,11 +177,11 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         {activeTab === "HOY" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <h2 className="text-xl font-black italic uppercase text-slate-800 border-b-2 border-slate-200 pb-2 flex items-center gap-2"><Clock className="text-red-700" size={24}/> Por Entregar</h2>
+              <h2 className="text-xl font-black italic uppercase text-slate-800 border-b-2 border-slate-200 pb-2 flex items-center gap-2"><Clock className="text-brand-700" size={24}/> Por Entregar</h2>
               {loading ? <p className="text-center py-10 opacity-50">Buscando estudios...</p> : pending.map(order => (
-                <Card key={order.id} className="border-none shadow-lg rounded-[2rem] border-t-8 border-t-red-700">
+                <Card key={order.id} className="border-none shadow-lg rounded-[2rem] border-t-8 border-t-brand-700">
                   <CardContent className="p-6">
-                    <p className="text-[10px] font-black uppercase text-red-700 mb-1">Orden #{order.code}</p>
+                    <p className="text-[10px] font-black uppercase text-brand-700 mb-1">Orden #{order.code}</p>
                     <h3 className="text-2xl font-black uppercase text-slate-900 mb-4 truncate">{order.patient?.lastName}, {order.patient?.firstName}</h3>
                     <div className="grid grid-cols-5 gap-1.5">
                       <Button onClick={() => copyLink(order.accessCode)} variant="outline" className="h-12 border-2 px-0" title="Link"><LinkIcon size={18}/></Button>
@@ -235,7 +235,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                                   <div key={idx} className="relative group w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 overflow-hidden">
                                     {isPDF ? <FileText size={16} className="text-slate-400" /> : <img src={img} alt="placa" className="w-full h-full object-cover opacity-80"/>}
                                     <a href={img} target="_blank" rel="noreferrer" className="absolute inset-0"></a>
-                                    <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100"><XCircle size={10}/></button>
+                                    <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-brand-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100"><XCircle size={10}/></button>
                                   </div>
                                 );
                               })}
@@ -268,7 +268,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
             <form onSubmit={executeSearch} className="bg-white p-2 pl-4 rounded-[2rem] shadow-lg border border-slate-200 flex items-center gap-3">
                <Search size={24} className="text-slate-400"/>
                <Input placeholder="DNI, Apellido o Código..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border-none shadow-none focus-visible:ring-0 text-lg font-bold h-14 bg-transparent" />
-               <Button type="submit" disabled={isSearching} className="h-14 px-8 bg-red-700 hover:bg-red-800 text-white rounded-2xl font-black uppercase italic shadow-md">Buscar</Button>
+               <Button type="submit" disabled={isSearching} className="h-14 px-8 bg-brand-700 hover:bg-brand-800 text-white rounded-2xl font-black uppercase italic shadow-md">Buscar</Button>
             </form>
 
             <div className="space-y-4">

@@ -86,13 +86,13 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input placeholder="Buscar por código o nombre..." className="pl-12 h-14 font-bold bg-slate-50 border-2 rounded-2xl text-slate-800" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-          <Button onClick={() => openModal()} className="w-full md:w-auto h-14 bg-red-700 hover:bg-red-800 text-white font-black italic uppercase rounded-2xl px-8 shadow-lg"><Plus size={20} className="mr-2" /> Nuevo Estudio</Button>
+          <Button onClick={() => openModal()} className="w-full md:w-auto h-14 bg-brand-700 hover:bg-brand-800 text-white font-black italic uppercase rounded-2xl px-8 shadow-lg"><Plus size={20} className="mr-2" /> Nuevo Estudio</Button>
         </CardContent>
       </Card>
 
       {/* TABLA DE ESTUDIOS */}
       <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
-        <CardHeader className="bg-slate-50 border-b p-5"><CardTitle className="text-sm font-black uppercase text-slate-800 flex items-center gap-2"><LayoutGrid className="text-red-700" size={18}/> Catálogo Maestro ({filteredProcedures.length})</CardTitle></CardHeader>
+        <CardHeader className="bg-slate-50 border-b p-5"><CardTitle className="text-sm font-black uppercase text-slate-800 flex items-center gap-2"><LayoutGrid className="text-brand-700" size={18}/> Catálogo Maestro ({filteredProcedures.length})</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-y-auto">
             <table className="w-full text-left border-collapse">
@@ -109,14 +109,14 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
                       <td className="p-4"><span className="font-black uppercase text-slate-800 block">{proc.name}</span>{proc.category && <span className="text-[9px] font-bold text-slate-400 uppercase">{proc.category}</span>}</td>
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
-                          {proc.requiresTooth && <span className="text-[9px] font-black bg-red-100 text-red-700 px-2 py-0.5 rounded uppercase border border-red-200 inline-flex items-center gap-1"><ScanLine size={10} /> Odontograma</span>}
+                          {proc.requiresTooth && <span className="text-[9px] font-black bg-brand-100 text-brand-700 px-2 py-0.5 rounded uppercase border border-brand-200 inline-flex items-center gap-1"><ScanLine size={10} /> Odontograma</span>}
                           {proc.options && proc.options.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase border border-blue-200 inline-flex items-center gap-1"><Tag size={9} /> {proc.options.length} Opciones</span>}
                           {!proc.requiresTooth && (!proc.options || proc.options.length === 0) && <span className="text-[10px] font-bold text-slate-300 uppercase italic">Directo</span>}
                         </div>
                       </td>
                       <td className="p-4 pr-6 text-right opacity-30 group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="sm" onClick={() => openModal(proc)} className="text-blue-600 hover:bg-blue-50 h-8 w-8 p-0 mr-1 border shadow-sm"><Pencil size={14} /></Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(proc.id, proc.name)} className="text-red-600 hover:bg-red-50 h-8 w-8 p-0 border shadow-sm"><Trash2 size={14} /></Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(proc.id, proc.name)} className="text-brand-600 hover:bg-brand-50 h-8 w-8 p-0 border shadow-sm"><Trash2 size={14} /></Button>
                       </td>
                     </tr>
                   ))
@@ -129,7 +129,7 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
 
       {/* MODAL CREAR / EDITAR */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[450px] bg-white rounded-3xl border-t-8 border-red-700 p-8 outline-none">
+        <DialogContent className="sm:max-w-[450px] bg-white rounded-3xl border-t-8 border-brand-700 p-8 outline-none">
           <DialogHeader><DialogTitle className="text-2xl font-black italic uppercase">{formData.id ? "Editar Estudio" : "Nuevo Estudio"}</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4">
@@ -143,18 +143,18 @@ export default function EstudiosClient({ initialProcedures }: { initialProcedure
               <h4 className="font-black text-sm uppercase text-slate-700 flex items-center gap-2"><Settings2 size={16}/> Configuración de Recepción</h4>
               
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={formData.requiresTooth} onChange={e => setFormData({...formData, requiresTooth: e.target.checked})} className="w-5 h-5 accent-red-700 cursor-pointer" />
+                <input type="checkbox" checked={formData.requiresTooth} onChange={e => setFormData({...formData, requiresTooth: e.target.checked})} className="w-5 h-5 accent-brand-700 cursor-pointer" />
                 <span className="text-xs font-black uppercase text-slate-700">Lleva Odontograma (Selección de Piezas)</span>
               </label>
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-400">Opciones Múltiples (Separar con comas)</Label>
-                <textarea value={formData.optionsString} onChange={e => setFormData({...formData, optionsString: e.target.value.toUpperCase()})} placeholder="Ej: RICKETTS, STEINER, BJORK" className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 resize-none h-16 shadow-inner" disabled={formData.requiresTooth}/>
+                <textarea value={formData.optionsString} onChange={e => setFormData({...formData, optionsString: e.target.value.toUpperCase()})} placeholder="Ej: RICKETTS, STEINER, BJORK" className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700 resize-none h-16 shadow-inner" disabled={formData.requiresTooth}/>
                 <p className="text-[9px] text-slate-400 font-bold italic leading-tight">Uso: Para Trazados (Ricketts, Steiner) o Posiciones (Frente, Perfil). Si activás Odontograma, esto se ignora.</p>
               </div>
             </div>
 
-            <Button onClick={handleSave} disabled={isLoading} className="w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 bg-red-700 hover:bg-red-800">{isLoading ? "GUARDANDO..." : "GUARDAR ✓"}</Button>
+            <Button onClick={handleSave} disabled={isLoading} className="w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 bg-brand-700 hover:bg-brand-800">{isLoading ? "GUARDANDO..." : "GUARDAR ✓"}</Button>
           </div>
         </DialogContent>
       </Dialog>

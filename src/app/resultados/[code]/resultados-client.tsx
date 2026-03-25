@@ -46,10 +46,10 @@ export default function ResultadosClient() {
   // --- PANTALLA 1: VALIDACIÓN DE DNI ---
   if (!isAuthenticated) {
     return (
-      <Card className="w-full max-w-md border-none shadow-2xl rounded-[2rem] overflow-hidden bg-white border-t-8 border-t-red-700 animate-in zoom-in-95 duration-300">
+      <Card className="w-full max-w-md border-none shadow-2xl rounded-[2rem] overflow-hidden bg-white border-t-8 border-t-brand-700 animate-in zoom-in-95 duration-300">
         <CardContent className="p-8 text-center space-y-6">
           <div className="mx-auto bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mb-2">
-            <ShieldCheck size={40} className="text-red-700" />
+            <ShieldCheck size={40} className="text-brand-700" />
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter">Portal de Pacientes</h1>
@@ -73,7 +73,7 @@ export default function ResultadosClient() {
               placeholder="Número de DNI..." 
               value={dni}
               onChange={(e) => setDni(e.target.value)}
-              className="h-14 text-center font-black text-xl tracking-widest border-2 focus-visible:ring-red-700 bg-slate-50 rounded-xl"
+              className="h-14 text-center font-black text-xl tracking-widest border-2 focus-visible:ring-brand-700 bg-slate-50 rounded-xl"
               autoFocus
             />
             <Button 
@@ -104,7 +104,7 @@ export default function ResultadosClient() {
         <CardContent className="p-6">
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Paciente</p>
           <h2 className="text-3xl font-black uppercase text-slate-900 leading-none">
-            {patient.lastName}, <span className="text-red-700">{patient.firstName}</span>
+            {patient.lastName}, <span className="text-brand-700">{patient.firstName}</span>
           </h2>
           <div className="flex flex-wrap items-center gap-4 mt-3">
             <span className="text-xs font-bold text-slate-500 uppercase bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">DNI: {patient.dni}</span>
@@ -118,10 +118,10 @@ export default function ResultadosClient() {
       {/* LÍNEA DE TIEMPO DE ESTUDIOS */}
       <div className="space-y-8">
         {orders.map((order, index) => (
-          <Card key={order.id} className="border-none shadow-xl rounded-[2rem] overflow-hidden bg-white border-t-8 border-red-700 relative">
+          <Card key={order.id} className="border-none shadow-xl rounded-[2rem] overflow-hidden bg-white border-t-8 border-brand-700 relative">
             
             {index === 0 && (
-              <div className="absolute top-0 right-0 bg-red-700 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-widest">
+              <div className="absolute top-0 right-0 bg-brand-700 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-widest">
                 Más Reciente
               </div>
             )}
@@ -140,15 +140,15 @@ export default function ResultadosClient() {
                 <div className="text-left md:text-right bg-slate-50 p-3 rounded-xl border border-slate-200">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Fecha de Realización</p>
                   <p className="text-lg font-black italic text-slate-800 flex items-center md:justify-end gap-1.5">
-                    <Calendar size={16} className="text-red-700"/> {new Date(order.createdAt).toLocaleDateString('es-AR')}
+                    <Calendar size={16} className="text-brand-700"/> {new Date(order.createdAt).toLocaleDateString('es-AR')}
                   </p>
                 </div>
               </div>
 
               {/* Médico y Sede */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="flex items-start gap-3 bg-red-50/50 p-4 rounded-xl border border-red-100">
-                  <Stethoscope size={20} className="text-red-700 shrink-0"/>
+                <div className="flex items-start gap-3 bg-brand-50/50 p-4 rounded-xl border border-brand-100">
+                  <Stethoscope size={20} className="text-brand-700 shrink-0"/>
                   <div>
                     <p className="text-[10px] font-black uppercase text-slate-400">Médico Solicitante</p>
                     <p className="text-sm font-black uppercase text-slate-800">{order.dentist ? `Dr. ${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular'}</p>
@@ -178,7 +178,7 @@ export default function ResultadosClient() {
               {/* Archivos Digitales */}
               <div className="space-y-4">
                 <h4 className="text-sm font-black uppercase italic text-slate-800 flex items-center gap-2 border-b-2 border-slate-100 pb-2">
-                  <ImageIcon className="text-red-700" size={16}/> Archivos Digitales
+                  <ImageIcon className="text-brand-700" size={16}/> Archivos Digitales
                 </h4>
 
                 {/* 👉 NUEVO: SECCIÓN DE ENLACE EXTERNO (Drive/WeTransfer) */}
@@ -221,14 +221,14 @@ export default function ResultadosClient() {
                               <FileText size={48} className="mb-2" />
                               <span className="font-black text-xl tracking-widest">PDF</span>
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                <span className="bg-red-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg shadow-lg">Abrir Documento</span>
+                                <span className="bg-brand-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg shadow-lg">Abrir Documento</span>
                               </div>
                             </a>
                           ) : (
                             <a href={img} target="_blank" rel="noreferrer" className="flex-1 relative aspect-[4/3] bg-black">
                               <img src={img} alt={`Estudio ${idx + 1}`} className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                <span className="bg-red-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg shadow-lg">Ver en pantalla completa</span>
+                                <span className="bg-brand-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg shadow-lg">Ver en pantalla completa</span>
                               </div>
                             </a>
                           )}

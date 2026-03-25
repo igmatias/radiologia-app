@@ -35,7 +35,7 @@ export default function DashboardLayout({
             </span>
           </Link>
           <Link href="/admin">
-            <span className="flex items-center gap-1.5 px-3 py-2 ml-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer shadow-md">
+            <span className="flex items-center gap-1.5 px-3 py-2 ml-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer shadow-md">
               <Settings size={13} /> Admin
             </span>
           </Link>

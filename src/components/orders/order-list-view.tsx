@@ -23,7 +23,7 @@ export function OrderListView({ dailyOrders, orderSearch, setOrderSearch, onRefr
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-100 pb-6 gap-4">
           <div>
             <h3 className="text-3xl font-black uppercase italic text-slate-900 flex items-center gap-3">
-              <LayoutGrid className="text-red-700" size={32}/> Órdenes de Hoy
+              <LayoutGrid className="text-brand-700" size={32}/> Órdenes de Hoy
             </h3>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -58,12 +58,12 @@ export function OrderListView({ dailyOrders, orderSearch, setOrderSearch, onRefr
                 >
                   <div>
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className={`${isAnulada ? 'bg-slate-400' : 'bg-red-700'} text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest`}>
+                      <span className={`${isAnulada ? 'bg-slate-400' : 'bg-brand-700'} text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest`}>
                         Nº {orden.code || orden.dailyId}
                       </span>
 
                       {isAnulada && (
-                        <span className="bg-red-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm italic flex items-center gap-1 animate-pulse">
+                        <span className="bg-brand-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm italic flex items-center gap-1 animate-pulse">
                           <AlertTriangle size={10} /> ANULADA
                         </span>
                       )}
@@ -90,7 +90,7 @@ export function OrderListView({ dailyOrders, orderSearch, setOrderSearch, onRefr
                         <Button onClick={() => onEdit(orden)} className="h-12 bg-slate-900 text-white font-black uppercase text-xs rounded-xl shadow-md"><Edit size={16} className="mr-2"/> Editar</Button>
                         <Button
                           variant="ghost"
-                          className="h-12 text-red-500 hover:bg-red-50 font-black uppercase text-[10px]"
+                          className="h-12 text-brand-500 hover:bg-brand-50 font-black uppercase text-[10px]"
                           onClick={async () => {
                             if(confirm("¿Estás seguro de ANULAR esta orden?")) {
                               const res = await toggleOrderActivation(orden.id, orden.status);

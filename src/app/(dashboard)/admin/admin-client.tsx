@@ -108,7 +108,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           </div>
           <button
             onClick={async () => { await logoutUser(); router.push("/login") }}
-            className="md:hidden flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-red-50 hover:text-red-600 border border-slate-200 transition-all"
+            className="md:hidden flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all"
           >
             <LogOut size={15}/> Salir
           </button>
@@ -116,7 +116,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={async () => { await logoutUser(); router.push("/login") }}
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-red-50 hover:text-red-600 border border-slate-200 transition-all h-12"
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all h-12"
             >
               <LogOut size={15}/> Cerrar Sesión
             </button>
@@ -200,7 +200,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                       
                       <div className="mt-8 pt-6 border-t border-white/20">
                         <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 mb-1">Gastos Operativos Registrados</p>
-                        <p className="text-2xl font-black text-red-200">-${data.totalGastos.toLocaleString('es-AR')}</p>
+                        <p className="text-2xl font-black text-brand-200">-${data.totalGastos.toLocaleString('es-AR')}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -283,9 +283,9 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-red-600">
+                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-brand-600">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><MinusCircle className="text-red-600"/> Gastos y Retiros</h3>
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><MinusCircle className="text-brand-600"/> Gastos y Retiros</h3>
                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                       {data.movimientos.length === 0 ? (
                         <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay gastos en este período</p>
@@ -293,7 +293,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                         data.movimientos.map((m: any) => (
                           <div key={m.id} className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                             <div className="flex items-center gap-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
                                 {m.type === 'RETIRO_DUENO' ? <Briefcase size={16}/> : m.type === 'A_CAJA_FUERTE' ? <Vault size={16}/> : <MinusCircle size={16}/>}
                               </div>
                               <div>
@@ -303,7 +303,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                                 </p>
                               </div>
                             </div>
-                            <p className="text-base font-black text-red-600 italic">-${Number(m.amount).toLocaleString('es-AR')}</p>
+                            <p className="text-base font-black text-brand-600 italic">-${Number(m.amount).toLocaleString('es-AR')}</p>
                           </div>
                         ))
                       )}
@@ -383,14 +383,14 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md bg-white rounded-[2.5rem] border-l-8 border-red-700 relative overflow-hidden hover:shadow-lg transition-all">
+                <Card className="border-none shadow-md bg-white rounded-[2.5rem] border-l-8 border-brand-700 relative overflow-hidden hover:shadow-lg transition-all">
                   <CardContent className="p-8 h-full flex flex-col justify-center">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Estudios Realizados</p>
                         <h3 className="text-5xl font-black italic tracking-tighter text-slate-900">{metricsData.totalEstudios}</h3>
                       </div>
-                      <div className="bg-red-50 p-4 rounded-2xl text-red-700"><Activity size={28}/></div>
+                      <div className="bg-brand-50 p-4 rounded-2xl text-brand-700"><Activity size={28}/></div>
                     </div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-2">Distribuidos en {metricsData.totalOrdenes} órdenes creadas</p>
                   </CardContent>

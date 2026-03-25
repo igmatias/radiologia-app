@@ -25,7 +25,7 @@ export function OrderHeader({
 }: OrderHeaderProps) {
   const amount = editingOrderId ? saldoDiferencia : patientAmount
   const amountLabel = editingOrderId ? "DIFERENCIA" : "A COBRAR"
-  const amountColor = editingOrderId && saldoDiferencia <= 0 ? "text-emerald-600" : "text-red-600"
+  const amountColor = editingOrderId && saldoDiferencia <= 0 ? "text-emerald-600" : "text-brand-600"
   const branchName = branches.find((b: any) => b.id === session?.branchId)?.name || "---"
   const operatorName = session?.userName?.split(' ')[0] || "OPERADOR"
 
@@ -60,7 +60,7 @@ export function OrderHeader({
         <button
           onClick={onLogout}
           title="Cerrar sesión"
-          className="ml-2 text-slate-300 hover:text-red-500 transition-colors"
+          className="ml-2 text-slate-300 hover:text-brand-500 transition-colors"
         >
           <LogOut size={14} />
         </button>

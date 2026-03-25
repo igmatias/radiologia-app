@@ -19,7 +19,7 @@ export default async function UsuariosPage() {
   return (
     <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
       <div className="mb-8">
-        <p className="text-xs font-black uppercase text-red-700 tracking-[0.3em] mb-1">Configuración del Sistema</p>
+        <p className="text-xs font-black uppercase text-brand-700 tracking-[0.3em] mb-1">Configuración del Sistema</p>
         <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">Gestión de Accesos</h1>
       </div>
       

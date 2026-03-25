@@ -30,7 +30,7 @@ export function StepPatient({ form, patientHistory, onShowHistory, obrasSociales
             autoFocus
           />
           {patientHistory.length > 0 && (
-            <Button type="button" onClick={onShowHistory} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md">
+            <Button type="button" onClick={onShowHistory} className="h-11 px-4 bg-slate-900 hover:bg-brand-700 text-white font-black italic uppercase rounded-lg shadow-md">
               <FileText size={18} className="mr-2" /> Historial ({patientHistory.length})
             </Button>
           )}
@@ -75,7 +75,7 @@ export function StepPatient({ form, patientHistory, onShowHistory, obrasSociales
       </div>
       <div className="space-y-2 md:col-span-3 mt-2">
         <Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label>
-        <textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-red-700 resize-none h-20 shadow-inner"/>
+        <textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-brand-700 resize-none h-20 shadow-inner"/>
       </div>
     </div>
   )

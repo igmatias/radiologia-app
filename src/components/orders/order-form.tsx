@@ -435,7 +435,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       />
 
       <Dialog open={showSessionModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-red-700 rounded-3xl p-8 outline-none">
+        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-brand-700 rounded-3xl p-8 outline-none">
           <DialogHeader><DialogTitle className="text-2xl font-black italic uppercase text-center">Elegir Sede</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4 font-black uppercase italic">
             <Select value={session?.branchId} onValueChange={(v) => setSession(prev => ({ ...prev!, branchId: v }))}>
@@ -444,7 +444,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 {branches.map((b: any) => <SelectItem key={b.id} value={b.id} className="py-3">{b.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button className="w-full bg-red-700 hover:bg-red-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
+            <Button className="w-full bg-brand-700 hover:bg-brand-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -452,7 +452,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       {/* ================= VISTA: NUEVA ORDEN / EDICIÓN ================= */}
       {activeTab === "NUEVA_ORDEN" && (
         <div className="animate-in fade-in duration-500 space-y-6">
-          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-red-700'} bg-white rounded-3xl`}>
+          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-brand-700'} bg-white rounded-3xl`}>
             <CardContent className="p-8" onKeyDown={handleKeyDown}>
 
               {editingOrderId && (
@@ -524,7 +524,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               <div className="flex justify-between mt-16 border-t-2 border-slate-100 pt-8">
                 <Button variant="ghost" className="font-black uppercase italic h-14 px-8 text-slate-500 hover:text-slate-900" onClick={() => step > 1 ? setStep(step - 1) : router.back()}>{step === 1 ? "CANCELAR" : "← VOLVER"}</Button>
-                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-red-700 hover:bg-red-800 border-red-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
+                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-brand-700 hover:bg-brand-800 border-brand-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
               </div>
             </CardContent>
           </Card>
@@ -549,8 +549,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         const itemIndex = form.watch("items").findIndex((i: any) => i.procedureId === activeConfigId);
         return (
           <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-red-700 p-10">
-              <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-red-700 hover:bg-red-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
+            <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-brand-700 p-10">
+              <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
               {p?.requiresTooth ? (
                 <div className="py-6 flex flex-col items-center">
                   <div className="flex flex-col gap-4">
@@ -579,7 +579,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
                         form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
                         recalculateTotal();
-                      }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-red-700 text-white border-red-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
+                      }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-brand-700 text-white border-brand-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
                     )
                   })}
                 </div>
@@ -591,7 +591,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
         <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-red-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-brand-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">{patientHistory.map((order: any) => (
             <div key={order.id} className="bg-slate-50 p-5 rounded-[1.5rem] border-2 border-slate-100 flex flex-col gap-3">
               <div className="flex justify-between items-center border-b border-slate-200 pb-3">
@@ -599,7 +599,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 <span className="text-[10px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-start gap-2"><Stethoscope size={14} className="text-red-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                <div className="flex items-start gap-2"><Stethoscope size={14} className="text-brand-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
                 <div className="text-right"><span className="font-bold text-slate-400 uppercase text-[9px]">Abonado</span><p className="font-black text-emerald-700 uppercase text-xs">${order.patientAmount || order.totalAmount}</p></div>
               </div>
             </div>
@@ -623,6 +623,6 @@ function ToothBtn({ t, itemIndex, form, recalculate }: any) {
       form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
       form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
       recalculate();
-    }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-red-600 text-white border-red-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
+    }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-brand-600 text-white border-brand-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
   );
 }

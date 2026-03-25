@@ -107,9 +107,9 @@ export default function CajaClient({ branches }: any) {
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto min-h-screen">
       
       {/* HEADER Y FILTROS */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border-t-8 border-red-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border-t-8 border-brand-700">
         <div>
-          <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-3"><Wallet className="text-red-700" size={32} /> Caja Diaria</h1>
+          <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-3"><Wallet className="text-brand-700" size={32} /> Caja Diaria</h1>
           <p className="text-xs font-black uppercase text-slate-400 tracking-widest mt-1">SEDE: {branches.find((b:any) => b.id === session.branchId)?.name} • OPERADOR: {session.userName}</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -125,7 +125,7 @@ export default function CajaClient({ branches }: any) {
                 <div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 font-bold">$</span><Input type="number" placeholder="MONTO" className="pl-8 h-12 font-black text-lg border-2" value={movData.amount} onChange={e => setMovData({...movData, amount: e.target.value})} /></div>
                 <Input placeholder="DESCRIPCIÓN (Ej: Resmas)" className="h-12 font-bold uppercase border-2" value={movData.description} onChange={e => setMovData({...movData, description: e.target.value.toUpperCase()})} />
                 <Select value={movData.method} onValueChange={v => setMovData({...movData, method: v})}><SelectTrigger className="h-12 border-2 font-bold uppercase text-slate-500"><SelectValue /></SelectTrigger><SelectContent className="font-bold uppercase"><SelectItem value="EFECTIVO">💵 EFECTIVO (Cajón)</SelectItem><SelectItem value="MERCADOPAGO">📱 MERCADOPAGO</SelectItem><SelectItem value="TRANSFERENCIA">🏛️ TRANSFERENCIA</SelectItem></SelectContent></Select>
-                <Button className="w-full h-14 text-lg bg-red-700 hover:bg-red-800 text-white font-black uppercase italic rounded-2xl shadow-xl mt-4" onClick={handleSaveMovement}>{editingId ? "ACTUALIZAR ✓" : "GUARDAR ✓"}</Button>
+                <Button className="w-full h-14 text-lg bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic rounded-2xl shadow-xl mt-4" onClick={handleSaveMovement}>{editingId ? "ACTUALIZAR ✓" : "GUARDAR ✓"}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -163,7 +163,7 @@ export default function CajaClient({ branches }: any) {
             <div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-100 mb-1 flex items-center gap-1.5"><Calculator size={14}/> Efectivo Teórico (Sistema)</p><h2 className="text-5xl font-black tracking-tighter italic">${cajaFisicaTeorica}</h2></div>
             <div className="mt-5 bg-black/20 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
                <div className="flex justify-between items-center mb-1"><span className="text-xs font-black uppercase tracking-widest text-emerald-100">Efectivo Real en Cajón:</span><div className="relative w-36"><span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span><Input type="number" value={efectivoEnCajon} onChange={e => setEfectivoEnCajon(e.target.value)} className="h-10 pl-7 font-black text-lg text-slate-900 bg-white border-0 rounded-xl focus-visible:ring-emerald-300" placeholder="0.00" /></div></div>
-               {diferenciaArqueo !== null && (<div className={`flex justify-between items-center p-2.5 rounded-xl mt-3 transition-colors shadow-inner ${diferenciaArqueo < 0 ? 'bg-red-500 text-white' : diferenciaArqueo > 0 ? 'bg-amber-400 text-amber-950' : 'bg-emerald-400 text-emerald-950'}`}><span className="text-[10px] font-black uppercase tracking-widest">{diferenciaArqueo < 0 ? '⚠️ FALTANTE:' : diferenciaArqueo > 0 ? '💡 SOBRANTE:' : '✓ CAJA CUADRADA:'}</span><span className="text-xl font-black italic">{diferenciaArqueo > 0 ? '+' : ''}${diferenciaArqueo}</span></div>)}
+               {diferenciaArqueo !== null && (<div className={`flex justify-between items-center p-2.5 rounded-xl mt-3 transition-colors shadow-inner ${diferenciaArqueo < 0 ? 'bg-brand-500 text-white' : diferenciaArqueo > 0 ? 'bg-amber-400 text-amber-950' : 'bg-emerald-400 text-emerald-950'}`}><span className="text-[10px] font-black uppercase tracking-widest">{diferenciaArqueo < 0 ? '⚠️ FALTANTE:' : diferenciaArqueo > 0 ? '💡 SOBRANTE:' : '✓ CAJA CUADRADA:'}</span><span className="text-xl font-black italic">{diferenciaArqueo > 0 ? '+' : ''}${diferenciaArqueo}</span></div>)}
             </div>
           </CardContent>
         </Card>
@@ -182,9 +182,9 @@ export default function CajaClient({ branches }: any) {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-md bg-slate-900 text-white rounded-3xl border-t-4 border-t-red-500 flex flex-col justify-center">
+        <Card className="border-none shadow-md bg-slate-900 text-white rounded-3xl border-t-4 border-t-brand-500 flex flex-col justify-center">
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-2"><Lock size={16} className="text-red-400" /><p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">A Caja Fuerte</p></div>
+            <div className="flex items-center gap-2 mb-2"><Lock size={16} className="text-brand-400" /><p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">A Caja Fuerte</p></div>
             <h2 className="text-3xl font-black tracking-tighter italic text-white">${retirosFuerte}</h2>
           </CardContent>
         </Card>
@@ -247,12 +247,12 @@ export default function CajaClient({ branches }: any) {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className={`font-black text-lg italic ${m.type === 'INGRESO_EXTRA' ? 'text-emerald-600' : 'text-red-600'}`}>{m.type === 'INGRESO_EXTRA' ? '+' : '-'}${m.amount}</p>
+                        <p className={`font-black text-lg italic ${m.type === 'INGRESO_EXTRA' ? 'text-emerald-600' : 'text-brand-600'}`}>{m.type === 'INGRESO_EXTRA' ? '+' : '-'}${m.amount}</p>
                         <p className="text-[9px] font-black text-slate-400 uppercase mt-0.5">{m.method}</p>
                       </div>
                       <div className="flex flex-col gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => openEditModal(m)} className="p-1.5 text-slate-400 hover:text-blue-600 bg-white border shadow-sm rounded-md transition-colors" title="Editar"><Pencil size={14} /></button>
-                        <button onClick={() => handleDeleteMovement(m.id)} className="p-1.5 text-slate-400 hover:text-red-600 bg-white border shadow-sm rounded-md transition-colors" title="Eliminar"><Trash2 size={14} /></button>
+                        <button onClick={() => handleDeleteMovement(m.id)} className="p-1.5 text-slate-400 hover:text-brand-600 bg-white border shadow-sm rounded-md transition-colors" title="Eliminar"><Trash2 size={14} /></button>
                       </div>
                     </div>
                   </div>

@@ -108,7 +108,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
       {activeTab === "PERSONAL" && (
         <div className="space-y-6 animate-in fade-in duration-300">
           <div className="flex justify-end">
-            <Button onClick={() => openUserModal()} className="bg-red-700 hover:bg-red-800 text-white font-black uppercase italic h-12 px-6 rounded-xl shadow-md">
+            <Button onClick={() => openUserModal()} className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic h-12 px-6 rounded-xl shadow-md">
               <UserPlus size={18} className="mr-2"/> Nuevo Usuario
             </Button>
           </div>
@@ -177,7 +177,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
                 <Button 
                   onClick={() => { setSelectedDentist(d); setPwdModalOpen(true); }}
                   variant="outline" 
-                  className="mt-auto border-2 border-red-100 text-red-700 hover:bg-red-50 font-black uppercase text-[10px] h-10"
+                  className="mt-auto border-2 border-brand-100 text-brand-700 hover:bg-brand-50 font-black uppercase text-[10px] h-10"
                 >
                   <Key size={14} className="mr-2"/> Blanquear Clave
                 </Button>
@@ -225,7 +225,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               <SelectContent>
                 <SelectItem value="RECEPTIONIST" className="font-bold text-xs">Recepcionista</SelectItem>
                 <SelectItem value="TECHNICIAN" className="font-bold text-xs">Técnico/a</SelectItem>
-                <SelectItem value="ADMIN" className="font-bold text-xs text-red-700">Administrador</SelectItem>
+                <SelectItem value="ADMIN" className="font-bold text-xs text-brand-700">Administrador</SelectItem>
               </SelectContent>
             </Select>
 
@@ -245,7 +245,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               <Button 
                 variant={editingUser.isActive ? "outline" : "default"}
                 onClick={() => setEditingUser({...editingUser, isActive: !editingUser.isActive})}
-                className={`w-full h-12 font-black uppercase border-2 text-xs ${!editingUser.isActive ? 'bg-emerald-600 text-white' : 'border-red-200 text-red-700'}`}
+                className={`w-full h-12 font-black uppercase border-2 text-xs ${!editingUser.isActive ? 'bg-emerald-600 text-white' : 'border-brand-200 text-brand-700'}`}
               >
                 {editingUser.isActive ? "Desactivar Usuario" : "Reactivar Usuario"}
               </Button>
@@ -260,7 +260,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
 
       {/* MODAL: BLANQUEAR CLAVE ODONTOLOGO */}
       <Dialog open={pwdModalOpen} onOpenChange={setPwdModalOpen}>
-        <DialogContent className="sm:max-w-[400px] bg-white rounded-[2rem] border-t-8 border-red-700">
+        <DialogContent className="sm:max-w-[400px] bg-white rounded-[2rem] border-t-8 border-brand-700">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black italic uppercase text-slate-900">Blanquear Contraseña</DialogTitle>
           </DialogHeader>
@@ -277,7 +277,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               className="h-14 border-2 bg-slate-50 font-bold text-lg"
             />
 
-            <Button onClick={handleResetPassword} disabled={loading} className="w-full h-14 bg-red-700 hover:bg-red-800 text-white font-black uppercase italic rounded-xl shadow-md text-sm">
+            <Button onClick={handleResetPassword} disabled={loading} className="w-full h-14 bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic rounded-xl shadow-md text-sm">
               {loading ? "Actualizando..." : "Confirmar Nueva Clave"}
             </Button>
           </div>

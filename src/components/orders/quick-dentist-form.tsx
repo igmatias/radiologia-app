@@ -28,12 +28,12 @@ export function QuickDentistForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="bg-white p-8 font-black uppercase italic rounded-3xl flex flex-col gap-6">
-      <h3 className="text-2xl border-b-2 border-red-700 pb-2">Nuevo Profesional</h3>
+      <h3 className="text-2xl border-b-2 border-brand-700 pb-2">Nuevo Profesional</h3>
       <div className="grid grid-cols-2 gap-4">
         <Input placeholder="APELLIDO" value={data.Apellido} onChange={e => setData({...data, Apellido: e.target.value.toUpperCase()})} className="h-12 border-2"/>
         <Input placeholder="NOMBRE" value={data.Nombre} onChange={e => setData({...data, Nombre: e.target.value.toUpperCase()})} className="h-12 border-2"/>
       </div>
-      <Button className="bg-red-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
+      <Button className="bg-brand-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
     </div>
   )
 }
