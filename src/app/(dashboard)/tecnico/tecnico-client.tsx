@@ -187,7 +187,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-[1.5rem] shadow-sm border-t-8 border-t-red-700 gap-4 border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-red-700 gap-4 border border-slate-200">
         <div>
           <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
             <Activity className="text-red-700" size={28} /> Sala de Rayos
@@ -201,7 +201,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         </div>
 
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px transition-all">
+          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-red-700 hover:bg-red-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-red-900 active:border-b-0 active:translate-y-px transition-all">
             <Send size={16} className="mr-2"/> Panel Entregas
           </Button>
           <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-10 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
@@ -227,15 +227,15 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
             const isRepetir = order.status === 'PARA_REPETIR';
             
             return (
-            <Card key={order.id} className={`border-none shadow-lg rounded-[2rem] overflow-hidden bg-white transition-all duration-300 flex flex-col ${order.status === 'EN_ATENCION' ? 'ring-4 ring-blue-500 scale-[1.02]' : isRepetir ? 'ring-4 ring-amber-400' : 'hover:scale-[1.01] hover:shadow-xl'}`}>
+            <Card key={order.id} className={`shadow-lg rounded-[2rem] overflow-hidden bg-white transition-all duration-300 flex flex-col border-t-8 ${order.status === 'EN_ATENCION' ? 'border-t-blue-600 scale-[1.02] shadow-blue-100' : isRepetir ? 'border-t-amber-500 shadow-amber-100' : 'border-t-emerald-500 hover:scale-[1.01] hover:shadow-xl'}`}>
               <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-start border-b border-slate-100 pb-3">
                   <div className="space-y-1 w-full">
                     <div className="flex items-center justify-between w-full">
                        
                        <div className="flex gap-2 items-center">
-                         <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase italic tracking-widest ${order.status === 'EN_ATENCION' ? 'bg-blue-600 text-white animate-pulse' : isRepetir ? 'bg-amber-500 text-amber-950' : 'bg-slate-200 text-slate-600'}`}>
-                          {order.status === 'EN_ATENCION' ? 'EN SALA' : isRepetir ? '⚠️ REPETIR' : 'EN ESPERA'}
+                         <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest border flex items-center gap-1 ${order.status === 'EN_ATENCION' ? 'bg-blue-100 text-blue-700 border-blue-200 animate-pulse' : isRepetir ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
+                          {order.status === 'EN_ATENCION' ? '● EN SALA' : isRepetir ? '⚠ REPETIR' : '● EN ESPERA'}
                          </span>
                          
                          {/* 👉 AQUÍ ESTÁ LA CORRECCIÓN EXACTA LEYENDO CODE o DAILYID */}
@@ -399,7 +399,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                       </Button>
                     </>
                   ) : (
-                    <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'EN_ATENCION')} className="flex-1 h-12 rounded-xl font-black uppercase italic shadow-sm transition-all text-xs bg-slate-900 text-white hover:bg-slate-800">
+                    <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'EN_ATENCION')} className="flex-1 h-12 rounded-xl font-black uppercase italic shadow-sm transition-all text-xs bg-slate-900 text-white hover:bg-slate-800 border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px">
                       <Play className="mr-2 h-4 w-4 fill-white" /> Llamar a Sala
                     </Button>
                   )}
