@@ -78,15 +78,31 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
       include: {
         procedure: true,
         order: {
-          include: { patient: true, branch: true } // Incluimos branch para ver de dónde es
+          include: { patient: true, branch: true }
         }
       },
       orderBy: {
-        order: { createdAt: 'asc' } // Orden cronológico para la tabla
+        order: { createdAt: 'asc' }
       }
     });
 
-    return { success: true, items };
+    // Cargar el mapa de códigos personalizados para esta OS
+    const os = await prisma.obraSocial.findUnique({
+      where: { id: obrasocialId },
+      include: { priceList: { include: { prices: { select: { procedureId: true, customCode: true } } } } }
+    });
+    const codeMap: Record<string, string> = {};
+    os?.priceList?.prices.forEach((p: any) => {
+      if (p.customCode) codeMap[p.procedureId] = p.customCode;
+    });
+
+    // Adjuntar el código a usar (personalizado si existe, sino el de la práctica)
+    const itemsWithCode = items.map(item => ({
+      ...item,
+      displayCode: codeMap[item.procedureId] || item.procedure?.code || 'S/C'
+    }));
+
+    return { success: true, items: itemsWithCode };
   } catch (error) {
     console.error("Error obteniendo facturación:", error);
     return { success: false, items: [] };

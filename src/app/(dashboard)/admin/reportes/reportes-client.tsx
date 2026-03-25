@@ -177,7 +177,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
       const afiliado = (item.order.patient.affiliateNumber || '---').toUpperCase();
       const plan = (item.order.patient.plan || '---').toUpperCase();
       const fecha = new Date(item.order.createdAt).toLocaleDateString('es-AR');
-      const codigo = (item.procedure?.code || 'S/D').toUpperCase();
+      const codigo = ((item as any).displayCode || item.procedure?.code || 'S/D').toUpperCase();
       const valorOS = item.insuranceCoverage || 0;
       const copago = item.patientCopay || 0;
 
@@ -330,7 +330,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         <td className="p-3 print:p-1.5 font-bold text-slate-600 uppercase break-words">{item.order.patient.affiliateNumber || '---'}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-600 uppercase break-words">{item.order.patient.plan || '---'}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-600">{new Date(item.order.createdAt).toLocaleDateString('es-AR')}</td>
-                        <td className="p-3 print:p-1.5 font-black text-slate-900 break-words">{item.procedure?.code}</td>
+                        <td className="p-3 print:p-1.5 font-black text-slate-900 break-words">{(item as any).displayCode}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-700 uppercase break-words">{item.procedure?.name}</td>
                         
                         {/* COLUMNA VALOR OS EDITABLE */}

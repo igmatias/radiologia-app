@@ -90,7 +90,30 @@ export async function deleteObraSocial(id: string) {
   }
 }
 
-// 4. Importación masiva de Odontólogos desde CSV
+// 4. Actualizar solo el código personalizado de una práctica para una OS
+export async function updatePriceCustomCode(priceListId: string, procedureId: string, customCode: string) {
+  try {
+    await prisma.price.upsert({
+      where: { priceListId_procedureId: { priceListId, procedureId } },
+      update: { customCode: customCode.trim() || null },
+      create: {
+        priceListId,
+        procedureId,
+        amount: 0,
+        insuranceCoverage: 0,
+        patientCopay: 0,
+        customCode: customCode.trim() || null
+      }
+    })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al actualizar código:", error)
+    return { success: false, error: "Error al guardar el código" }
+  }
+}
+
+// 5. Importación masiva de Odontólogos desde CSV
 export async function importDentists(data: any[]) {
   try {
     // Procesamos en bloque para mayor velocidad

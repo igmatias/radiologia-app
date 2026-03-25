@@ -220,10 +220,11 @@ model Price {
   amount            Decimal
   insuranceCoverage Decimal   @default(0)
   patientCopay      Decimal   @default(0)
+  customCode        String?   // Código específico para esta OS (ej: OSDE usa 34.11.78 en vez de 09.03.01)
 
   priceListId       String
   priceList         PriceList @relation(fields: [priceListId], references: [id])
-  
+
   procedureId       String
   procedure         Procedure @relation(fields: [procedureId], references: [id])
 
