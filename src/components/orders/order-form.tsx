@@ -556,12 +556,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 <div className="py-6 flex flex-col items-center">
                   <div className="flex flex-col gap-4">
                     <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
-                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
-                      <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                      <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                     </div>
                     <div className="flex gap-4 pt-2">
-                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
-                      <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                      <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                     </div>
                   </div>
                 </div>
@@ -725,13 +725,46 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   )
 }
 
-function ToothBtn({ t, itemIndex, form, recalculate }: any) {
+// Grupos de piezas que comparten una misma película periapical (serie de 14 películas)
+const PERIAPICAL_GROUPS: number[][] = [
+  [18, 17],
+  [16, 15],
+  [14, 13],
+  [12, 11, 21, 22],  // Incisivos superiores — 4 piezas en 1 película
+  [23, 24],
+  [25, 26],
+  [27, 28],
+  [48, 47],
+  [46, 45],
+  [44, 43],
+  [42, 41, 31, 32],  // Incisivos inferiores — 4 piezas en 1 película
+  [33, 34],
+  [35, 36],
+  [37, 38],
+]
+
+// Cuenta cuántas películas distintas se necesitan según las piezas seleccionadas
+function countPeriapicalFilms(teeth: number[]): number {
+  if (teeth.length === 0) return 1
+  const films = PERIAPICAL_GROUPS.filter(group => group.some(t => teeth.includes(t)))
+  // Piezas que no pertenecen a ningún grupo conocido cuentan como 1 film cada una
+  const ungrouped = teeth.filter(t => !PERIAPICAL_GROUPS.flat().includes(t))
+  return Math.max(1, films.length + ungrouped.length)
+}
+
+function isPeriapical(procedureName: string): boolean {
+  return procedureName?.toLowerCase().includes('periapical')
+}
+
+function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any) {
   const selected = form.watch(`items.${itemIndex}.teeth`) || [];
   const isSelected = selected.includes(t);
   return (
     <button type="button" onClick={() => {
       const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
-      const count = next.length || 1;
+      const count = isPeriapical(procedureName)
+        ? countPeriapicalFilms(next)
+        : (next.length || 1);
       const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
       const basePat = form.getValues(`items.${itemIndex}.basePatient`);
       form.setValue(`items.${itemIndex}.teeth`, next);
