@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { getAdminDashboardData, retirarDeBoveda } from "@/actions/admin-stats"
-import { getDashboardMetrics } from "@/actions/finances" 
+import { getDashboardMetrics } from "@/actions/finances"
+import { getComparativeStats } from "@/actions/stats"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
   Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
   MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, LogOut,
-  Send, Printer, Smartphone, Mail, PackageCheck
+  Send, Printer, Smartphone, Mail, PackageCheck, ArrowUp, ArrowDown
 } from "lucide-react"
 import { logoutUser } from "@/actions/auth"
 import { useRouter } from "next/navigation"
@@ -24,7 +25,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
   const [isMounted, setIsMounted] = useState(false)
 
   // PESTAÑAS
-  const [activeTab, setActiveTab] = useState<"TESORERIA" | "CLINICA">("TESORERIA")
+  const [activeTab, setActiveTab] = useState<"TESORERIA" | "CLINICA" | "ESTADISTICAS">("TESORERIA")
 
   // Filtros (Inicialmente vacíos para que el servidor no se confunda)
   const [fechaInicio, setFechaInicio] = useState("")
@@ -33,7 +34,8 @@ export default function AdminClient({ branches }: { branches: any[] }) {
   
   // Datos y Estados
   const [data, setData] = useState<any>(null)
-  const [metricsData, setMetricsData] = useState<any>(null) 
+  const [metricsData, setMetricsData] = useState<any>(null)
+  const [statsData, setStatsData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [retiroModal, setRetiroModal] = useState(false)
   const [datosRetiro, setDatosRetiro] = useState({ branchId: "", amount: "", description: "" })
@@ -51,13 +53,14 @@ export default function AdminClient({ branches }: { branches: any[] }) {
 
   const cargarDatos = async () => {
     setLoading(true)
-    const [resAdmin, resMetrics] = await Promise.all([
+    const [resAdmin, resMetrics, resStats] = await Promise.all([
       getAdminDashboardData({
         fechaInicio: new Date(fechaInicio + "T00:00:00"),
         fechaFin: new Date(fechaFin + "T23:59:59"),
         branchId: sedeFiltrada
       }),
-      getDashboardMetrics(fechaInicio, fechaFin, sedeFiltrada)
+      getDashboardMetrics(fechaInicio, fechaFin, sedeFiltrada),
+      getComparativeStats(sedeFiltrada)
     ])
 
     if (resAdmin.success) setData(resAdmin.data)
@@ -65,6 +68,8 @@ export default function AdminClient({ branches }: { branches: any[] }) {
 
     if (resMetrics.success) setMetricsData(resMetrics.data)
     else toast.error("Error al cargar métricas clínicas")
+
+    if (resStats.success) setStatsData(resStats.data)
 
     setLoading(false)
   }
@@ -149,6 +154,9 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           </button>
           <button onClick={() => setActiveTab("CLINICA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "CLINICA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
             🩺 Rendimiento Clínico
+          </button>
+          <button onClick={() => setActiveTab("ESTADISTICAS")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "ESTADISTICAS" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+            📊 Estadísticas
           </button>
         </div>
       </div>
@@ -362,6 +370,95 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           {/* =========================================================================
               PANTALLA 2: RENDIMIENTO CLÍNICO
               ========================================================================= */}
+          {activeTab === "ESTADISTICAS" && statsData && (
+            <div className="space-y-8 animate-in slide-in-from-bottom-4">
+              {/* COMPARATIVO SEMANA/MES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {[
+                  { label: "Esta Semana", actual: statsData.semana.actual, anterior: statsData.semana.anterior, sub: "vs semana anterior" },
+                  { label: "Este Mes", actual: statsData.mes.actual, anterior: statsData.mes.anterior, sub: "vs mes anterior" }
+                ].map(({ label, actual, anterior, sub }) => {
+                  const diff = anterior.monto > 0 ? ((actual.monto - anterior.monto) / anterior.monto * 100).toFixed(1) : null
+                  const up = actual.monto >= anterior.monto
+                  return (
+                    <Card key={label} className="border-none shadow-lg rounded-[2.5rem] bg-white overflow-hidden">
+                      <CardContent className="p-8">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
+                        <h3 className="text-4xl font-black italic tracking-tighter text-slate-900">${actual.monto.toLocaleString('es-AR')}</h3>
+                        <p className="text-xs font-bold text-slate-400 mt-1">{actual.ordenes} órdenes</p>
+                        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">{sub}</p>
+                            <p className="text-sm font-black text-slate-500">${anterior.monto.toLocaleString('es-AR')} · {anterior.ordenes} órd.</p>
+                          </div>
+                          {diff !== null && (
+                            <span className={`flex items-center gap-1 text-sm font-black px-3 py-1.5 rounded-xl ${up ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-100 text-brand-700'}`}>
+                              {up ? <ArrowUp size={14}/> : <ArrowDown size={14}/>} {Math.abs(Number(diff))}%
+                            </span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+
+              {/* TOP PRÁCTICAS */}
+              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2">
+                    <Trophy className="text-amber-500"/> Top Prácticas del Mes
+                  </h3>
+                  <div className="space-y-4">
+                    {statsData.topPracticas.length === 0 ? (
+                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-8">Sin datos en este período</p>
+                    ) : statsData.topPracticas.map((p: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-4">
+                        <span className={`w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-[10px] font-black ${idx === 0 ? 'bg-amber-500 text-amber-950' : idx === 1 ? 'bg-slate-300 text-slate-800' : idx === 2 ? 'bg-orange-400 text-orange-950' : 'bg-slate-100 text-slate-500'}`}>{idx + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-xs font-black uppercase text-slate-800 truncate pr-2">{p.nombre}</p>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-[10px] font-bold text-slate-400">{p.cantidad}x</span>
+                              <span className="text-xs font-black text-emerald-600">${p.monto.toLocaleString('es-AR')}</span>
+                            </div>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div className="bg-brand-600 h-2 rounded-full transition-all duration-700" style={{ width: `${p.porcentaje}%` }}/>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* POR SEDE */}
+              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2">
+                    <MapPin className="text-brand-600"/> Facturación por Sede (Mes)
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {statsData.porSede.map((s: any) => {
+                      const maxMonto = Math.max(...statsData.porSede.map((x: any) => x.monto), 1)
+                      return (
+                        <div key={s.nombre} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{s.nombre}</p>
+                          <p className="text-2xl font-black italic text-slate-900">${s.monto.toLocaleString('es-AR')}</p>
+                          <p className="text-xs font-bold text-slate-400 mt-0.5">{s.ordenes} órdenes</p>
+                          <div className="w-full bg-slate-200 rounded-full h-2 mt-3 overflow-hidden">
+                            <div className="bg-brand-600 h-2 rounded-full transition-all" style={{ width: `${Math.max(4, (s.monto / maxMonto) * 100)}%` }}/>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {activeTab === "CLINICA" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

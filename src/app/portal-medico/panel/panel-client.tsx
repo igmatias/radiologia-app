@@ -82,6 +82,9 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
     }
   }
 
+  // Count ready orders for badge
+  const estudiosListos = dentist.orders?.filter((o: any) => o.status === 'LISTO_PARA_ENTREGA').length || 0
+
   // Lógica de filtrado en tiempo real
   const filteredOrders = dentist.orders?.filter((order: any) => {
     const searchLower = searchTerm.toLowerCase()
@@ -245,6 +248,14 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white uppercase tracking-tight truncate">
                 Dr. {dentist.lastName}, {dentist.firstName}
               </h1>
+              {estudiosListos > 0 && (
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center gap-1.5 bg-brand-600 text-white text-xs font-black uppercase px-3 py-1.5 rounded-full animate-pulse shadow-lg shadow-brand-600/30">
+                    <span className="w-2 h-2 rounded-full bg-white animate-ping inline-block"/>
+                    {estudiosListos} estudio{estudiosListos > 1 ? 's' : ''} listo{estudiosListos > 1 ? 's' : ''} para entrega
+                  </span>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2 mt-1.5">
                 <span className="text-xs font-bold text-neutral-400 uppercase bg-neutral-800 px-2 py-0.5 rounded border border-neutral-700">
                   MP: {dentist.matriculaProv || '---'}
@@ -312,13 +323,14 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
           ) : (
             filteredOrders.map((order: any) => {
               const hasResults = (order.images && order.images.length > 0) || order.externalLink
-              const statusColor = order.status === 'ENTREGADA' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : order.status === 'LISTA' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200'
-              const statusLabel = order.status === 'ENTREGADA' ? 'Entregado' : order.status === 'LISTA' ? 'Listo para retirar' : 'En proceso'
+              const isListo = order.status === 'LISTO_PARA_ENTREGA'
+              const statusColor = order.status === 'ENTREGADA' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : isListo ? 'bg-brand-100 text-brand-700 border-brand-200 animate-pulse' : order.status === 'LISTA' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200'
+              const statusLabel = order.status === 'ENTREGADA' ? 'Entregado' : isListo ? '✅ Listo para retirar' : order.status === 'LISTA' ? 'Listo para retirar' : 'En proceso'
 
               return (
               <Card key={order.id} className="border-none shadow-md hover:shadow-lg transition-shadow rounded-2xl overflow-hidden bg-white">
                 {/* Barra superior de color según estado */}
-                <div className={`h-1.5 w-full ${order.status === 'ENTREGADA' ? 'bg-emerald-500' : order.status === 'LISTA' ? 'bg-amber-400' : 'bg-neutral-300'}`}/>
+                <div className={`h-1.5 w-full ${order.status === 'ENTREGADA' ? 'bg-emerald-500' : isListo ? 'bg-brand-600' : order.status === 'LISTA' ? 'bg-amber-400' : 'bg-neutral-300'}`}/>
                 <CardContent className="p-4 sm:p-6">
 
                   {/* ── ENCABEZADO: Paciente + Estado + Fecha ── */}

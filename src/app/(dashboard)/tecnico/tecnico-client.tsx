@@ -12,7 +12,7 @@ import {
 import ToothIcon from "@/components/icons/tooth-icon"
 import RadiationIcon from "@/components/icons/radiation-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
-import { updateOrderStatusAction } from "@/actions/orders"
+import { updateOrderStatusAction, updateOrderItemStatusAction } from "@/actions/orders"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getPresignedUrl, saveImageToOrder, deleteImageFromOrder, saveExternalLinkToOrder } from "@/actions/storage"
 
@@ -24,7 +24,7 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   const [prevOrderIds, setPrevOrderIds] = useState<string[]>([])
   const router = useRouter()
 
-  const [activeFilter, setActiveFilter] = useState<'TODOS' | 'EN_ESPERA' | 'ATENDIENDO' | 'REPETIR'>('TODOS')
+  const [activeFilter, setActiveFilter] = useState<'TODOS' | 'EN_ESPERA' | 'ATENDIENDO' | 'REPETIR' | 'LISTA'>('TODOS')
   const [currentTime, setCurrentTime] = useState(new Date())
 
   const [uploadingOrder, setUploadingOrder] = useState<string | null>(null)
@@ -108,6 +108,14 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
     setLoadingId(null)
   }
 
+  const handleItemStatus = async (itemId: string, status: 'CREADA' | 'EN_ATENCION' | 'LISTO_PARA_ENTREGA') => {
+    const res = await updateOrderItemStatusAction(itemId, status)
+    if (res.success) {
+      toast.success("Estado actualizado")
+      router.refresh()
+    }
+  }
+
   const handleCopy = (text: string, label: string) => {
     if (!text || text === 'S/D') return;
     navigator.clipboard.writeText(text);
@@ -163,11 +171,12 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   }
 
   const filteredOrders = orders.filter((o: any) => {
+    if (activeFilter === 'LISTA') return o.branchId === session?.branchId;
     if (o.branchId !== session?.branchId) return false;
     if (activeFilter === 'EN_ESPERA') return o.status === 'CREADA' || o.status === 'EN_ESPERA';
     if (activeFilter === 'ATENDIENDO') return o.status === 'EN_ATENCION';
     if (activeFilter === 'REPETIR') return o.status === 'PARA_REPETIR';
-    return true; 
+    return true;
   });
 
   return (
@@ -218,9 +227,29 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         <Button onClick={() => setActiveFilter('EN_ESPERA')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'EN_ESPERA' ? 'bg-emerald-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Espera</Button>
         <Button onClick={() => setActiveFilter('ATENDIENDO')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'ATENDIENDO' ? 'bg-blue-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Sala</Button>
         <Button onClick={() => setActiveFilter('REPETIR')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'REPETIR' ? 'bg-amber-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Repeticiones</Button>
+        <Button onClick={() => setActiveFilter('LISTA')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'LISTA' ? 'bg-brand-700 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>📋 Lista del Día</Button>
       </div>
 
       <input type="file" accept="image/jpeg, image/png, application/dicom, application/pdf" className="hidden" ref={fileInputRef} onChange={(e) => { if (activeOrderId) handleFileUpload(e, activeOrderId); }} />
+
+      {activeFilter === 'LISTA' && (
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-0">
+          <div className="flex gap-3 flex-wrap">
+            {[
+              { label: 'En Espera', count: filteredOrders.filter((o:any) => o.status === 'CREADA' || o.status === 'EN_ESPERA').length, color: 'bg-emerald-100 text-emerald-700' },
+              { label: 'En Sala', count: filteredOrders.filter((o:any) => o.status === 'EN_ATENCION').length, color: 'bg-blue-100 text-blue-700' },
+              { label: 'Listos', count: filteredOrders.filter((o:any) => o.status === 'LISTO_PARA_ENTREGA').length, color: 'bg-slate-100 text-slate-600' },
+              { label: 'Entregados', count: filteredOrders.filter((o:any) => o.status === 'ENTREGADA').length, color: 'bg-slate-100 text-slate-400' },
+              { label: 'Total', count: filteredOrders.length, color: 'bg-brand-100 text-brand-700' },
+            ].map(({ label, count, color }) => (
+              <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${color}`}>
+                <span className="text-xs font-black uppercase">{label}</span>
+                <span className="text-lg font-black">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredOrders.length > 0 ? (
@@ -313,6 +342,21 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                               </div>
                             </div>
                           )}
+                          <div className="flex gap-1 mt-2">
+                            {(['CREADA', 'EN_ATENCION', 'LISTO_PARA_ENTREGA'] as const).map(s => {
+                              const active = item.status === s
+                              const cfg = {
+                                CREADA: { label: 'Pendiente', color: active ? 'bg-slate-600 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600' },
+                                EN_ATENCION: { label: 'En Proceso', color: active ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600' },
+                                LISTO_PARA_ENTREGA: { label: 'Listo ✓', color: active ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-400 hover:bg-slate-600' }
+                              }
+                              return (
+                                <button key={s} onClick={() => handleItemStatus(item.id, s)} className={`text-[9px] font-black uppercase px-2 py-1 rounded-md transition-all ${cfg[s].color}`}>
+                                  {cfg[s].label}
+                                </button>
+                              )
+                            })}
+                          </div>
                         </div>
                       ))}
                    </div>

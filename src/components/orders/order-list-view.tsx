@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, LayoutGrid, Printer, Edit, Trash2, RefreshCw, AlertTriangle } from "lucide-react"
+import { Search, LayoutGrid, Printer, Edit, Trash2, RefreshCw, AlertTriangle, FileText } from "lucide-react"
 import { toast } from "sonner"
 import { toggleOrderActivation } from "@/actions/orders"
+import ReceiptModal from "@/components/orders/receipt-modal"
 
 interface OrderListViewProps {
   dailyOrders: any[]
@@ -17,8 +19,11 @@ interface OrderListViewProps {
 }
 
 export function OrderListView({ dailyOrders, orderSearch, setOrderSearch, onRefresh, onEdit, onReprint }: OrderListViewProps) {
+  const [receiptOrder, setReceiptOrder] = useState<any>(null)
+
   return (
     <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-4">
+      <ReceiptModal order={receiptOrder} open={!!receiptOrder} onClose={() => setReceiptOrder(null)} />
       <Card className="border-none shadow-xl rounded-[2.5rem] bg-white border-t-8 border-slate-900 p-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-100 pb-6 gap-4">
           <div>
@@ -86,6 +91,7 @@ export function OrderListView({ dailyOrders, orderSearch, setOrderSearch, onRefr
 
                     {!isAnulada ? (
                       <>
+                        <Button onClick={() => setReceiptOrder(orden)} variant="outline" className="h-12 border-2 border-brand-200 text-brand-700 font-black uppercase text-xs rounded-xl shadow-sm hover:bg-brand-50"><FileText size={16} className="mr-2"/> Comprobante</Button>
                         <Button onClick={() => onReprint(orden)} variant="outline" className="h-12 border-2 border-slate-200 text-slate-700 font-black uppercase text-xs rounded-xl shadow-sm hover:bg-white"><Printer size={16} className="mr-2"/> Etiqueta</Button>
                         <Button onClick={() => onEdit(orden)} className="h-12 bg-slate-900 text-white font-black uppercase text-xs rounded-xl shadow-md"><Edit size={16} className="mr-2"/> Editar</Button>
                         <Button
