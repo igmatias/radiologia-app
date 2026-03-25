@@ -173,7 +173,7 @@ export default function Home() {
 
               {/* Logo 40 años */}
               <div className="flex-shrink-0 flex items-center justify-center">
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-2xl shadow-black/50 ring-1 ring-amber-400/30">
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-[0_0_60px_rgba(245,158,11,0.55),0_0_120px_rgba(245,158,11,0.25),0_20px_40px_rgba(0,0,0,0.6)] ring-2 ring-amber-400/60">
                   <img
                     src="/40anoshq.png"
                     alt="40 Años I-R Dental"
