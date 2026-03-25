@@ -19,10 +19,10 @@ import { getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { 
-  UserPlus, Wallet, Clock, Lock, ShieldCheck, 
+import {
+  UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
-  Send, RefreshCw, Plus 
+  Send, RefreshCw, Plus, ChevronRight
 } from "lucide-react"
 
 export default function RecepcionClient({ branches, dentists, obrasSociales, procedures, saldos }: any) {
@@ -138,31 +138,66 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     setLoading(false)
   }
 
+  // Helper para los botones del sidebar
+  const navBtn = (
+    label: string,
+    icon: React.ReactNode,
+    onClick: () => void,
+    active: boolean,
+    activeClass: string,
+    badge?: number
+  ) => (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-left ${
+        active ? `${activeClass} text-white shadow-md` : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+      }`}
+    >
+      {icon}
+      <span className="flex-1 uppercase tracking-wide text-xs">{label}</span>
+      {badge ? (
+        <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{badge}</span>
+      ) : active ? (
+        <ChevronRight size={14} className="opacity-60" />
+      ) : null}
+    </button>
+  )
+
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto hide-on-print">
-      
-      {/* MENU SUPERIOR UNIFICADO */}
-      <div className="flex flex-wrap bg-slate-100 p-1.5 rounded-3xl md:rounded-full w-full max-w-5xl border border-slate-200 gap-1 mx-auto md:mx-0 shadow-sm">
-        <button onClick={() => { setActiveTab("NUEVA_ORDEN"); setResetTrigger(prev=>prev+1); }} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "NUEVA_ORDEN" ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>
-          <UserPlus size={16}/> NUEVA ORDEN
-        </button>
-        <button onClick={() => setActiveTab("ORDENES")} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "ORDENES" ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
-          <LayoutGrid size={16}/> ÓRDENES
-        </button>
-        <button onClick={() => setActiveTab("CAJA")} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "CAJA" ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 hover:text-emerald-700'}`}>
-          <Banknote size={16}/> MI CAJA
-        </button>
-        <button onClick={() => setActiveTab("SALDOS")} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "SALDOS" ? 'bg-red-700 text-white shadow-sm' : 'text-slate-500 hover:text-red-700'}`}>
-          <Wallet size={16}/> SALDOS {saldosFiltrados.length > 0 && <span className="bg-red-900 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">{saldosFiltrados.length}</span>}
-        </button>
-        
-        <button 
-          onClick={() => router.push("/entregas")} 
-          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-full font-black uppercase text-[10px] md:text-xs transition-all bg-slate-700 text-white hover:bg-slate-800 shadow-md border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px"
-        >
-          <Send size={16}/> ENTREGAS
-        </button>
-      </div>
+    <div className="flex h-full min-h-screen">
+
+      {/* ===== SIDEBAR IZQUIERDO ===== */}
+      <aside className="w-52 shrink-0 bg-slate-900 flex flex-col sticky top-0 h-screen overflow-hidden hide-on-print">
+
+        {/* Branding */}
+        <div className="px-5 py-5 border-b border-slate-800">
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Módulo</p>
+          <p className="text-base font-black text-white uppercase tracking-tight">Recepción</p>
+          <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate">{nombreSedeActual}</p>
+        </div>
+
+        {/* Navegación */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {navBtn("Nueva Orden", <UserPlus size={16}/>, () => { setActiveTab("NUEVA_ORDEN"); setResetTrigger(prev=>prev+1); }, activeTab === "NUEVA_ORDEN", "bg-red-700")}
+          {navBtn("Órdenes", <LayoutGrid size={16}/>, () => setActiveTab("ORDENES"), activeTab === "ORDENES", "bg-slate-700")}
+          {navBtn("Caja", <Banknote size={16}/>, () => setActiveTab("CAJA"), activeTab === "CAJA", "bg-emerald-700")}
+          {navBtn("Saldos", <Wallet size={16}/>, () => setActiveTab("SALDOS"), activeTab === "SALDOS", "bg-red-800", saldosFiltrados.length || undefined)}
+
+          <div className="pt-2 border-t border-slate-800 mt-2">
+            {navBtn("Entregas", <Send size={16}/>, () => router.push("/entregas"), false, "bg-slate-700")}
+          </div>
+        </nav>
+
+        {/* Footer del sidebar */}
+        <div className="px-5 py-4 border-t border-slate-800">
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Operador</p>
+          <p className="text-sm font-black text-white uppercase mt-0.5 truncate">{userName}</p>
+        </div>
+      </aside>
+
+      {/* ===== ÁREA DE CONTENIDO ===== */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-4 max-w-[1400px] mx-auto">
 
       {(activeTab === "NUEVA_ORDEN" || activeTab === "ORDENES") && (
         <div className="animate-in fade-in duration-500">
@@ -387,6 +422,9 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+
+        </div>{/* /max-w container */}
+      </div>{/* /content area */}
+    </div> /* /flex layout */
   )
 }

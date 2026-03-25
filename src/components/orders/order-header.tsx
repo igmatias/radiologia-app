@@ -1,15 +1,6 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { LogOut, Building2 } from "lucide-react"
-
-function StatCard({ title, value }: any) {
-  return (
-    <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full">
-      <CardContent className="p-6"><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">{title}</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate">{value}</p></CardContent>
-    </Card>
-  )
-}
+import { LogOut, Building2, Hash, Banknote, User } from "lucide-react"
 
 interface OrderHeaderProps {
   orderNumber: string | null
@@ -32,33 +23,64 @@ export function OrderHeader({
   onLogout,
   onChangeBranch,
 }: OrderHeaderProps) {
+  const amount = editingOrderId ? saldoDiferencia : patientAmount
+  const amountLabel = editingOrderId ? "DIFERENCIA" : "A COBRAR"
+  const amountColor = editingOrderId && saldoDiferencia <= 0 ? "text-emerald-600" : "text-red-600"
+  const branchName = branches.find((b: any) => b.id === session?.branchId)?.name || "---"
+  const operatorName = session?.userName?.split(' ')[0] || "OPERADOR"
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in">
-      <StatCard title="N° ORDEN" value={orderNumber || "---"} />
-      <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-red-700 relative">
-        <CardContent className="p-6 flex justify-between items-center">
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">
-              {editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR EN CAJA"}
-            </p>
-            <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-red-700'}`}>
-              ${editingOrderId ? saldoDiferencia : patientAmount}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
-        <CardContent className="p-6 flex justify-between items-start">
-          <div><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
-          <button onClick={onLogout} className="bg-red-100 text-red-700 p-2 rounded-xl hover:bg-red-200 shrink-0"><LogOut size={16} /></button>
-        </CardContent>
-      </Card>
-      <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
-        <CardContent className="p-6 flex justify-between items-start">
-          <div><p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b: any) => b.id === session?.branchId)?.name || "---"}</p></div>
-          <button onClick={onChangeBranch} className="bg-slate-200 text-slate-700 p-2 rounded-xl hover:bg-slate-300 transition-colors shrink-0"><Building2 size={16} /></button>
-        </CardContent>
-      </Card>
+    <div className="flex items-stretch bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4 hide-on-print">
+
+      {/* N° Orden */}
+      <div className="flex items-center gap-2.5 px-5 py-3 border-r border-slate-100">
+        <Hash size={14} className="text-slate-400 shrink-0" />
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">N° Orden</p>
+          <p className="text-base font-black text-slate-900 leading-none">{orderNumber || "---"}</p>
+        </div>
+      </div>
+
+      {/* A Cobrar */}
+      <div className="flex items-center gap-2.5 px-5 py-3 border-r border-slate-100 flex-1">
+        <Banknote size={14} className={`${amountColor} shrink-0`} />
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{amountLabel}</p>
+          <p className={`text-base font-black leading-none ${amountColor}`}>${amount.toLocaleString('es-AR')}</p>
+        </div>
+      </div>
+
+      {/* Operador */}
+      <div className="flex items-center gap-2.5 px-5 py-3 border-r border-slate-100">
+        <User size={14} className="text-slate-400 shrink-0" />
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Operador</p>
+          <p className="text-base font-black text-slate-900 leading-none uppercase">{operatorName}</p>
+        </div>
+        <button
+          onClick={onLogout}
+          title="Cerrar sesión"
+          className="ml-2 text-slate-300 hover:text-red-500 transition-colors"
+        >
+          <LogOut size={14} />
+        </button>
+      </div>
+
+      {/* Sede */}
+      <div className="flex items-center gap-2.5 px-5 py-3">
+        <Building2 size={14} className="text-slate-400 shrink-0" />
+        <div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">Sede</p>
+          <p className="text-base font-black text-slate-900 leading-none uppercase">{branchName}</p>
+        </div>
+        <button
+          onClick={onChangeBranch}
+          title="Cambiar sede"
+          className="ml-2 text-slate-300 hover:text-slate-600 transition-colors"
+        >
+          <Building2 size={14} />
+        </button>
+      </div>
     </div>
   )
 }

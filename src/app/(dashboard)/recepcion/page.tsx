@@ -23,15 +23,12 @@ export default async function RecepcionPage() {
   ])
 
   return (
-    <div className="space-y-4 p-4 pt-6 pb-12 max-w-7xl mx-auto">
-      {/* Le pasamos toda la info al nuevo controlador de pestañas */}
-      <RecepcionClient 
-        branches={branches}
-        dentists={dentists}
-        obrasSociales={obrasSociales}
-        procedures={procedures}
-        saldos={saldos}
-      />
-    </div>
+    <RecepcionClient
+      branches={branches}
+      dentists={dentists}
+      obrasSociales={obrasSociales}
+      procedures={procedures}
+      saldos={saldos}
+    />
   )
 }
