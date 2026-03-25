@@ -240,46 +240,42 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-slate-900">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Clock className="text-slate-900"/> Tiempo de Entrega</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Desde creación hasta entrega al paciente</p>
-                    {data.entregaStats.totalEntregadas === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay órdenes entregadas en este período</p>
-                    ) : (() => {
-                      const fmt = (hs: number) => {
-                        if (hs < 1) return `${Math.round(hs * 60)} min`;
-                        if (hs < 24) return `${hs.toFixed(1).replace('.', ',')} hs`;
-                        const dias = Math.floor(hs / 24);
-                        const resto = Math.round(hs % 24);
-                        return resto > 0 ? `${dias}d ${resto}hs` : `${dias} día${dias !== 1 ? 's' : ''}`;
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Clock className="text-slate-900"/> Tiempos de Gestión</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Promedios del período seleccionado</p>
+                    {(() => {
+                      const fmt = (h: number | null) => {
+                        if (h === null) return '—';
+                        if (h < 1) return `${Math.round(h * 60)} min`;
+                        if (h < 24) return `${h.toFixed(1).replace('.', ',')} hs`;
+                        const d = Math.floor(h / 24); const r = Math.round(h % 24);
+                        return r > 0 ? `${d}d ${r}hs` : `${d} día${d !== 1 ? 's' : ''}`;
                       };
-                      const avg = data.entregaStats.avgHoras;
-                      const min = data.entregaStats.minHoras;
-                      const max = data.entregaStats.maxHoras;
-                      const maxBar = max || 1;
+                      const { creacionALlamado, llamadoAEntrega, creacionAEntrega } = data.entregaStats;
+                      const pasos = [
+                        { label: 'Orden → Llamado al paciente', sub: `${creacionALlamado.n} órdenes`, value: creacionALlamado.avg, color: 'bg-blue-500', dot: 'bg-blue-500' },
+                        { label: 'Llamado → Entrega del estudio', sub: `${llamadoAEntrega.n} órdenes`, value: llamadoAEntrega.avg, color: 'bg-amber-500', dot: 'bg-amber-500' },
+                        { label: 'Orden → Entrega total', sub: `${creacionAEntrega.n} órdenes`, value: creacionAEntrega.avg, color: 'bg-slate-800', dot: 'bg-slate-800' },
+                      ];
+                      const maxVal = Math.max(...pasos.map(p => p.value ?? 0), 1);
                       return (
-                        <div className="space-y-6">
-                          <div className="text-center bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Promedio</p>
-                            <p className="text-5xl font-black italic tracking-tighter text-slate-900">{fmt(avg)}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase mt-2">{data.entregaStats.totalEntregadas} órdenes entregadas</p>
-                          </div>
-                          <div className="space-y-3">
-                            {[
-                              { label: 'Más Rápida', value: min, color: 'bg-emerald-500' },
-                              { label: 'Promedio', value: avg, color: 'bg-slate-700' },
-                              { label: 'Más Lenta', value: max, color: 'bg-red-500' },
-                            ].map(({ label, value, color }) => (
-                              <div key={label}>
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-[10px] font-black uppercase text-slate-500">{label}</span>
-                                  <span className="text-sm font-black italic text-slate-800">{fmt(value)}</span>
+                        <div className="space-y-5">
+                          {pasos.map(({ label, sub, value, color, dot }) => (
+                            <div key={label} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dot}`}/>
+                                  <div>
+                                    <p className="text-xs font-black uppercase text-slate-700 leading-tight">{label}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{sub}</p>
+                                  </div>
                                 </div>
-                                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                                  <div className={`${color} h-2.5 rounded-full transition-all duration-700`} style={{ width: `${Math.max(4, (value / maxBar) * 100)}%` }} />
-                                </div>
+                                <span className="text-xl font-black italic text-slate-900 shrink-0 pl-2">{fmt(value)}</span>
                               </div>
-                            ))}
-                          </div>
+                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div className={`${color} h-2 rounded-full transition-all duration-700`} style={{ width: value ? `${Math.max(4, (value / maxVal) * 100)}%` : '0%' }}/>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       );
                     })()}

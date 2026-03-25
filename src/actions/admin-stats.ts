@@ -66,33 +66,38 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       include: { branch: true }
     });
 
-    // E. TIEMPO PROMEDIO DE ENTREGA
-    const ordenesEntregadas = await prisma.order.findMany({
+    // E. TIEMPOS PROMEDIO DE GESTIÓN
+    const ordenesConTiempos = await prisma.order.findMany({
       where: {
-        deliveredAt: { not: null },
         createdAt: { gte: inicio, lte: fin },
         status: { not: 'ANULADA' },
         ...branchQuery
       },
-      select: { createdAt: true, deliveredAt: true }
+      select: { createdAt: true, attendedAt: true, deliveredAt: true }
     });
 
-    const tiemposHs = ordenesEntregadas
+    const avg = (nums: number[]) => nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
+    const hs = (a: Date, b: Date) => (b.getTime() - a.getTime()) / (1000 * 60 * 60);
+
+    // 1. Creación → Llamado (attendedAt)
+    const t1 = ordenesConTiempos
+      .filter(o => o.attendedAt)
+      .map(o => hs(o.createdAt, o.attendedAt!));
+
+    // 2. Llamado → Entrega (attendedAt → deliveredAt)
+    const t2 = ordenesConTiempos
+      .filter(o => o.attendedAt && o.deliveredAt)
+      .map(o => hs(o.attendedAt!, o.deliveredAt!));
+
+    // 3. Creación → Entrega (total)
+    const t3 = ordenesConTiempos
       .filter(o => o.deliveredAt)
-      .map(o => (o.deliveredAt!.getTime() - o.createdAt.getTime()) / (1000 * 60 * 60));
-
-    const avgHoras = tiemposHs.length > 0
-      ? tiemposHs.reduce((a, b) => a + b, 0) / tiemposHs.length
-      : null;
-
-    const minHoras = tiemposHs.length > 0 ? Math.min(...tiemposHs) : null;
-    const maxHoras = tiemposHs.length > 0 ? Math.max(...tiemposHs) : null;
+      .map(o => hs(o.createdAt, o.deliveredAt!));
 
     const entregaStats = {
-      totalEntregadas: tiemposHs.length,
-      avgHoras,
-      minHoras,
-      maxHoras,
+      creacionALlamado:  { avg: avg(t1), n: t1.length },
+      llamadoAEntrega:   { avg: avg(t2), n: t2.length },
+      creacionAEntrega:  { avg: avg(t3), n: t3.length },
     };
 
     return {
