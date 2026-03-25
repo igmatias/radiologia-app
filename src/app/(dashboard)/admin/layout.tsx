@@ -3,7 +3,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   Stethoscope, Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, LogOut
+  LayoutDashboard, Receipt, ClipboardList, LogOut, Settings2
 } from "lucide-react"
 import { logoutUser } from "@/actions/auth"
 
@@ -31,11 +31,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* BARRA LATERAL (SIDEBAR) */}
       <aside className="w-64 bg-neutral-900 text-slate-300 flex flex-col hidden md:flex shrink-0">
-        <div className="p-5 border-b border-neutral-800 flex items-center gap-3">
-          <img src="/logo.png?v=1" alt="I-R Dental" className="h-6" />
+        <div className="px-5 py-4 border-b border-neutral-800 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-red-700 flex items-center justify-center shrink-0 shadow-lg shadow-red-900/40">
+            <ShieldCheck size={18} className="text-white" />
+          </div>
           <div>
-            <h2 className="text-xs font-black text-white uppercase tracking-widest">Panel Admin</h2>
-            <p className="text-[9px] uppercase font-bold text-neutral-500 tracking-widest">Configuración</p>
+            <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-[0.2em] leading-none mb-0.5">Módulo</p>
+            <h2 className="text-sm font-black text-white uppercase tracking-tight leading-none">Panel Admin</h2>
           </div>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
