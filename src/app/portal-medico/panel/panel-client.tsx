@@ -68,7 +68,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         : [...prev.procedimientosSeleccionados, procId]
     }))
   }
-  const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], option: string }>>({})
+  const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], options: string[] }>>({})
 
   const toggleTooth = (procId: string, tooth: number) => {
     setDerivacionConfig(prev => {
@@ -77,8 +77,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     })
   }
 
-  const setOption = (procId: string, option: string) => {
-    setDerivacionConfig(prev => ({ ...prev, [procId]: { ...prev[procId], option } }))
+  const toggleOption = (procId: string, option: string) => {
+    setDerivacionConfig(prev => {
+      const curr = prev[procId]?.options || []
+      return { ...prev, [procId]: { ...prev[procId], options: curr.includes(option) ? curr.filter(o => o !== option) : [...curr, option] } }
+    })
   }
 
   const [respondedCount, setRespondedCount] = useState(
@@ -105,7 +108,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         const cfg = derivacionConfig[procId] || {}
         let label = proc.name
         if (cfg.teeth?.length) label += ` — Piezas: ${cfg.teeth.sort((a: number, b: number) => a - b).join(', ')}`
-        if (cfg.option) label += ` — ${cfg.option}`
+        if (cfg.options?.length) label += ` — ${cfg.options.join(' / ')}`
         return label
       }).filter(Boolean),
       ...(d.otro.trim() ? [d.otro.trim()] : [])
@@ -543,8 +546,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                       {sel && proc.options?.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2 ml-2">
                           {proc.options.map((opt: string) => (
-                            <button key={opt} onClick={() => setOption(proc.id, opt)}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold border-2 transition-all ${cfg.option === opt ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}>
+                            <button key={opt} onClick={() => toggleOption(proc.id, opt)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border-2 transition-all ${(cfg.options||[]).includes(opt) ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}>
                               {opt}
                             </button>
                           ))}

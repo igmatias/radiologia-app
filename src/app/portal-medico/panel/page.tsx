@@ -25,7 +25,7 @@ export default async function PanelMedicoPage() {
     prisma.procedure.findMany({
       where: { isActive: true },
       select: { id: true, name: true, category: true, requiresTooth: true, options: true },
-      orderBy: { name: 'asc' }
+      orderBy: { code: 'asc' }
     })
   ])
 
