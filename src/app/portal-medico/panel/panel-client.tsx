@@ -458,9 +458,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 {toothModalProc.name} — Seleccionar Piezas
               </DialogTitle>
             </DialogHeader>
-            <div className="py-4 space-y-2">
+            <div className="py-4 space-y-2 overflow-x-auto">
               {/* Superior */}
-              <div className="flex justify-center gap-1">
+              <div className="flex justify-center gap-1 min-w-max mx-auto">
                 {[18,17,16,15,14,13,12,11].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
                   return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
@@ -473,7 +473,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               </div>
               <div className="border-t border-dashed border-slate-300 my-1"/>
               {/* Inferior */}
-              <div className="flex justify-center gap-1">
+              <div className="flex justify-center gap-1 min-w-max mx-auto">
                 {[48,47,46,45,44,43,42,41].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
                   return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
