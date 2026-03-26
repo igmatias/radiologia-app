@@ -13,7 +13,7 @@ import { createTicket } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
-  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock, Bell, X
 } from "lucide-react"
 import Link from "next/link"
 
@@ -39,6 +39,10 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   const [loadingTicket, setLoadingTicket] = useState(false)
   const [ticketMessage, setTicketMessage] = useState("")
   const [ticketSubject, setTicketSubject] = useState("ESTUDIO_FALTANTE")
+
+  // Estado para ver mis solicitudes
+  const [showMisSolicitudes, setShowMisSolicitudes] = useState(false)
+  const respondedCount = dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
 
   // Manejadores
   const handleLogout = async () => {
@@ -152,6 +156,68 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
         </DialogContent>
       </Dialog>
 
+      {/* MODAL: MIS SOLICITUDES */}
+      <Dialog open={showMisSolicitudes} onOpenChange={setShowMisSolicitudes}>
+        <DialogContent className="sm:max-w-[560px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 outline-none overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-neutral-100">
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
+              <Bell className="text-brand-600" size={20}/> Mis Solicitudes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-5 max-h-[65vh] overflow-y-auto space-y-3">
+            {!dentist.tickets || dentist.tickets.length === 0 ? (
+              <div className="text-center py-16">
+                <MessageSquarePlus size={40} className="mx-auto text-neutral-200 mb-3"/>
+                <p className="font-bold uppercase text-neutral-400 text-sm">No enviaste ninguna solicitud todavía</p>
+              </div>
+            ) : dentist.tickets.map((ticket: any) => {
+              const statusCfg: Record<string, { label: string, color: string, bg: string }> = {
+                ABIERTO:    { label: 'Pendiente',    color: 'text-amber-700',   bg: 'bg-amber-50 border-amber-200' },
+                RESPONDIDO: { label: '✓ Respondido', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+                CERRADO:    { label: 'Cerrado',       color: 'text-neutral-500', bg: 'bg-neutral-50 border-neutral-200' },
+              }
+              const subjectLabels: Record<string, string> = {
+                ESTUDIO_FALTANTE: 'Falta subir un estudio',
+                ERROR_DATOS: 'Error en datos de paciente',
+                CONSULTA_TECNICA: 'Consulta técnica',
+                OTROS: 'Otra consulta'
+              }
+              const cfg = statusCfg[ticket.status] || statusCfg.ABIERTO
+              return (
+                <div key={ticket.id} className={`rounded-2xl border overflow-hidden ${cfg.bg}`}>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100/80">
+                    <p className="text-xs font-black uppercase text-neutral-600">{subjectLabels[ticket.subject] || ticket.subject}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-neutral-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR')}</span>
+                      <span className={`text-[10px] font-black uppercase ${cfg.color}`}>{cfg.label}</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-sm text-neutral-700">{ticket.message}</p>
+                    {ticket.reply && (
+                      <div className="bg-white/80 rounded-xl p-3 border border-emerald-200 mt-2">
+                        <p className="text-[10px] font-black uppercase text-emerald-600 mb-1">
+                          Respuesta {ticket.repliedBy ? `de ${ticket.repliedBy}` : ''} · {ticket.repliedAt ? new Date(ticket.repliedAt).toLocaleDateString('es-AR') : ''}
+                        </p>
+                        <p className="text-sm text-neutral-800">{ticket.reply}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="px-5 pb-5 pt-2 border-t border-neutral-100">
+            <Button
+              onClick={() => { setShowMisSolicitudes(false); setShowTicketModal(true) }}
+              className="w-full h-11 bg-neutral-900 hover:bg-neutral-800 text-white font-black uppercase text-xs rounded-xl flex items-center gap-2"
+            >
+              <MessageSquarePlus size={15}/> Nueva Solicitud
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* MODAL: NUEVA SOLICITUD (TICKET) */}
       <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}>
         <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl border-t-8 border-brand-600 p-8 outline-none">
@@ -212,6 +278,19 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                <span className="text-brand-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs hidden sm:block">Portal Profesional</span>
             </Link>
             <div className="flex items-center gap-2">
+              {/* Botón Mis Solicitudes */}
+              <button
+                onClick={() => setShowMisSolicitudes(true)}
+                className="relative flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded-md transition-all shadow-lg shadow-brand-900/30"
+              >
+                <Bell size={14} className="shrink-0"/>
+                <span className="hidden sm:block">Mis Solicitudes</span>
+                {respondedCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-400 text-amber-900 text-[9px] font-black rounded-full flex items-center justify-center shadow animate-bounce">
+                    {respondedCount}
+                  </span>
+                )}
+              </button>
               <a
                 href="/orden.pdf"
                 target="_blank"
@@ -456,51 +535,6 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             )})
           )}
         </div>
-
-        {/* ── MIS SOLICITUDES ── */}
-        {dentist.tickets && dentist.tickets.length > 0 && (
-          <div className="mt-10 space-y-4">
-            <h2 className="text-base font-black uppercase tracking-widest text-neutral-500 flex items-center gap-2">
-              <MessageSquarePlus size={16} className="text-brand-500"/> Mis Solicitudes
-            </h2>
-            {dentist.tickets.map((ticket: any) => {
-              const statusCfg: Record<string, { label: string, color: string }> = {
-                ABIERTO:    { label: 'Pendiente',   color: 'bg-amber-100 text-amber-700 border-amber-200' },
-                RESPONDIDO: { label: 'Respondido ✓', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-                CERRADO:    { label: 'Cerrado',      color: 'bg-neutral-100 text-neutral-500 border-neutral-200' },
-              }
-              const subjectLabels: Record<string, string> = {
-                ESTUDIO_FALTANTE: 'Falta subir un estudio',
-                ERROR_DATOS: 'Error en datos de paciente',
-                CONSULTA_TECNICA: 'Consulta técnica',
-                OTROS: 'Otra consulta'
-              }
-              const cfg = statusCfg[ticket.status] || statusCfg.ABIERTO
-              return (
-                <div key={ticket.id} className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between p-4 border-b border-neutral-100">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black uppercase text-neutral-500">{subjectLabels[ticket.subject] || ticket.subject}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-neutral-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR')}</span>
-                      <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${cfg.color}`}>{cfg.label}</span>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <p className="text-sm text-neutral-700 bg-neutral-50 rounded-xl p-3 border border-neutral-100">{ticket.message}</p>
-                    {ticket.reply && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-                        <p className="text-[10px] font-black uppercase text-emerald-600 mb-1">Respuesta de Recepción {ticket.repliedBy ? `· ${ticket.repliedBy}` : ''}</p>
-                        <p className="text-sm text-emerald-900">{ticket.reply}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
 
       </div>
     </div>

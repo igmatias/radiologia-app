@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import {
   Clock, Play, CheckCircle, RefreshCw, LogOut,
   Phone, Cake, Send, Hash, Calendar, MapPin, Mail,
-  MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer
+  MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer, Bell, X
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import RadiationIcon from "@/components/icons/radiation-icon"
@@ -15,6 +15,7 @@ import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { updateOrderStatusAction } from "@/actions/orders"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getPresignedUrl, saveImageToOrder, deleteImageFromOrder, saveExternalLinkToOrder } from "@/actions/storage"
+import { getTickets, replyTicket } from "@/actions/tickets"
 
 export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   const [orders, setOrders] = useState(initialOrders)
@@ -30,6 +31,15 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   const [uploadingOrder, setUploadingOrder] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null)
+
+  // Mensajes / Tickets
+  const [showTicketsModal, setShowTicketsModal] = useState(false)
+  const [tickets, setTickets] = useState<any[]>([])
+  const [ticketFilter, setTicketFilter] = useState<'ABIERTO' | 'RESPONDIDO' | 'CERRADO'>('ABIERTO')
+  const [loadingTickets, setLoadingTickets] = useState(false)
+  const [replyText, setReplyText] = useState<Record<string, string>>({})
+  const [replyingId, setReplyingId] = useState<string | null>(null)
+  const [openTicketCount, setOpenTicketCount] = useState(0)
   const [externalLinks, setExternalLinks] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -106,6 +116,40 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
       toast.error("Error al actualizar el estado")
     }
     setLoadingId(null)
+  }
+
+  // Cargar contador de tickets al inicio
+  useEffect(() => {
+    getTickets('ABIERTO').then(res => {
+      if (res.success) setOpenTicketCount((res.data as any[]).length)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (showTicketsModal) cargarTickets(ticketFilter)
+  }, [showTicketsModal, ticketFilter])
+
+  const cargarTickets = async (status: 'ABIERTO' | 'RESPONDIDO' | 'CERRADO' = 'ABIERTO') => {
+    setLoadingTickets(true)
+    const res = await getTickets(status)
+    if (res.success) {
+      setTickets(res.data as any[])
+      if (status === 'ABIERTO') setOpenTicketCount((res.data as any[]).length)
+    }
+    setLoadingTickets(false)
+  }
+
+  const handleReplyTicket = async (ticketId: string) => {
+    const reply = replyText[ticketId]?.trim()
+    if (!reply) return toast.error("Escribí una respuesta")
+    setReplyingId(ticketId)
+    const res = await replyTicket(ticketId, reply, session?.userName || 'Técnico')
+    if (res.success) {
+      toast.success("Respuesta enviada ✓")
+      setReplyText(prev => ({ ...prev, [ticketId]: "" }))
+      cargarTickets(ticketFilter)
+    } else toast.error("Error al responder")
+    setReplyingId(null)
   }
 
   const handleCopy = (text: string, label: string) => {
@@ -189,6 +233,88 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
         </DialogContent>
       </Dialog>
 
+      {/* MODAL MENSAJES ODONTÓLOGOS */}
+      <Dialog open={showTicketsModal} onOpenChange={setShowTicketsModal}>
+        <DialogContent className="sm:max-w-[580px] bg-white rounded-[2rem] border-t-8 border-brand-700 p-0 outline-none overflow-hidden">
+          <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-100">
+            <DialogTitle className="text-lg font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2">
+              <Bell className="text-brand-700" size={20}/> Mensajes de Odontólogos
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Filtros */}
+          <div className="flex gap-1.5 px-5 pt-4">
+            {(['ABIERTO', 'RESPONDIDO', 'CERRADO'] as const).map(s => {
+              const labels = { ABIERTO: 'Pendientes', RESPONDIDO: 'Respondidos', CERRADO: 'Cerrados' }
+              return (
+                <button key={s} onClick={() => setTicketFilter(s)}
+                  className={`flex-1 py-2 rounded-xl font-black uppercase text-[10px] transition-all ${ticketFilter === s ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                  {labels[s]}
+                  {s === 'ABIERTO' && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="p-5 max-h-[55vh] overflow-y-auto space-y-3">
+            {loadingTickets ? (
+              <div className="text-center py-16 font-black uppercase text-slate-400 animate-pulse text-xs tracking-widest">Cargando...</div>
+            ) : tickets.length === 0 ? (
+              <div className="text-center py-16">
+                <Bell size={36} className="mx-auto text-slate-200 mb-3"/>
+                <p className="font-black uppercase text-slate-400 text-xs">No hay mensajes {ticketFilter === 'ABIERTO' ? 'pendientes' : ticketFilter === 'RESPONDIDO' ? 'respondidos' : 'cerrados'}</p>
+              </div>
+            ) : tickets.map((ticket: any) => {
+              const subjectLabels: Record<string, string> = {
+                ESTUDIO_FALTANTE: '📁 Falta subir estudio',
+                ERROR_DATOS: '✏️ Error en datos',
+                CONSULTA_TECNICA: '🔧 Consulta técnica',
+                OTROS: '💬 Otra consulta'
+              }
+              return (
+                <div key={ticket.id} className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-white">
+                    <div>
+                      <p className="text-xs font-black uppercase text-slate-800">Dr. {ticket.dentist?.lastName}, {ticket.dentist?.firstName}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{subjectLabels[ticket.subject] || ticket.subject}</p>
+                    </div>
+                    <span className="text-[10px] text-slate-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR')}</span>
+                  </div>
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-sm text-slate-700 leading-relaxed">{ticket.message}</p>
+                    {ticket.reply && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                        <p className="text-[10px] font-black uppercase text-emerald-600 mb-1">Respondido por {ticket.repliedBy}</p>
+                        <p className="text-sm text-emerald-900">{ticket.reply}</p>
+                      </div>
+                    )}
+                    {ticket.status !== 'CERRADO' && (
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="Escribir respuesta..."
+                          value={replyText[ticket.id] || ""}
+                          onChange={e => setReplyText(prev => ({ ...prev, [ticket.id]: e.target.value }))}
+                          onKeyDown={e => { if (e.key === 'Enter') handleReplyTicket(ticket.id) }}
+                          className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-200"
+                        />
+                        <button
+                          onClick={() => handleReplyTicket(ticket.id)}
+                          disabled={replyingId === ticket.id}
+                          className="h-10 px-4 bg-brand-700 hover:bg-brand-800 text-white font-black uppercase text-[10px] rounded-xl disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                        >
+                          <Send size={12}/>{replyingId === ticket.id ? '...' : 'Enviar'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-brand-700 gap-4 border border-slate-200">
         <div>
           <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
@@ -209,6 +335,18 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
           <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-10 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
             <MapPin size={16} className="mr-2 text-brand-700"/> Sede
           </Button>
+          <button
+            onClick={() => setShowTicketsModal(true)}
+            className="relative flex-none h-10 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-brand-700 hover:text-white hover:border-brand-700 transition-all"
+            title="Mensajes de odontólogos"
+          >
+            <Bell size={18}/>
+            {openTicketCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce">
+                {openTicketCount}
+              </span>
+            )}
+          </button>
           <Button onClick={handleLogout} variant="ghost" className="text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-xl transition-all h-10 w-10 p-0" title="Cerrar sesión"><LogOut size={20} /></Button>
         </div>
       </div>
