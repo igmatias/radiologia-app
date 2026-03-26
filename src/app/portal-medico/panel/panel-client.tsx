@@ -479,7 +479,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       {/* MODAL: ORDEN DE DERIVACIÓN */}
       <Dialog open={showDerivacion} onOpenChange={setShowDerivacion}>
-        <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none max-h-[90dvh] flex flex-col relative">
+        <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none flex flex-col relative w-[calc(100%-2rem)] top-[2%] translate-y-0 max-h-[96dvh] sm:top-[50%] sm:translate-y-[-50%] sm:max-h-[90dvh]">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-neutral-100 shrink-0">
             <DialogTitle className="text-xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
               <FilePlus size={20} className="text-brand-600"/> Nueva Orden de Derivación
