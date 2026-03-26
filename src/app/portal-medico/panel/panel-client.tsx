@@ -681,7 +681,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 text-center mb-4">Seleccioná las piezas dentarias</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 text-center">Seleccioná las piezas dentarias</p>
+                <p className="text-[10px] text-slate-400 text-center mb-4">← Deslizá para ver todas las piezas →</p>
                 <div className="overflow-x-auto pb-2" ref={el => { if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2 }}>
                   <div className="flex flex-col gap-3 min-w-max px-2">
                     {/* Superior */}
