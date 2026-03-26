@@ -145,8 +145,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
-      .header-logo-png{height:44px;width:auto;margin-right:6px}
-      .header-logo-svg{height:34px;width:auto}
+      .header-logo-png{height:44px;width:auto;margin-right:6px;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5)) drop-shadow(0 0 3px rgba(255,255,255,0.8))}
+      .header-logo-svg{height:34px;width:auto;filter:drop-shadow(0 0 4px rgba(255,255,255,0.4))}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
       .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
