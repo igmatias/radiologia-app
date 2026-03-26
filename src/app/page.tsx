@@ -59,8 +59,8 @@ export default function Home() {
                 alt="I-R Dental"
                 className="h-12 md:h-16 w-auto object-contain"
               />
-              <div className="h-8 w-px bg-neutral-200 hidden sm:block" />
-              <IRDentalLogo fill="#1f2937" className="h-5 md:h-6 w-auto hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity" />
+              <div className="h-8 w-px bg-neutral-200" />
+              <IRDentalLogo fill="#1f2937" className="h-4 md:h-6 w-auto opacity-80 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
           
