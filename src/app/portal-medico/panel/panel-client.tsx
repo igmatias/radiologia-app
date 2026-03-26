@@ -137,11 +137,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
     w.document.write(`<!DOCTYPE html><html><head><title>Derivación</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=DM+Sans:ital,wght@0,400;0,600;0,700;0,900&display=swap" rel="stylesheet">
     <style>
       @page { size: A5; margin: 10mm 12mm; }
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:'Inter',Arial,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
+      body{font-family:'DM Sans',Arial,Helvetica,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
@@ -187,7 +187,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="header">
         <div class="header-brand">
-          <img src="${window.location.origin}/irdental.svg" class="header-logo" alt="i-R Dental" />
+          <svg class="header-logo" viewBox="0 0 192.08 32.18" xmlns="http://www.w3.org/2000/svg" style="height:48px;width:auto"><defs><style>.st0{fill:#fff}</style></defs><path class="st0" d="M67.54,6.16c-2.99-2.23-6.27-2.63-10.04-2.63h-5.67v26.99h5.58c3.76,0,6.72-.36,9.87-2.59,3.56-2.51,5.42-6.39,5.42-10.89s-1.9-8.42-5.18-10.89ZM64.91,24.74c-2.35,1.74-5.14,1.9-7.16,1.9h-1.78V7.42h1.78c1.98,0,4.86.16,7.2,1.86,1.94,1.42,3.64,4.21,3.64,7.77s-1.82,6.27-3.68,7.69Z"/><polygon class="st0" points="79.52 30.52 94.41 30.52 94.41 26.64 83.65 26.64 83.65 18.14 94.09 18.14 94.09 14.25 83.65 14.25 83.65 7.42 94.41 7.42 94.41 3.53 79.52 3.53 79.52 30.52"/><polygon class="st0" points="120.96 22.23 101.37 1.71 101.37 30.52 105.5 30.52 105.5 11.66 125.09 32.18 125.09 3.53 120.96 3.53 120.96 22.23"/><polygon class="st0" points="130.35 7.42 136.54 7.42 136.54 30.52 140.67 30.52 140.67 7.42 146.86 7.42 146.86 3.53 130.35 3.53 130.35 7.42"/><path class="st0" d="M147.43,30.52h4.45l2.95-6.52h11.53l2.83,6.52h4.45l-12.79-28.57-13.43,28.57ZM156.53,20.12l4.17-9.15,4.01,9.15h-8.17Z"/><polygon class="st0" points="182.8 26.64 182.8 3.53 178.67 3.53 178.67 30.52 190.73 30.52 190.73 26.64 182.8 26.64"/><path class="st0" d="M36.19,10.98c0-1.17-.24-4.37-3.2-6.35-1.74-1.17-3.84-1.58-7.12-1.58h-4.82v12.13h-4.77v3.93h4.77v10.93h4.13v-11.05h.73l7.73,11.05h4.98l-8.42-11.53c3.6-.81,5.99-3.64,5.99-7.53ZM25.18,15.43V6.85h1.42c2.02,0,5.62.36,5.62,4.17,0,4.29-4.61,4.41-5.75,4.41h-1.29Z"/><rect class="st0" x="9.17" y="15.17" width="3.93" height="3.93"/><rect class="st0" x="1.62" y="15.17" width="3.93" height="14.86"/><rect class="st0" x="1.62" y="3.92" width="3.93" height="4.24"/></svg>
         </div>
         <div class="header-right">
           <h2>Orden de Derivación</h2>
@@ -225,10 +225,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="footer-firma">
         <div class="firma-col">
-          <div class="firma-label">Firma del Profesional</div>
-        </div>
-        <div class="sello-col">
-          <div class="firma-label" style="margin-bottom:4px">Sello</div>
+          <div class="firma-label">Firma y Sello</div>
           ${selloHTML}
         </div>
       </div>
@@ -238,21 +235,24 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes">📍 Quilmes</a>
             <p class="dir">Olavarría 88</p>
-            <p class="tel">(011) 4257-2950</p>
+            <p class="tel">4257-2950</p>
+            <p class="tel">WhatsApp: 11-5820-9986</p>
           </div>
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda">📍 Avellaneda</a>
             <p class="dir">9 de Julio 64, 2do A</p>
-            <p class="tel">(011) 4201-1061</p>
+            <p class="tel">4201-1061</p>
+            <p class="tel">WhatsApp: 11-3865-7094</p>
           </div>
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora">📍 Lomas de Zamora</a>
             <p class="dir">España 156, PB</p>
-            <p class="tel">(011) 4244-0519</p>
+            <p class="tel">4244-0519</p>
+            <p class="tel">WhatsApp: 11-7044-2131</p>
           </div>
         </div>
         <div class="horarios-row">
-          <span>0810.333.4507</span> &nbsp;·&nbsp; Lun–Vie 9:00–17:30 hs &nbsp;·&nbsp; Sáb 9:00–12:30 hs
+          Lunes a Viernes: 9:00 a 17:30 hs &nbsp;·&nbsp; Sábados: 9:00 a 12:30 hs &nbsp;·&nbsp; Turnos y consultas: <span>0810.333.4507</span>
         </div>
       </div>
 
