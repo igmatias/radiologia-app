@@ -289,7 +289,7 @@ export default function Home() {
               {/* Servicio 1 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="/tomos.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías 3D" />
+                  <img src="/tomos.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Activity size={32} />
@@ -334,7 +334,7 @@ export default function Home() {
               {/* Servicio 4 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Fotografías Clínicas" />
+                  <img src="/fotoclinica.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Camera size={32} />
@@ -349,7 +349,7 @@ export default function Home() {
               {/* Servicio 5 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col lg:col-span-2">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
+                  <img src="/cefalometria.jpg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <ToothIcon size={32} />
