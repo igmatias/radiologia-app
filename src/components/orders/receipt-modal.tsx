@@ -47,7 +47,7 @@ export default function ReceiptModal({ order, open, onClose }: ReceiptModalProps
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[460px] bg-white rounded-[2rem] border-t-8 border-brand-600 p-0 overflow-hidden outline-none">
+      <DialogContent className="sm:max-w-[460px] bg-white rounded-[2rem] border-t-8 border-brand-600 p-0 overflow-hidden outline-none [&>button]:hidden">
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <h2 className="text-base font-black uppercase tracking-tight text-slate-900 flex items-center gap-2"><Printer size={18} className="text-brand-600"/> Comprobante de Orden</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors"><X size={18}/></button>
@@ -55,8 +55,9 @@ export default function ReceiptModal({ order, open, onClose }: ReceiptModalProps
 
         <div className="p-5 max-h-[70vh] overflow-y-auto">
           <div id="receipt-print-content">
-            <div className="logo">I-R Dental</div>
+            <div className="logo">i-R Dental</div>
             <div className="sub">Instituto Radiodiagnóstico Dentomaxilofacial</div>
+            <div className="sub" style={{marginTop:'-12px',marginBottom:'14px'}}>CUIT: 30-66397607-5</div>
 
             <hr/>
 
@@ -73,7 +74,6 @@ export default function ReceiptModal({ order, open, onClose }: ReceiptModalProps
               <div className="row"><span className="label">Nombre</span><span className="value">{paciente}</span></div>
               <div className="row"><span className="label">DNI</span><span className="value">{order.patient?.dni || '—'}</span></div>
               {order.obraSocial && <div className="row"><span className="label">Obra Social</span><span className="value">{order.obraSocial.name}</span></div>}
-              {order.dentist && <div className="row"><span className="label">Odontólogo</span><span className="value">Dr. {order.dentist.lastName}</span></div>}
             </div>
 
             <hr/>
@@ -122,7 +122,7 @@ export default function ReceiptModal({ order, open, onClose }: ReceiptModalProps
             )}
 
             <div className="footer">
-              <div>I-R Dental — 0810.333.4507</div>
+              <div>i-R Dental — 0810.333.4507</div>
               <div>www.irdental.com — info@irdental.com</div>
               <div style={{marginTop:'8px',fontSize:'8px'}}>Este comprobante no reemplaza a la factura oficial</div>
             </div>

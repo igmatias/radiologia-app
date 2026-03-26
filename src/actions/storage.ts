@@ -17,6 +17,16 @@ const s3 = new S3Client({
 
 export async function getPresignedUrl(fileName: string, contentType: string, orderId: string) {
   try {
+    if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME) {
+      console.error("[R2] Variables de entorno faltantes:", {
+        R2_ENDPOINT: !!process.env.R2_ENDPOINT,
+        R2_ACCESS_KEY_ID: !!process.env.R2_ACCESS_KEY_ID,
+        R2_SECRET_ACCESS_KEY: !!process.env.R2_SECRET_ACCESS_KEY,
+        R2_BUCKET_NAME: !!process.env.R2_BUCKET_NAME,
+        R2_PUBLIC_URL: !!process.env.R2_PUBLIC_URL,
+      })
+      return { success: false, error: "Almacenamiento no configurado. Contactá al administrador." }
+    }
     // Limpiamos el nombre del archivo y armamos una ruta ordenada: Ej: ID_ORDEN/169000-panoramica.jpg
     const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
     const uniqueFileName = `${orderId}/${Date.now()}-${cleanFileName}`
