@@ -308,37 +308,6 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
       }
     });
 
-    if (newStatus === 'LISTO_PARA_ENTREGA') {
-      // Get full order data to send notification
-      const fullOrder = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: {
-          patient: true,
-          dentist: true,
-          branch: true,
-          items: { include: { procedure: true } }
-        }
-      })
-
-      if (fullOrder?.dentist?.email) {
-        try {
-          const { sendStudyReadyEmail } = await import('@/lib/email')
-          await sendStudyReadyEmail({
-            to: fullOrder.dentist.email,
-            dentistName: `${fullOrder.dentist.lastName}, ${fullOrder.dentist.firstName}`,
-            patientName: `${fullOrder.patient.lastName}, ${fullOrder.patient.firstName}`,
-            patientDni: fullOrder.patient.dni,
-            orderCode: fullOrder.code || `#${fullOrder.dailyId}`,
-            procedures: fullOrder.items.map(i => i.procedure.name),
-            branch: fullOrder.branch.name
-          })
-        } catch (emailError) {
-          console.error('[Email] Error enviando notificación:', emailError)
-          // No throw — don't fail the status update because email failed
-        }
-      }
-    }
-
     revalidatePath("/tecnico");
     revalidatePath("/recepcion");
     return { success: true };
