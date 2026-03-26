@@ -60,14 +60,27 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
   })
 
-  const toggleProcedimiento = (nombre: string) => {
+  const toggleProcedimiento = (procId: string) => {
     setDerivacion(prev => ({
       ...prev,
-      procedimientosSeleccionados: prev.procedimientosSeleccionados.includes(nombre)
-        ? prev.procedimientosSeleccionados.filter(p => p !== nombre)
-        : [...prev.procedimientosSeleccionados, nombre]
+      procedimientosSeleccionados: prev.procedimientosSeleccionados.includes(procId)
+        ? prev.procedimientosSeleccionados.filter(p => p !== procId)
+        : [...prev.procedimientosSeleccionados, procId]
     }))
   }
+  const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], option: string }>>({})
+
+  const toggleTooth = (procId: string, tooth: number) => {
+    setDerivacionConfig(prev => {
+      const curr = prev[procId]?.teeth || []
+      return { ...prev, [procId]: { ...prev[procId], teeth: curr.includes(tooth) ? curr.filter(t => t !== tooth) : [...curr, tooth] } }
+    })
+  }
+
+  const setOption = (procId: string, option: string) => {
+    setDerivacionConfig(prev => ({ ...prev, [procId]: { ...prev[procId], option } }))
+  }
+
   const [respondedCount, setRespondedCount] = useState(
     dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
   )
@@ -85,8 +98,16 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     const d = derivacion
     const esParticular = d.cobertura === 'particular'
 
-    const todosEstudios = [
-      ...d.procedimientosSeleccionados,
+    const todosEstudios: string[] = [
+      ...d.procedimientosSeleccionados.map(procId => {
+        const proc = procedures.find((p: any) => p.id === procId)
+        if (!proc) return ''
+        const cfg = derivacionConfig[procId] || {}
+        let label = proc.name
+        if (cfg.teeth?.length) label += ` — Piezas: ${cfg.teeth.sort((a: number, b: number) => a - b).join(', ')}`
+        if (cfg.option) label += ` — ${cfg.option}`
+        return label
+      }).filter(Boolean),
       ...(d.otro.trim() ? [d.otro.trim()] : [])
     ]
     const estudiosHTML = todosEstudios.length
@@ -152,7 +173,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
           <div class="field" style="max-width:90px"><label>DNI</label><div class="value">${d.dni}</div></div>
         </div>
         <div class="row">
-          <div class="field" style="max-width:110px"><label>Fecha de Nac.</label><div class="value">${d.fechaNacimiento ? new Date(d.fechaNacimiento + 'T00:00:00').toLocaleDateString('es-AR') : ''}</div></div>
+          <div class="field" style="max-width:110px"><label>Fecha de Nac.</label><div class="value">${d.fechaNacimiento}</div></div>
           <div class="field"><label>Cobertura</label><div class="value">${esParticular ? 'Particular' : d.obraSocial}</div></div>
           ${!esParticular ? `<div class="field" style="max-width:110px"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
         </div>
@@ -438,15 +459,15 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs font-bold uppercase text-neutral-500">Apellido</Label>
-                  <Input value={derivacion.pacienteApellido} onChange={e => setDerivacion({...derivacion, pacienteApellido: e.target.value})} placeholder="García" className="h-10 bg-neutral-50 text-sm"/>
+                  <Input value={derivacion.pacienteApellido} onChange={e => setDerivacion({...derivacion, pacienteApellido: e.target.value.toUpperCase()})} placeholder="García" className="h-10 bg-neutral-50 text-sm uppercase"/>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-bold uppercase text-neutral-500">Nombre</Label>
-                  <Input value={derivacion.pacienteNombre} onChange={e => setDerivacion({...derivacion, pacienteNombre: e.target.value})} placeholder="Juan" className="h-10 bg-neutral-50 text-sm"/>
+                  <Input value={derivacion.pacienteNombre} onChange={e => setDerivacion({...derivacion, pacienteNombre: e.target.value.toUpperCase()})} placeholder="Juan" className="h-10 bg-neutral-50 text-sm uppercase"/>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-bold uppercase text-neutral-500">DNI</Label>
-                  <Input value={derivacion.dni} onChange={e => setDerivacion({...derivacion, dni: e.target.value})} placeholder="12.345.678" className="h-10 bg-neutral-50 text-sm"/>
+                  <Input value={derivacion.dni} onChange={e => setDerivacion({...derivacion, dni: e.target.value})} placeholder="12.345.678" className="h-10 bg-neutral-50 text-sm uppercase"/>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-bold uppercase text-neutral-500">Fecha de Nacimiento</Label>
@@ -482,11 +503,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold uppercase text-neutral-500">Obra Social</Label>
-                    <Input value={derivacion.obraSocial} onChange={e => setDerivacion({...derivacion, obraSocial: e.target.value})} placeholder="OSDE, Swiss Medical..." className="h-10 bg-neutral-50 text-sm"/>
+                    <Input value={derivacion.obraSocial} onChange={e => setDerivacion({...derivacion, obraSocial: e.target.value.toUpperCase()})} placeholder="OSDE, Swiss Medical..." className="h-10 bg-neutral-50 text-sm uppercase"/>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs font-bold uppercase text-neutral-500">N° Afiliado</Label>
-                    <Input value={derivacion.nroAfiliado} onChange={e => setDerivacion({...derivacion, nroAfiliado: e.target.value})} placeholder="1-234-5678901/00" className="h-10 bg-neutral-50 text-sm"/>
+                    <Input value={derivacion.nroAfiliado} onChange={e => setDerivacion({...derivacion, nroAfiliado: e.target.value.toUpperCase()})} placeholder="1-234-5678901/00" className="h-10 bg-neutral-50 text-sm uppercase"/>
                   </div>
                 </div>
               )}
@@ -507,20 +528,80 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
             {/* ESTUDIOS */}
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Estudios Solicitados</p>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="space-y-2 mb-3">
                 {procedures.map((proc: any) => {
-                  const sel = derivacion.procedimientosSeleccionados.includes(proc.name)
+                  const sel = derivacion.procedimientosSeleccionados.includes(proc.id)
+                  const cfg = derivacionConfig[proc.id] || {}
                   return (
-                    <button key={proc.id} onClick={() => toggleProcedimiento(proc.name)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600'}`}>
-                      {sel && <span className="mr-1">✓</span>}{proc.name}
-                    </button>
+                    <div key={proc.id}>
+                      <button onClick={() => toggleProcedimiento(proc.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600'}`}>
+                        {sel && <span className="mr-1">✓</span>}{proc.name}
+                      </button>
+
+                      {/* Opciones (Perfil/Frente etc.) */}
+                      {sel && proc.options?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2 ml-2">
+                          {proc.options.map((opt: string) => (
+                            <button key={opt} onClick={() => setOption(proc.id, opt)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold border-2 transition-all ${cfg.option === opt ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}>
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Odontograma simplificado */}
+                      {sel && proc.requiresTooth && (
+                        <div className="mt-2 ml-2 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Seleccionar Piezas</p>
+                          <div className="space-y-2">
+                            <div className="flex gap-3">
+                              <div className="flex gap-1">
+                                {[18,17,16,15,14,13,12,11].map(t => (
+                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
+                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="flex gap-1">
+                                {[21,22,23,24,25,26,27,28].map(t => (
+                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
+                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex gap-3">
+                              <div className="flex gap-1">
+                                {[48,47,46,45,44,43,42,41].map(t => (
+                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
+                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="flex gap-1">
+                                {[31,32,33,34,35,36,37,38].map(t => (
+                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
+                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-bold uppercase text-neutral-500">Otro / Especificar</Label>
-                <Input value={derivacion.otro} onChange={e => setDerivacion({...derivacion, otro: e.target.value})} placeholder="Escribí un estudio personalizado..." className="h-10 bg-neutral-50 text-sm"/>
+                <Input value={derivacion.otro} onChange={e => setDerivacion({...derivacion, otro: e.target.value.toUpperCase()})} placeholder="Escribí un estudio personalizado..." className="h-10 bg-neutral-50 text-sm uppercase"/>
               </div>
             </div>
 
@@ -529,9 +610,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Indicación Clínica <span className="text-neutral-400 normal-case font-medium">(opcional)</span></p>
               <textarea
                 value={derivacion.indicacion}
-                onChange={e => setDerivacion({...derivacion, indicacion: e.target.value})}
+                onChange={e => setDerivacion({...derivacion, indicacion: e.target.value.toUpperCase()})}
                 placeholder="Diagnóstico presuntivo, motivo del estudio, información relevante..."
-                className="w-full min-h-[72px] bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full min-h-[72px] bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent uppercase"
               />
             </div>
 
