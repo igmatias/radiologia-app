@@ -53,9 +53,9 @@ export default function ResultadosClient() {
           {/* Logo */}
           <div className="flex flex-col items-center gap-3 mb-2">
             <Link href="/">
-              <img src="/logo.png?v=2" alt="i-R Dental" className="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+              <img src="/logo.png?v=2" alt="i-R Dental" className="h-20 w-auto opacity-90 hover:opacity-100 transition-opacity" />
             </Link>
-            <span className="text-brand-400 font-bold uppercase tracking-widest text-[10px]">Portal de Pacientes</span>
+            <span className="text-brand-400 font-bold uppercase tracking-widest text-xs">Portal de Pacientes</span>
           </div>
 
           {/* Card de login */}
@@ -94,10 +94,15 @@ export default function ResultadosClient() {
             </CardContent>
           </Card>
 
-          <p className="text-center text-[10px] text-neutral-600 font-medium">
-            ¿Problemas para acceder?{" "}
-            <a href="tel:08103334507" className="text-brand-500 hover:text-brand-400 font-bold">0810.333.4507</a>
-          </p>
+          <div className="text-center space-y-1.5">
+            <p className="text-xs text-neutral-500 font-semibold">¿Problemas para acceder?</p>
+            <a href="tel:08103334507" className="block text-base font-black text-brand-400 hover:text-brand-300 tracking-wider transition-colors">
+              0810.333.4507
+            </a>
+            <a href="mailto:info@irdental.com.ar" className="block text-sm font-bold text-neutral-500 hover:text-brand-400 transition-colors">
+              info@irdental.com.ar
+            </a>
+          </div>
         </div>
       </div>
     )
