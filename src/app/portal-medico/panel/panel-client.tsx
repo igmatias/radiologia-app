@@ -145,8 +145,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
-      .header-logo-png{height:44px;width:auto;margin-right:6px;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5)) drop-shadow(0 0 3px rgba(255,255,255,0.8))}
-      .header-logo-svg{height:34px;width:auto;filter:drop-shadow(0 0 4px rgba(255,255,255,0.4))}
+      .header-logo-png{height:44px;width:auto;margin-right:6px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5))}
+      .header-logo-svg{height:34px;width:auto}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
       .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
@@ -178,8 +178,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       .sede-item a{text-decoration:none;color:#BA2C66;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
       .sede-item .dir{font-size:8.5px;color:#888;margin-top:1px;font-weight:600}
       .sede-item .tel{font-size:8.5px;color:#BA2C66;font-weight:700;margin-top:1px}
-      .horarios-row{text-align:center;font-size:9px;color:#888;font-weight:600}
-      .horarios-row span{color:#BA2C66;font-weight:700}
+      .contacto-row{text-align:center;font-size:9.5px;font-weight:700;color:#BA2C66;margin-bottom:4px}
+      .horarios-row{text-align:center;font-size:9.5px;color:#444;font-weight:700;letter-spacing:0.2px}
 
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
@@ -249,9 +249,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
             <p class="tel">WhatsApp: 11-7044-2131</p>
           </div>
         </div>
-        <div class="horarios-row">
-          Lunes a Viernes: 9:00 a 17:30 hs &nbsp;·&nbsp; Sábados: 9:00 a 12:30 hs &nbsp;&nbsp;|&nbsp;&nbsp; <span>0810.333.4507</span> &nbsp;·&nbsp; info@irdental.com.ar
-        </div>
+        <div class="contacto-row">0810.333.4507 &nbsp;·&nbsp; info@irdental.com.ar</div>
+        <div class="horarios-row">Lunes a Viernes: 9:00 a 17:30 hs &nbsp;·&nbsp; Sábados: 9:00 a 12:30 hs</div>
       </div>
 
     </body></html>`)
