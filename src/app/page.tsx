@@ -194,7 +194,6 @@ export default function Home() {
               <span className="text-xl md:text-2xl font-black text-neutral-800">OSDE</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">SWISS MEDICAL</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">OSMECON</span>
-              <span className="text-xl md:text-2xl font-black text-neutral-800">COMISARIOS NAVALES</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">OMINT</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">MEDICUS</span>
               <span className="text-xl md:text-2xl font-black text-neutral-800">SANCOR SALUD</span>
@@ -247,10 +246,8 @@ export default function Home() {
 
         {/* SECCIÓN TECNOLOGÍA SIRONA AXEOS */}
         <section id="tecnologia" className="py-20 md:py-24 bg-neutral-900 text-white relative overflow-hidden">
-          {/* Imagen de RX Panorámica */}
-          <div className="absolute inset-0 opacity-20">
-            <img src="https://images.unsplash.com/photo-1570625686884-3c8115663ec4?auto=format&fit=crop&q=80&w=1920" className="w-full h-full object-cover grayscale opacity-80" alt="RX Panorámica Dental" />
-          </div>
+          {/* Fondo decorativo */}
+          <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-neutral-900 to-brand-950 opacity-80" />
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-center gap-12 md:gap-16">
             <div className="lg:w-1/2">
