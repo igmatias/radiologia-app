@@ -452,7 +452,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       {/* MODAL: ODONTOGRAMA FLOTANTE */}
       {toothModalProc && (
         <Dialog open={!!toothModalProc} onOpenChange={() => setToothModalProc(null)}>
-          <DialogContent className="sm:max-w-[480px] bg-white rounded-2xl border-t-8 border-brand-600 p-6 outline-none">
+          <DialogContent className="w-[95vw] sm:max-w-[600px] bg-white rounded-2xl border-t-8 border-brand-600 p-4 sm:p-6 outline-none overflow-x-hidden">
             <DialogHeader>
               <DialogTitle className="text-base font-black uppercase tracking-tight text-neutral-900">
                 {toothModalProc.name} — Seleccionar Piezas
@@ -463,12 +463,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <div className="flex justify-center gap-1">
                 {[18,17,16,15,14,13,12,11].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
                 })}
                 <div className="w-px bg-slate-200 mx-1"/>
                 {[21,22,23,24,25,26,27,28].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
                 })}
               </div>
               <div className="border-t border-dashed border-slate-300 my-1"/>
@@ -476,12 +476,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <div className="flex justify-center gap-1">
                 {[48,47,46,45,44,43,42,41].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
                 })}
                 <div className="w-px bg-slate-200 mx-1"/>
                 {[31,32,33,34,35,36,37,38].map(t => {
                   const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
                 })}
               </div>
             </div>
