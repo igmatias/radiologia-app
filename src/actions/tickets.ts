@@ -75,3 +75,16 @@ export async function countOpenTickets() {
     return 0
   }
 }
+
+export async function markRespondidosAsRead(dentistId: string) {
+  try {
+    await prisma.ticket.updateMany({
+      where: { dentistId, status: "RESPONDIDO" },
+      data: { status: "CERRADO" }
+    })
+    revalidatePath("/portal-medico/panel")
+    return { success: true }
+  } catch (e) {
+    return { success: false }
+  }
+}

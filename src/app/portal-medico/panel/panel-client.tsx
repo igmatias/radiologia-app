@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
-import { createTicket } from "@/actions/tickets"
+import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
@@ -42,7 +42,18 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
   // Estado para ver mis solicitudes
   const [showMisSolicitudes, setShowMisSolicitudes] = useState(false)
-  const respondedCount = dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
+  const [respondedCount, setRespondedCount] = useState(
+    dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
+  )
+
+  const handleOpenSolicitudes = async () => {
+    setShowMisSolicitudes(true)
+    if (respondedCount > 0) {
+      setRespondedCount(0)
+      await markRespondidosAsRead(dentist.id)
+      router.refresh()
+    }
+  }
 
   // Manejadores
   const handleLogout = async () => {
@@ -280,7 +291,7 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             <div className="flex items-center gap-2">
               {/* Botón Mis Solicitudes */}
               <button
-                onClick={() => setShowMisSolicitudes(true)}
+                onClick={handleOpenSolicitudes}
                 className="relative flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded-md transition-all shadow-lg shadow-brand-900/30"
               >
                 <Bell size={14} className="shrink-0"/>
