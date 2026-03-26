@@ -85,10 +85,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     })
   }
 
+  const ORTODONCIA_CODES = ['09.01.06', '09.02.07']
   const GRUPOS_DERIVACION = [
-    { prefix: '09.01', label: '🦷 Intraorales', color: 'bg-blue-50 border-blue-200 text-blue-800' },
-    { prefix: '09.02', label: '📷 Extraorales', color: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
-    { prefix: '09.03', label: '🔬 Tomografías 3D', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+    { prefix: '09.01', exclude: ORTODONCIA_CODES, label: '🦷 Intraorales',    color: 'bg-blue-50 border-blue-200 text-blue-800' },
+    { prefix: '09.02', exclude: ORTODONCIA_CODES, label: '📷 Extraorales',    color: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
+    { codes: ORTODONCIA_CODES,                    label: '😁 Ortodoncia',     color: 'bg-brand-50 border-brand-200 text-brand-800' },
+    { prefix: '09.03', exclude: [],               label: '🔬 Tomografías 3D', color: 'bg-purple-50 border-purple-200 text-purple-800' },
   ]
 
   const [respondedCount, setRespondedCount] = useState(
@@ -135,35 +137,52 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
     w.document.write(`<!DOCTYPE html><html><head><title>Derivación</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-      @page { size: A5; margin: 12mm 14mm; }
+      @page { size: A5; margin: 10mm 12mm; }
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:Arial,sans-serif;color:#111;font-size:11px;background:#fff}
-      .header{display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #BA2C66;padding-bottom:10px;margin-bottom:12px}
-      .logo img{height:32px;width:auto}
+      body{font-family:'Inter',Arial,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
+
+      /* HEADER */
+      .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+      .logo img{height:30px;width:auto;filter:brightness(0) invert(1)}
       .doc-title{text-align:right}
-      .doc-title h2{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;color:#BA2C66;margin:0}
-      .doc-title p{font-size:9px;color:#999;margin-top:1px}
-      .section{margin-bottom:12px}
-      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;border-bottom:1px solid #f0dde8;padding-bottom:3px;margin-bottom:7px}
-      .row{display:flex;gap:12px;margin-bottom:5px}
+      .doc-title h2{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
+      .doc-title p{font-size:9px;color:rgba(255,255,255,0.7);margin-top:2px}
+
+      /* SECTIONS */
+      .section{margin-bottom:11px;background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:10px 12px}
+      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+      .section-title::after{content:'';flex:1;height:1px;background:#f0dde8;margin-left:4px}
+
+      /* FIELDS */
+      .row{display:flex;gap:10px;margin-bottom:6px}
       .field{flex:1}
-      .field label{font-size:8px;font-weight:700;text-transform:uppercase;color:#999;display:block;margin-bottom:1px}
-      .field .value{font-size:11px;font-weight:700;border-bottom:1px solid #e0e0e0;padding-bottom:2px;min-height:17px}
-      .studies-list{padding-left:14px;margin:0;columns:2;column-gap:16px}
-      .studies-list li{margin-bottom:3px;font-size:11px;break-inside:avoid}
-      .indicacion{border:1px solid #e5e5e5;border-radius:4px;padding:7px;min-height:44px;font-size:11px;color:#333;white-space:pre-wrap;line-height:1.5}
-      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc}
-      .firma-line{text-align:center;min-width:160px}
-      .firma-line .line{border-top:1px solid #111;margin-bottom:4px}
-      .firma-line p{font-size:8px;color:#999;text-transform:uppercase}
-      .sedes-footer{margin-top:14px;padding-top:8px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;gap:6px}
-      .sede-item{flex:1;text-align:center}
+      .field label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#aaa;display:block;margin-bottom:2px;letter-spacing:0.5px}
+      .field .value{font-size:10.5px;font-weight:600;color:#111;background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:3px 7px;min-height:22px}
+
+      /* STUDIES */
+      .studies-box{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px}
+      .studies-list{padding-left:14px;margin:0;columns:2;column-gap:14px}
+      .studies-list li{margin-bottom:4px;font-size:10.5px;font-weight:600;break-inside:avoid;color:#222}
+
+      /* INDICACION */
+      .indicacion{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px;min-height:44px;font-size:10.5px;color:#333;white-space:pre-wrap;line-height:1.6}
+
+      /* FIRMA */
+      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px;gap:20px}
+      .firma-box{flex:1;border:1.5px dashed #ddd;border-radius:8px;padding:10px 12px;text-align:center;min-height:56px;display:flex;flex-direction:column;justify-content:flex-end}
+      .firma-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-top:4px}
+      .sello-box{text-align:center}
+      .sello-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-bottom:3px}
+
+      /* SEDES */
+      .sedes-footer{margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-around;gap:6px}
+      .sede-item{text-align:center}
       .sede-item a{text-decoration:none;color:#BA2C66;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
-      .sede-item p{font-size:8px;color:#aaa;margin-top:1px}
-      @media print{body{}}
+      .sede-item p{font-size:7.5px;color:#bbb;margin-top:1px}
+
+      @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
 
       <div class="header">
@@ -174,8 +193,22 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         </div>
       </div>
 
+      <div style="background:#fff7ed;border:2px solid #f59e0b;border-radius:10px;padding:8px 14px;margin-bottom:12px;text-align:center">
+        <p style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#92400e;line-height:1">SIN TURNO</p>
+        <p style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#b45309;margin-top:2px">Atención sin turno — Por orden de llegada</p>
+      </div>
+
+      <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:8px 14px;margin-bottom:12px">
+        <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:6px">Horarios de Atención</div>
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:9px">
+          <div><span style="font-weight:700;color:#555">Quilmes</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
+          <div><span style="font-weight:700;color:#555">Avellaneda</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
+          <div><span style="font-weight:700;color:#555">Lomas de Zamora</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
+        </div>
+      </div>
+
       <div class="section">
-        <div class="section-title">Datos del Paciente</div>
+        <div class="section-title">Paciente</div>
         <div class="row">
           <div class="field"><label>Apellido y Nombre</label><div class="value">${d.pacienteApellido}${d.pacienteApellido && d.pacienteNombre ? ', ' : ''}${d.pacienteNombre}</div></div>
           <div class="field" style="max-width:90px"><label>DNI</label><div class="value">${d.dni}</div></div>
@@ -183,13 +216,13 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         <div class="row">
           <div class="field" style="max-width:110px"><label>Fecha de Nac.</label><div class="value">${d.fechaNacimiento}</div></div>
           <div class="field"><label>Cobertura</label><div class="value">${esParticular ? 'Particular' : d.obraSocial}</div></div>
-          ${!esParticular ? `<div class="field" style="max-width:110px"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
+          ${!esParticular ? `<div class="field" style="max-width:120px"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
         </div>
       </div>
 
       <div class="section">
         <div class="section-title">Estudios Solicitados</div>
-        <ul class="studies-list">${estudiosHTML}</ul>
+        <div class="studies-box"><ul class="studies-list">${estudiosHTML}</ul></div>
       </div>
 
       ${d.indicacion.trim() ? `
@@ -199,27 +232,26 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       </div>` : ''}
 
       <div class="footer-firma">
-        <div class="firma-line">
-          <div class="line"></div>
+        <div class="firma-box">
           <p>Firma del Profesional</p>
         </div>
-        <div style="text-align:center">
-          <p style="font-size:8px;color:#aaa;text-transform:uppercase;margin-bottom:3px">Sello</p>
+        <div class="sello-box">
+          <p>Sello</p>
           ${selloHTML}
         </div>
       </div>
 
       <div class="sedes-footer">
         <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes" target="_blank">📍 Quilmes</a>
+          <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes">📍 Quilmes</a>
           <p>Olavarría 88</p>
         </div>
         <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda" target="_blank">📍 Avellaneda</a>
+          <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda">📍 Avellaneda</a>
           <p>9 de Julio 64, 2do A</p>
         </div>
         <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora" target="_blank">📍 Lomas de Zamora</a>
+          <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora">📍 Lomas de Zamora</a>
           <p>España 156, PB</p>
         </div>
       </div>
@@ -586,10 +618,15 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Estudios Solicitados</p>
               <div className="space-y-3 mb-3">
                 {GRUPOS_DERIVACION.map(grupo => {
-                  const procs = procedures.filter((p: any) => p.code?.startsWith(grupo.prefix))
+                  const procs = procedures.filter((p: any) =>
+                    'codes' in grupo
+                      ? grupo.codes.includes(p.code)
+                      : p.code?.startsWith(grupo.prefix) && !(grupo.exclude || []).includes(p.code)
+                  )
                   if (procs.length === 0) return null
+                  const key = 'codes' in grupo ? grupo.label : grupo.prefix
                   return (
-                    <div key={grupo.prefix} className={`rounded-xl border p-3 ${grupo.color}`}>
+                    <div key={key} className={`rounded-xl border p-3 ${grupo.color}`}>
                       <p className="text-[9px] font-black uppercase tracking-widest mb-2 opacity-70">{grupo.label}</p>
                       <div className="flex flex-wrap gap-2">
                         {procs.map((proc: any) => {
@@ -630,7 +667,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 })}
                 {/* Prácticas sin grupo conocido */}
                 {(() => {
-                  const ungrouped = procedures.filter((p: any) => !GRUPOS_DERIVACION.some(g => p.code?.startsWith(g.prefix)))
+                  const ungrouped = procedures.filter((p: any) => !GRUPOS_DERIVACION.some(g =>
+                    'codes' in g ? g.codes.includes(p.code) : p.code?.startsWith(g.prefix) && !(g.exclude||[]).includes(p.code)
+                  ))
                   if (ungrouped.length === 0) return null
                   return (
                     <div className="rounded-xl border p-3 bg-slate-50 border-slate-200">
