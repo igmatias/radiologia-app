@@ -13,7 +13,8 @@ import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
-  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock, Bell, X
+  Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock, Bell, X,
+  FilePlus, Plus, Trash2, Printer, AlertTriangle, Stamp
 } from "lucide-react"
 import Link from "next/link"
 
@@ -42,6 +43,22 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
   // Estado para ver mis solicitudes
   const [showMisSolicitudes, setShowMisSolicitudes] = useState(false)
+
+  // Estado para Orden de Derivación
+  const [showDerivacion, setShowDerivacion] = useState(false)
+  const [derivacion, setDerivacion] = useState({
+    pacienteApellido: "",
+    pacienteNombre: "",
+    dni: "",
+    fechaNacimiento: "",
+    telefono: "",
+    cobertura: "particular" as "particular" | "obrasocial",
+    obraSocial: "",
+    nroAfiliado: "",
+    estudios: [""] as string[],
+    indicacion: "",
+    fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  })
   const [respondedCount, setRespondedCount] = useState(
     dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
   )
@@ -53,6 +70,103 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
       await markRespondidosAsRead(dentist.id)
       router.refresh()
     }
+  }
+
+  const handlePrintDerivacion = () => {
+    const d = derivacion
+    const esParticular = d.cobertura === 'particular'
+    const estudiosHTML = d.estudios.filter(e => e.trim()).map(e => `<li>${e}</li>`).join('')
+    const selloHTML = esParticular ? `
+      <div style="display:inline-block;border:2px solid #BA2C66;border-radius:6px;padding:10px 16px;min-width:200px;text-align:center;margin-top:8px">
+        <p style="font-style:italic;font-weight:900;font-size:14px;color:#111;margin:0 0 4px">Dr. ${dentist.lastName}, ${dentist.firstName}</p>
+        ${dentist.matriculaProv ? `<p style="font-size:11px;color:#555;margin:0">MP: ${dentist.matriculaProv}</p>` : ''}
+        ${dentist.matriculaNac ? `<p style="font-size:11px;color:#555;margin:0">MN: ${dentist.matriculaNac}</p>` : ''}
+      </div>` : `
+      <div style="border:2px dashed #f59e0b;border-radius:6px;padding:10px 16px;background:#fffbeb;min-width:200px;text-align:center;margin-top:8px">
+        <p style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin:0">⚠ Requiere sello y firma analógica</p>
+        <p style="font-size:9px;color:#b45309;margin:4px 0 0">Estampar sello profesional y firmar<br>antes de presentar en recepción</p>
+      </div>`
+
+    const w = window.open('', '_blank', 'width=750,height:980')
+    if (!w) return
+    w.document.write(`<!DOCTYPE html><html><head><title>Orden de Derivación</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;padding:32px;max-width:700px;margin:0 auto;color:#111;font-size:13px}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #BA2C66;padding-bottom:16px;margin-bottom:20px}
+      .logo-name{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#111}
+      .logo-sub{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#888;margin-top:2px}
+      .logo-cuit{font-size:9px;color:#aaa;margin-top:1px}
+      .doc-title{text-align:right}
+      .doc-title h2{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#BA2C66}
+      .doc-title p{font-size:11px;color:#888;margin-top:2px}
+      .section{margin-bottom:18px}
+      .section-title{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;border-bottom:1px solid #f0e0e8;padding-bottom:4px;margin-bottom:10px}
+      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .field{margin-bottom:6px}
+      .field label{font-size:9px;font-weight:700;text-transform:uppercase;color:#888;display:block;margin-bottom:2px}
+      .field .value{font-size:13px;font-weight:700;border-bottom:1px solid #ddd;padding-bottom:3px;min-height:20px}
+      .studies-list{padding-left:18px;margin:0}
+      .studies-list li{margin-bottom:5px;font-size:13px}
+      .indicacion{border:1px solid #ddd;border-radius:4px;padding:10px;min-height:60px;font-size:13px;color:#333;white-space:pre-wrap}
+      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding-top:20px;border-top:1px dashed #ccc}
+      .firma-line{text-align:center;min-width:200px}
+      .firma-line .line{border-top:1.5px solid #111;margin-bottom:6px}
+      .firma-line p{font-size:9px;color:#888;text-transform:uppercase}
+      .footer-contact{margin-top:24px;text-align:center;font-size:9px;color:#bbb;border-top:1px solid #f0f0f0;padding-top:12px}
+      @media print{body{padding:20px}}
+    </style></head><body>
+      <div class="header">
+        <div>
+          <div class="logo-name">i-R Dental</div>
+          <div class="logo-sub">Instituto Radiodiagnóstico Dentomaxilofacial</div>
+          <div class="logo-cuit">CUIT: 30-66397607-5</div>
+        </div>
+        <div class="doc-title">
+          <h2>Orden de Derivación</h2>
+          <p>Fecha: ${d.fecha}</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Datos del Paciente</div>
+        <div class="grid2">
+          <div class="field"><label>Apellido</label><div class="value">${d.pacienteApellido}</div></div>
+          <div class="field"><label>Nombre</label><div class="value">${d.pacienteNombre}</div></div>
+          <div class="field"><label>DNI</label><div class="value">${d.dni}</div></div>
+          <div class="field"><label>Fecha de Nacimiento</label><div class="value">${d.fechaNacimiento}</div></div>
+          <div class="field"><label>Teléfono</label><div class="value">${d.telefono}</div></div>
+          <div class="field"><label>Cobertura</label><div class="value">${esParticular ? 'Particular' : d.obraSocial}</div></div>
+          ${!esParticular ? `<div class="field" style="grid-column:span 2"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Estudios Solicitados</div>
+        <ul class="studies-list">${estudiosHTML || '<li style="color:#bbb;font-style:italic">Sin estudios especificados</li>'}</ul>
+      </div>
+
+      ${d.indicacion.trim() ? `
+      <div class="section">
+        <div class="section-title">Indicación Clínica</div>
+        <div class="indicacion">${d.indicacion}</div>
+      </div>` : ''}
+
+      <div class="footer-firma">
+        <div class="firma-line" style="min-width:220px">
+          <div class="line"></div>
+          <p>Firma del Profesional</p>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#888;text-transform:uppercase;margin-bottom:4px">Sello Profesional</p>
+          ${selloHTML}
+        </div>
+      </div>
+
+      <div class="footer-contact">i-R Dental — 0810.333.4507 — info@irdental.com — www.irdental.com</div>
+    </body></html>`)
+    w.document.close()
+    setTimeout(() => { w.print(); w.onafterprint = () => w.close() }, 400)
   }
 
   // Manejadores
@@ -273,6 +387,138 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
       </Dialog>
 
 
+      {/* MODAL: ORDEN DE DERIVACIÓN */}
+      <Dialog open={showDerivacion} onOpenChange={setShowDerivacion}>
+        <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none max-h-[90vh] flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-neutral-100 shrink-0">
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
+              <FilePlus size={20} className="text-brand-600"/> Nueva Orden de Derivación
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-400 mt-1">
+              Completá los datos para generar e imprimir la orden de derivación.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+
+            {/* DATOS DEL PACIENTE */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Datos del Paciente</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold uppercase text-neutral-500">Apellido</Label>
+                  <Input value={derivacion.pacienteApellido} onChange={e => setDerivacion({...derivacion, pacienteApellido: e.target.value})} placeholder="García" className="h-10 bg-neutral-50 text-sm"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold uppercase text-neutral-500">Nombre</Label>
+                  <Input value={derivacion.pacienteNombre} onChange={e => setDerivacion({...derivacion, pacienteNombre: e.target.value})} placeholder="Juan" className="h-10 bg-neutral-50 text-sm"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold uppercase text-neutral-500">DNI</Label>
+                  <Input value={derivacion.dni} onChange={e => setDerivacion({...derivacion, dni: e.target.value})} placeholder="12.345.678" className="h-10 bg-neutral-50 text-sm"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-bold uppercase text-neutral-500">Fecha de Nacimiento</Label>
+                  <Input type="date" value={derivacion.fechaNacimiento} onChange={e => setDerivacion({...derivacion, fechaNacimiento: e.target.value})} className="h-10 bg-neutral-50 text-sm"/>
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-xs font-bold uppercase text-neutral-500">Teléfono</Label>
+                  <Input value={derivacion.telefono} onChange={e => setDerivacion({...derivacion, telefono: e.target.value})} placeholder="11 2345-6789" className="h-10 bg-neutral-50 text-sm"/>
+                </div>
+              </div>
+            </div>
+
+            {/* COBERTURA */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Cobertura Médica</p>
+              <div className="flex gap-3 mb-3">
+                {(['particular', 'obrasocial'] as const).map(tipo => (
+                  <button key={tipo} onClick={() => setDerivacion({...derivacion, cobertura: tipo})}
+                    className={`flex-1 py-2.5 rounded-xl font-black uppercase text-xs border-2 transition-all ${derivacion.cobertura === tipo ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-white text-neutral-500 border-neutral-200 hover:border-brand-300'}`}>
+                    {tipo === 'particular' ? '👤 Particular' : '🏥 Obra Social'}
+                  </button>
+                ))}
+              </div>
+              {derivacion.cobertura === 'obrasocial' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-neutral-500">Obra Social</Label>
+                    <Input value={derivacion.obraSocial} onChange={e => setDerivacion({...derivacion, obraSocial: e.target.value})} placeholder="OSDE, Swiss Medical..." className="h-10 bg-neutral-50 text-sm"/>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold uppercase text-neutral-500">N° Afiliado</Label>
+                    <Input value={derivacion.nroAfiliado} onChange={e => setDerivacion({...derivacion, nroAfiliado: e.target.value})} placeholder="1-234-5678901/00" className="h-10 bg-neutral-50 text-sm"/>
+                  </div>
+                </div>
+              )}
+              {/* AVISOS */}
+              {derivacion.cobertura === 'particular' && (
+                <div className="mt-3 flex items-start gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5"/>
+                  <p className="text-xs text-emerald-800 font-medium">Podés imprimir esta orden tal como está. Incluirá tu sello profesional simulado con tus matrículas.</p>
+                </div>
+              )}
+              {derivacion.cobertura === 'obrasocial' && (
+                <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5"/>
+                  <p className="text-xs text-amber-800 font-medium">Para presentar por obra social debés <strong>firmar y estampar tu sello físico</strong> en la orden impresa antes de entregarla al paciente.</p>
+                </div>
+              )}
+            </div>
+
+            {/* ESTUDIOS */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-brand-600">Estudios Solicitados</p>
+                <button onClick={() => setDerivacion({...derivacion, estudios: [...derivacion.estudios, ""]})}
+                  className="flex items-center gap-1 text-[10px] font-black uppercase text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition-all border border-brand-200">
+                  <Plus size={12}/> Agregar
+                </button>
+              </div>
+              <div className="space-y-2">
+                {derivacion.estudios.map((estudio, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input
+                      value={estudio}
+                      onChange={e => { const arr = [...derivacion.estudios]; arr[idx] = e.target.value; setDerivacion({...derivacion, estudios: arr}) }}
+                      placeholder={`Ej: Periapical pieza ${11 + idx}, Rx Panorámica...`}
+                      className="h-10 bg-neutral-50 text-sm flex-1"
+                    />
+                    {derivacion.estudios.length > 1 && (
+                      <button onClick={() => setDerivacion({...derivacion, estudios: derivacion.estudios.filter((_, i) => i !== idx)})}
+                        className="text-neutral-300 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
+                        <Trash2 size={15}/>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* INDICACIÓN CLÍNICA */}
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Indicación Clínica <span className="text-neutral-400 normal-case font-medium">(opcional)</span></p>
+              <textarea
+                value={derivacion.indicacion}
+                onChange={e => setDerivacion({...derivacion, indicacion: e.target.value})}
+                placeholder="Diagnóstico presuntivo, motivo del estudio, información relevante para el técnico..."
+                className="w-full min-h-[80px] bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              />
+            </div>
+
+          </div>
+
+          <div className="px-6 py-4 border-t border-neutral-100 shrink-0 flex gap-3">
+            <Button variant="outline" onClick={() => setShowDerivacion(false)} className="flex-1 h-11 font-bold uppercase text-xs rounded-xl">
+              Cancelar
+            </Button>
+            <Button onClick={handlePrintDerivacion} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center gap-2">
+              <Printer size={16}/> Imprimir / Guardar PDF
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* ----------------- CABECERA DEL PORTAL ----------------- */}
       
       <div className="bg-neutral-900 relative overflow-hidden pb-8 sm:pb-12 pt-5 sm:pt-8">
@@ -301,6 +547,13 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                     {respondedCount}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => setShowDerivacion(true)}
+                className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-md border border-neutral-700 transition-all"
+              >
+                <FilePlus size={14} className="text-brand-400" />
+                <span className="hidden sm:block">Nueva Derivación</span>
               </button>
               <a
                 href="/orden.pdf"
