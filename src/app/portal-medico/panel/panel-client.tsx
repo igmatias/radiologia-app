@@ -45,6 +45,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const [showMisSolicitudes, setShowMisSolicitudes] = useState(false)
 
   // Estado para Orden de Derivación
+  const [loadingPDF, setLoadingPDF] = useState(false)
   const [showDerivacion, setShowDerivacion] = useState(false)
   const [derivacion, setDerivacion] = useState({
     pacienteApellido: "",
@@ -255,6 +256,149 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
     </body></html>`
     return html
+  }
+
+  const handleDownloadPDF = async () => {
+    setLoadingPDF(true)
+    try {
+      const [{ default: pdfMake }, pdfFontsModule] = await Promise.all([
+        import('pdfmake/build/pdfmake' as any),
+        import('pdfmake/build/vfs_fonts' as any),
+      ])
+      pdfMake.vfs = (pdfFontsModule as any).default?.pdfMake?.vfs ?? (pdfFontsModule as any).pdfMake?.vfs
+
+      const logoRes = await fetch('/logo.png')
+      const logoBlob = await logoRes.blob()
+      const logoBase64: string = await new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(logoBlob)
+      })
+
+      const d = derivacion
+      const esParticular = d.cobertura === 'particular'
+      const todosEstudios = [
+        ...d.procedimientosSeleccionados.map(procId => {
+          const proc = procedures.find((p: any) => p.id === procId)
+          if (!proc) return null
+          const cfg = derivacionConfig[procId] || {}
+          let label = proc.name
+          if (cfg.teeth?.length) label += ` - Piezas: ${cfg.teeth.sort((a: number, b: number) => a - b).join(', ')}`
+          if (cfg.options?.length) label += ` - ${cfg.options.join(' / ')}`
+          return label
+        }).filter(Boolean),
+        ...(d.otro.trim() ? [d.otro.trim()] : [])
+      ] as string[]
+
+      const BRAND = '#BA2C66'
+      const GRAY = '#888888'
+      const DARK = '#1a1a1a'
+
+      const sectionLabel = (text: string) => ({ text: text.toUpperCase(), fontSize: 7, bold: true, color: BRAND, characterSpacing: 1, margin: [0, 0, 0, 4] })
+      const fieldVal = (label: string, value: string) => ({
+        stack: [
+          { text: label.toUpperCase(), fontSize: 6.5, color: GRAY, bold: true },
+          { text: value || '-', fontSize: 9.5, bold: true, color: DARK, margin: [0, 1, 0, 0] }
+        ]
+      })
+      const sectionBox = (content: any) => ({
+        table: { widths: ['*'], body: [[{ stack: content, border: [false, false, false, false], fillColor: '#fafafa', margin: [10, 8, 10, 8] }]] },
+        layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
+        margin: [0, 0, 0, 6]
+      })
+
+      const doc: any = {
+        pageSize: 'A5',
+        pageOrientation: 'portrait',
+        pageMargins: [20, 20, 20, 20],
+        defaultStyle: { font: 'Roboto', fontSize: 9, color: DARK },
+        content: [
+          // HEADER
+          {
+            table: {
+              widths: ['*'],
+              body: [[{
+                columns: [
+                  { image: logoBase64, width: 40, margin: [0, 0, 8, 0] },
+                  { text: 'i-R Dental', fontSize: 16, bold: true, color: '#fff', margin: [0, 8, 0, 0], width: '*' },
+                  {
+                    stack: [
+                      { text: 'ORDEN DE DERIVACION', fontSize: 8, bold: true, color: '#fff', alignment: 'right' },
+                      { text: d.fecha, fontSize: 9, bold: true, color: '#fff', alignment: 'right', margin: [0, 3, 0, 0] }
+                    ],
+                    width: 'auto',
+                    margin: [0, 6, 0, 0]
+                  }
+                ],
+                fillColor: BRAND,
+                border: [false, false, false, false],
+                margin: [10, 8, 10, 8]
+              }]]
+            },
+            layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
+            margin: [0, 0, 0, 8]
+          },
+          // AVISO
+          { text: 'Atencion sin turno  -  Por orden de llegada', fontSize: 8, bold: true, color: '#b45309', alignment: 'center', margin: [0, 0, 0, 8] },
+          // PACIENTE
+          sectionBox([
+            sectionLabel('Paciente'),
+            { columns: [fieldVal('Apellido y Nombre', `${d.pacienteApellido}${d.pacienteApellido && d.pacienteNombre ? ', ' : ''}${d.pacienteNombre}`), fieldVal('DNI', d.dni)], columnGap: 8, margin: [0, 0, 0, 6] },
+            { columns: [fieldVal('Fecha de Nac.', d.fechaNacimiento), fieldVal('Cobertura', esParticular ? 'Particular' : d.obraSocial), ...(!esParticular ? [fieldVal('N° Afiliado', d.nroAfiliado)] : [])], columnGap: 8 }
+          ]),
+          // ESTUDIOS
+          sectionBox([
+            sectionLabel('Estudios Solicitados'),
+            todosEstudios.length > 0
+              ? { ul: todosEstudios, fontSize: 9.5, bold: true, color: DARK, margin: [4, 0, 0, 0] }
+              : { text: 'Sin estudios especificados', fontSize: 9, color: GRAY, italics: true }
+          ]),
+          // INDICACION
+          ...(d.indicacion.trim() ? [sectionBox([sectionLabel('Indicacion Clinica'), { text: d.indicacion, fontSize: 9.5 }])] : []),
+          // FIRMA
+          {
+            table: {
+              widths: ['*'],
+              body: [[{
+                stack: [
+                  esParticular
+                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 13, bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
+                    : { text: ' ', margin: [0, 20, 0, 0] },
+                  { text: 'Firma y Sello', fontSize: 7, color: '#ccc', bold: true, margin: [0, 6, 0, 0] }
+                ],
+                border: [true, true, true, true],
+                margin: [10, 6, 10, 6]
+              }]]
+            },
+            layout: {
+              hLineWidth: () => 0.5, vLineWidth: () => 0.5,
+              hLineColor: () => '#ccc', vLineColor: () => '#ccc',
+              hLineStyle: () => ({ dash: { length: 4 } }), vLineStyle: () => ({ dash: { length: 4 } })
+            },
+            margin: [0, 4, 0, 10]
+          },
+          // FOOTER
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 397, y2: 0, lineWidth: 0.5, lineColor: '#eee' }], margin: [0, 0, 0, 6] },
+          {
+            columns: [
+              { stack: [{ text: 'Quilmes', fontSize: 8, bold: true, color: BRAND }, { text: 'Olavarria 88', fontSize: 7, color: GRAY }, { text: '4257-2950', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-5820-9986', fontSize: 7, color: BRAND }], alignment: 'center' },
+              { stack: [{ text: 'Avellaneda', fontSize: 8, bold: true, color: BRAND }, { text: '9 de Julio 64, 2do A', fontSize: 7, color: GRAY }, { text: '4201-1061', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-3865-7094', fontSize: 7, color: BRAND }], alignment: 'center' },
+              { stack: [{ text: 'Lomas de Zamora', fontSize: 8, bold: true, color: BRAND }, { text: 'Espana 156, PB', fontSize: 7, color: GRAY }, { text: '4244-0519', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-7044-2131', fontSize: 7, color: BRAND }], alignment: 'center' }
+            ],
+            columnGap: 4, margin: [0, 0, 0, 5]
+          },
+          { text: '0810.333.4507  -  info@irdental.com.ar', fontSize: 8, bold: true, color: BRAND, alignment: 'center', margin: [0, 0, 0, 2] },
+          { text: 'Lunes a Viernes: 9:00 a 17:30 hs  -  Sabados: 9:00 a 12:30 hs', fontSize: 7.5, bold: true, color: '#444', alignment: 'center' }
+        ]
+      }
+
+      pdfMake.createPdf(doc).download(`orden-${d.pacienteApellido || 'paciente'}.pdf`)
+    } catch (e) {
+      console.error(e)
+      toast.error('No se pudo generar el PDF')
+    } finally {
+      setLoadingPDF(false)
+    }
   }
 
   const handlePrintDerivacion = () => {
@@ -670,12 +814,17 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
           </div>
 
-          <div className="px-6 py-4 border-t border-neutral-100 shrink-0 flex gap-3">
-            <Button variant="outline" onClick={() => setShowDerivacion(false)} className="flex-1 h-11 font-bold uppercase text-xs rounded-xl">
+          <div className="px-6 py-4 border-t border-neutral-100 shrink-0 space-y-2">
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadPDF} disabled={loadingPDF} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center justify-center gap-2">
+                <Download size={15}/> {loadingPDF ? 'Generando...' : 'Descargar PDF'}
+              </Button>
+              <Button onClick={handlePrintDerivacion} variant="outline" className="flex-1 h-11 font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2 border-neutral-300">
+                <Printer size={15}/> Imprimir
+              </Button>
+            </div>
+            <Button variant="ghost" onClick={() => setShowDerivacion(false)} className="w-full h-9 text-xs text-neutral-400 hover:text-neutral-600">
               Cancelar
-            </Button>
-            <Button onClick={handlePrintDerivacion} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center justify-center gap-2">
-              <Printer size={16}/> Imprimir / Guardar PDF
             </Button>
           </div>
 
