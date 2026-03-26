@@ -51,9 +51,11 @@ export default function ResultadosClient() {
 
         <div className="relative z-10 w-full max-w-sm space-y-6">
           {/* Logo */}
-          <div className="flex flex-col items-center gap-3 mb-2">
-            <Link href="/">
-              <img src="/logo.png?v=2" alt="i-R Dental" className="h-20 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+          <div className="flex flex-col items-center gap-4 mb-2">
+            <Link href="/" className="flex items-center gap-4 group">
+              <img src="/logo.png?v=2" alt="i-R Dental" className="h-14 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
+              <div className="h-10 w-px bg-white/20" />
+              <img src="/irdental.svg" alt="i-R Dental" className="h-8 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
             </Link>
             <span className="text-brand-400 font-bold uppercase tracking-widest text-xs">Portal de Pacientes</span>
           </div>
@@ -121,9 +123,9 @@ export default function ResultadosClient() {
           {/* Logo row */}
           <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-4">
             <Link href="/" className="flex items-center gap-3 group">
-              <img src="/logo.png?v=2" alt="i-R Dental" className="h-8 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
-              <div className="h-5 w-px bg-neutral-700 hidden sm:block" />
-              <span className="text-brand-500 font-bold uppercase tracking-widest text-[10px] hidden sm:block">Portal de Pacientes</span>
+              <img src="/logo.png?v=2" alt="i-R Dental" className="h-9 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
+              <div className="h-6 w-px bg-neutral-700 hidden sm:block" />
+              <img src="/irdental.svg" alt="i-R Dental" className="h-5 w-auto opacity-80 group-hover:opacity-100 transition-opacity hidden sm:block" />
             </Link>
             <span className="text-[10px] font-black uppercase text-neutral-500 flex items-center gap-1.5">
               <ShieldCheck size={12} className="text-emerald-500"/> Sesión verificada

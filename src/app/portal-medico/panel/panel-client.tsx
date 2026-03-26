@@ -137,11 +137,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
     w.document.write(`<!DOCTYPE html><html><head><title>Derivación</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=DM+Sans:ital,wght@0,400;0,600;0,700;0,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
       @page { size: A5; margin: 10mm 12mm; }
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:'DM Sans',Arial,Helvetica,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
+      body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
