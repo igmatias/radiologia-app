@@ -145,7 +145,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
-      .header-logo{height:52px;width:auto}
+      .header-logo-png{height:44px;width:auto;margin-right:6px}
+      .header-logo-svg{height:34px;width:auto}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
       .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
@@ -168,10 +169,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .indicacion{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px;min-height:44px;font-size:10.5px;color:#333;white-space:pre-wrap;line-height:1.6}
 
-      .footer-firma{margin-top:14px;border:1.5px dashed #ddd;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;min-height:70px}
-      .firma-col{flex:1;text-align:center;border-right:1px dashed #eee;padding-right:16px}
-      .sello-col{text-align:center;padding-left:16px}
-      .firma-label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-top:8px}
+      .footer-firma{margin-top:14px;border:1.5px dashed #ddd;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;min-height:70px;position:relative}
+      .firma-label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;position:absolute;bottom:10px;left:16px}
 
       .footer-bottom{margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0}
       .sedes-row{display:flex;justify-content:space-around;gap:6px;margin-bottom:7px}
@@ -187,7 +186,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="header">
         <div class="header-brand">
-          <svg class="header-logo" viewBox="0 0 192.08 32.18" xmlns="http://www.w3.org/2000/svg" style="height:48px;width:auto"><defs><style>.st0{fill:#fff}</style></defs><path class="st0" d="M67.54,6.16c-2.99-2.23-6.27-2.63-10.04-2.63h-5.67v26.99h5.58c3.76,0,6.72-.36,9.87-2.59,3.56-2.51,5.42-6.39,5.42-10.89s-1.9-8.42-5.18-10.89ZM64.91,24.74c-2.35,1.74-5.14,1.9-7.16,1.9h-1.78V7.42h1.78c1.98,0,4.86.16,7.2,1.86,1.94,1.42,3.64,4.21,3.64,7.77s-1.82,6.27-3.68,7.69Z"/><polygon class="st0" points="79.52 30.52 94.41 30.52 94.41 26.64 83.65 26.64 83.65 18.14 94.09 18.14 94.09 14.25 83.65 14.25 83.65 7.42 94.41 7.42 94.41 3.53 79.52 3.53 79.52 30.52"/><polygon class="st0" points="120.96 22.23 101.37 1.71 101.37 30.52 105.5 30.52 105.5 11.66 125.09 32.18 125.09 3.53 120.96 3.53 120.96 22.23"/><polygon class="st0" points="130.35 7.42 136.54 7.42 136.54 30.52 140.67 30.52 140.67 7.42 146.86 7.42 146.86 3.53 130.35 3.53 130.35 7.42"/><path class="st0" d="M147.43,30.52h4.45l2.95-6.52h11.53l2.83,6.52h4.45l-12.79-28.57-13.43,28.57ZM156.53,20.12l4.17-9.15,4.01,9.15h-8.17Z"/><polygon class="st0" points="182.8 26.64 182.8 3.53 178.67 3.53 178.67 30.52 190.73 30.52 190.73 26.64 182.8 26.64"/><path class="st0" d="M36.19,10.98c0-1.17-.24-4.37-3.2-6.35-1.74-1.17-3.84-1.58-7.12-1.58h-4.82v12.13h-4.77v3.93h4.77v10.93h4.13v-11.05h.73l7.73,11.05h4.98l-8.42-11.53c3.6-.81,5.99-3.64,5.99-7.53ZM25.18,15.43V6.85h1.42c2.02,0,5.62.36,5.62,4.17,0,4.29-4.61,4.41-5.75,4.41h-1.29Z"/><rect class="st0" x="9.17" y="15.17" width="3.93" height="3.93"/><rect class="st0" x="1.62" y="15.17" width="3.93" height="14.86"/><rect class="st0" x="1.62" y="3.92" width="3.93" height="4.24"/></svg>
+          <img src="${window.location.origin}/logo.png" class="header-logo-png" alt="i-R Dental" />
+          <svg class="header-logo-svg" viewBox="0 0 192.08 32.18" xmlns="http://www.w3.org/2000/svg"><defs><style>.st0{fill:#fff}</style></defs><path class="st0" d="M67.54,6.16c-2.99-2.23-6.27-2.63-10.04-2.63h-5.67v26.99h5.58c3.76,0,6.72-.36,9.87-2.59,3.56-2.51,5.42-6.39,5.42-10.89s-1.9-8.42-5.18-10.89ZM64.91,24.74c-2.35,1.74-5.14,1.9-7.16,1.9h-1.78V7.42h1.78c1.98,0,4.86.16,7.2,1.86,1.94,1.42,3.64,4.21,3.64,7.77s-1.82,6.27-3.68,7.69Z"/><polygon class="st0" points="79.52 30.52 94.41 30.52 94.41 26.64 83.65 26.64 83.65 18.14 94.09 18.14 94.09 14.25 83.65 14.25 83.65 7.42 94.41 7.42 94.41 3.53 79.52 3.53 79.52 30.52"/><polygon class="st0" points="120.96 22.23 101.37 1.71 101.37 30.52 105.5 30.52 105.5 11.66 125.09 32.18 125.09 3.53 120.96 3.53 120.96 22.23"/><polygon class="st0" points="130.35 7.42 136.54 7.42 136.54 30.52 140.67 30.52 140.67 7.42 146.86 7.42 146.86 3.53 130.35 3.53 130.35 7.42"/><path class="st0" d="M147.43,30.52h4.45l2.95-6.52h11.53l2.83,6.52h4.45l-12.79-28.57-13.43,28.57ZM156.53,20.12l4.17-9.15,4.01,9.15h-8.17Z"/><polygon class="st0" points="182.8 26.64 182.8 3.53 178.67 3.53 178.67 30.52 190.73 30.52 190.73 26.64 182.8 26.64"/><path class="st0" d="M36.19,10.98c0-1.17-.24-4.37-3.2-6.35-1.74-1.17-3.84-1.58-7.12-1.58h-4.82v12.13h-4.77v3.93h4.77v10.93h4.13v-11.05h.73l7.73,11.05h4.98l-8.42-11.53c3.6-.81,5.99-3.64,5.99-7.53ZM25.18,15.43V6.85h1.42c2.02,0,5.62.36,5.62,4.17,0,4.29-4.61,4.41-5.75,4.41h-1.29Z"/><rect class="st0" x="9.17" y="15.17" width="3.93" height="3.93"/><rect class="st0" x="1.62" y="15.17" width="3.93" height="14.86"/><rect class="st0" x="1.62" y="3.92" width="3.93" height="4.24"/></svg>
         </div>
         <div class="header-right">
           <h2>Orden de Derivación</h2>
@@ -224,10 +224,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       </div>` : ''}
 
       <div class="footer-firma">
-        <div class="firma-col">
-          <div class="firma-label">Firma y Sello</div>
-          ${selloHTML}
-        </div>
+        <div class="firma-label">Firma y Sello</div>
+        <div style="margin-left:auto">${selloHTML}</div>
       </div>
 
       <div class="footer-bottom">
@@ -252,7 +250,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
           </div>
         </div>
         <div class="horarios-row">
-          Lunes a Viernes: 9:00 a 17:30 hs &nbsp;·&nbsp; Sábados: 9:00 a 12:30 hs &nbsp;·&nbsp; Turnos y consultas: <span>0810.333.4507</span>
+          Lunes a Viernes: 9:00 a 17:30 hs &nbsp;·&nbsp; Sábados: 9:00 a 12:30 hs &nbsp;&nbsp;|&nbsp;&nbsp; <span>0810.333.4507</span> &nbsp;·&nbsp; info@irdental.com.ar
         </div>
       </div>
 
