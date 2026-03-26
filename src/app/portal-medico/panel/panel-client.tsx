@@ -476,57 +476,10 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       </Dialog>
 
 
-      {/* MODAL: ODONTOGRAMA FLOTANTE */}
-      {toothModalProc && (
-        <Dialog open={!!toothModalProc} onOpenChange={() => setToothModalProc(null)}>
-          <DialogContent className="w-[95vw] sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-4 sm:p-6 outline-none">
-            <DialogHeader>
-              <DialogTitle className="text-base font-black uppercase tracking-tight text-neutral-900">
-                {toothModalProc.name} — Seleccionar Piezas
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-2 overflow-x-auto">
-              {/* Superior */}
-              <div className="flex justify-center gap-0.5 sm:gap-1 min-w-max mx-auto">
-                {[18,17,16,15,14,13,12,11].map(t => {
-                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                })}
-                <div className="w-px bg-slate-200 mx-1"/>
-                {[21,22,23,24,25,26,27,28].map(t => {
-                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                })}
-              </div>
-              <div className="border-t border-dashed border-slate-300 my-1"/>
-              {/* Inferior */}
-              <div className="flex justify-center gap-0.5 sm:gap-1 min-w-max mx-auto">
-                {[48,47,46,45,44,43,42,41].map(t => {
-                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                })}
-                <div className="w-px bg-slate-200 mx-1"/>
-                {[31,32,33,34,35,36,37,38].map(t => {
-                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[10px] sm:text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                })}
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              <p className="text-xs text-slate-400 font-medium">
-                {(derivacionConfig[toothModalProc.id]?.teeth || []).length} pieza{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''} seleccionada{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''}
-              </p>
-              <Button onClick={() => setToothModalProc(null)} className="h-9 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl px-5">
-                Confirmar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* MODAL: ORDEN DE DERIVACIÓN */}
       <Dialog open={showDerivacion} onOpenChange={setShowDerivacion}>
-        <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none max-h-[90vh] flex flex-col">
+        <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none max-h-[90vh] flex flex-col relative">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-neutral-100 shrink-0">
             <DialogTitle className="text-xl font-black uppercase tracking-tight text-neutral-900 flex items-center gap-2">
               <FilePlus size={20} className="text-brand-600"/> Nueva Orden de Derivación
@@ -715,6 +668,56 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <Printer size={16}/> Imprimir / Guardar PDF
             </Button>
           </div>
+
+          {/* ODONTOGRAMA — overlay interno (evita Dialog anidado que rompe mobile) */}
+          {toothModalProc && (
+            <div className="absolute inset-0 bg-white z-20 flex flex-col rounded-2xl border-t-8 border-brand-600">
+              <div className="px-6 pt-5 pb-4 border-b border-neutral-100 shrink-0 flex items-center justify-between">
+                <h3 className="text-base font-black uppercase tracking-tight text-neutral-900">
+                  {toothModalProc.name}
+                </h3>
+                <button onClick={() => setToothModalProc(null)} className="text-neutral-400 hover:text-neutral-700 transition-colors">
+                  <X size={20}/>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 text-center mb-4">Seleccioná las piezas dentarias</p>
+                {/* Superior */}
+                <div className="flex justify-center gap-1 flex-wrap">
+                  {[18,17,16,15,14,13,12,11].map(t => {
+                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  })}
+                  <div className="w-px bg-slate-200 mx-0.5"/>
+                  {[21,22,23,24,25,26,27,28].map(t => {
+                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  })}
+                </div>
+                <div className="border-t border-dashed border-slate-300 mx-4"/>
+                {/* Inferior */}
+                <div className="flex justify-center gap-1 flex-wrap">
+                  {[48,47,46,45,44,43,42,41].map(t => {
+                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  })}
+                  <div className="w-px bg-slate-200 mx-0.5"/>
+                  {[31,32,33,34,35,36,37,38].map(t => {
+                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                  })}
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-slate-100 shrink-0 flex items-center justify-between">
+                <p className="text-sm font-black text-slate-600">
+                  {(derivacionConfig[toothModalProc.id]?.teeth || []).length} pieza{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''} seleccionada{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''}
+                </p>
+                <Button onClick={() => setToothModalProc(null)} className="h-10 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl px-6">
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
