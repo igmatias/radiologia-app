@@ -1,5 +1,6 @@
 import Link from "next/link"
 import ToothIcon from "@/components/icons/tooth-icon"
+import IRDentalLogo from "@/components/icons/irdental-logo"
 import {
   MapPin, 
   Phone, 
@@ -52,12 +53,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 md:h-24 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* LOGO DE LA EMPRESA */}
-            <Link href="/">
-              <img 
-                src="/logo.png?v=1" 
-                alt="I-R Dental" 
-                className="h-10 md:h-14 w-auto object-contain"
+            <Link href="/" className="flex items-center gap-3 group">
+              <img
+                src="/logo.png?v=2"
+                alt="I-R Dental"
+                className="h-12 md:h-16 w-auto object-contain"
               />
+              <div className="h-8 w-px bg-neutral-200 hidden sm:block" />
+              <IRDentalLogo fill="#1f2937" className="h-5 md:h-6 w-auto hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
           
@@ -478,8 +481,10 @@ export default function Home() {
       <footer className="bg-black py-10 text-neutral-400 text-sm border-t-4 border-brand-600 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-neutral-800 pb-8 mb-8">
-            <div>
+            <div className="flex items-center gap-3">
               <img src="/logo.png?v=2" alt="I-R Dental" className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity" />
+              <div className="h-7 w-px bg-neutral-700" />
+              <IRDentalLogo fill="#9ca3af" className="h-5 w-auto opacity-80 hover:opacity-100 transition-opacity" />
             </div>
             {/* REDES SOCIALES (NUEVO) */}
             <div className="flex items-center gap-4">
