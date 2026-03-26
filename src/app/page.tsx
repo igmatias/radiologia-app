@@ -292,14 +292,14 @@ export default function Home() {
               {/* Servicio 1 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías en 3D" />
+                  <img src="/tomos.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Activity size={32} />
                   </div>
                 </div>
                 <div className="p-6 flex-grow">
-                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Tomografías en 3D</h3>
+                  <h3 className="font-bold text-neutral-800 text-xl mb-2">Tomografías 3D</h3>
                   <p className="text-sm text-neutral-600 leading-relaxed">Estudios de alta precisión (Cone Beam). Evaluación pre implantológica e imágenes detalladas en 3D para diagnósticos exactos.</p>
                 </div>
               </div>
@@ -307,7 +307,7 @@ export default function Home() {
               {/* Servicio 2 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Intraorales" />
+                  <img src="/intra.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <Scan size={32} />
@@ -322,7 +322,7 @@ export default function Home() {
               {/* Servicio 3 */}
               <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-2xl hover:border-brand-200 transition-all duration-300 group flex flex-col">
                 <div className="h-48 overflow-hidden relative">
-                  <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Extraorales" />
+                  <img src="/extra.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 text-white">
                     <FileText size={32} />
