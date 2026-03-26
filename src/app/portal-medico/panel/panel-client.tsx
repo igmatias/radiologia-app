@@ -69,6 +69,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     }))
   }
   const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], options: string[] }>>({})
+  const [toothModalProc, setToothModalProc] = useState<any>(null)
 
   const toggleTooth = (procId: string, tooth: number) => {
     setDerivacionConfig(prev => {
@@ -83,6 +84,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       return { ...prev, [procId]: { ...prev[procId], options: curr.includes(option) ? curr.filter(o => o !== option) : [...curr, option] } }
     })
   }
+
+  const GRUPOS_DERIVACION = [
+    { prefix: '09.01', label: '🦷 Intraorales', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+    { prefix: '09.02', label: '📷 Extraorales', color: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
+    { prefix: '09.03', label: '🔬 Tomografías 3D', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  ]
 
   const [respondedCount, setRespondedCount] = useState(
     dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
@@ -442,6 +449,47 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       </Dialog>
 
 
+      {/* MODAL: ODONTOGRAMA FLOTANTE */}
+      {toothModalProc && (
+        <Dialog open={!!toothModalProc} onOpenChange={() => setToothModalProc(null)}>
+          <DialogContent className="sm:max-w-[480px] bg-white rounded-2xl border-t-8 border-brand-600 p-6 outline-none">
+            <DialogHeader>
+              <DialogTitle className="text-base font-black uppercase tracking-tight text-neutral-900">
+                {toothModalProc.name} — Seleccionar Piezas
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-3">
+              {[
+                [18,17,16,15,14,13,12,11],
+                [21,22,23,24,25,26,27,28],
+                [48,47,46,45,44,43,42,41],
+                [31,32,33,34,35,36,37,38],
+              ].map((row, ri) => (
+                <div key={ri} className={`flex gap-1.5 justify-center ${ri === 1 ? 'pb-2 border-b border-slate-200' : ri === 2 ? 'pt-1' : ''}`}>
+                  {row.map(t => {
+                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                    return (
+                      <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)}
+                        className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400 hover:text-brand-600'}`}>
+                        {t}
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <p className="text-xs text-slate-400 font-medium">
+                {(derivacionConfig[toothModalProc.id]?.teeth || []).length} pieza{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''} seleccionada{(derivacionConfig[toothModalProc.id]?.teeth || []).length !== 1 ? 's' : ''}
+              </p>
+              <Button onClick={() => setToothModalProc(null)} className="h-9 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl px-5">
+                Confirmar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* MODAL: ORDEN DE DERIVACIÓN */}
       <Dialog open={showDerivacion} onOpenChange={setShowDerivacion}>
         <DialogContent className="sm:max-w-[680px] bg-white rounded-2xl border-t-8 border-brand-600 p-0 overflow-hidden outline-none max-h-[90vh] flex flex-col">
@@ -531,76 +579,73 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
             {/* ESTUDIOS */}
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Estudios Solicitados</p>
-              <div className="space-y-2 mb-3">
-                {procedures.map((proc: any) => {
-                  const sel = derivacion.procedimientosSeleccionados.includes(proc.id)
-                  const cfg = derivacionConfig[proc.id] || {}
+              <div className="space-y-3 mb-3">
+                {GRUPOS_DERIVACION.map(grupo => {
+                  const procs = procedures.filter((p: any) => p.code?.startsWith(grupo.prefix))
+                  if (procs.length === 0) return null
                   return (
-                    <div key={proc.id}>
-                      <button onClick={() => toggleProcedimiento(proc.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600'}`}>
-                        {sel && <span className="mr-1">✓</span>}{proc.name}
-                      </button>
-
-                      {/* Opciones (Perfil/Frente etc.) */}
-                      {sel && proc.options?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2 ml-2">
-                          {proc.options.map((opt: string) => (
-                            <button key={opt} onClick={() => toggleOption(proc.id, opt)}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold border-2 transition-all ${(cfg.options||[]).includes(opt) ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}>
-                              {opt}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Odontograma simplificado */}
-                      {sel && proc.requiresTooth && (
-                        <div className="mt-2 ml-2 bg-slate-50 border border-slate-200 rounded-xl p-3">
-                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Seleccionar Piezas</p>
-                          <div className="space-y-2">
-                            <div className="flex gap-3">
-                              <div className="flex gap-1">
-                                {[18,17,16,15,14,13,12,11].map(t => (
-                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
-                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
-                                    {t}
+                    <div key={grupo.prefix} className={`rounded-xl border p-3 ${grupo.color}`}>
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-2 opacity-70">{grupo.label}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {procs.map((proc: any) => {
+                          const sel = derivacion.procedimientosSeleccionados.includes(proc.id)
+                          const cfg = derivacionConfig[proc.id] || {}
+                          const teethCount = cfg.teeth?.length || 0
+                          return (
+                            <div key={proc.id} className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => toggleProcedimiento(proc.id)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all whitespace-nowrap ${sel ? 'bg-white text-brand-700 border-brand-600 shadow-sm' : 'bg-white/60 text-neutral-600 border-transparent hover:border-neutral-300'}`}>
+                                  {sel && '✓ '}{proc.name}
+                                </button>
+                                {sel && proc.requiresTooth && (
+                                  <button onClick={() => setToothModalProc(proc)}
+                                    className={`px-2 py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${teethCount > 0 ? 'bg-brand-600 text-white border-brand-600' : 'bg-white/80 text-slate-500 border-slate-300 hover:border-brand-400'}`}>
+                                    {teethCount > 0 ? `${teethCount} pza` : '+ piezas'}
                                   </button>
-                                ))}
+                                )}
                               </div>
-                              <div className="flex gap-1">
-                                {[21,22,23,24,25,26,27,28].map(t => (
-                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
-                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
-                                    {t}
-                                  </button>
-                                ))}
-                              </div>
+                              {sel && proc.options?.length > 0 && (
+                                <div className="flex flex-wrap gap-1 ml-1">
+                                  {proc.options.map((opt: string) => (
+                                    <button key={opt} onClick={() => toggleOption(proc.id, opt)}
+                                      className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all ${(cfg.options||[]).includes(opt) ? 'bg-slate-800 text-white border-slate-800' : 'bg-white/80 text-slate-500 border-slate-300 hover:border-slate-500'}`}>
+                                      {opt}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <div className="flex gap-3">
-                              <div className="flex gap-1">
-                                {[48,47,46,45,44,43,42,41].map(t => (
-                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
-                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
-                                    {t}
-                                  </button>
-                                ))}
-                              </div>
-                              <div className="flex gap-1">
-                                {[31,32,33,34,35,36,37,38].map(t => (
-                                  <button key={t} type="button" onClick={() => toggleTooth(proc.id, t)}
-                                    className={`w-7 h-7 rounded-md text-[10px] font-black border-2 transition-all ${(cfg.teeth||[]).includes(t) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-500 border-slate-200 hover:border-brand-400'}`}>
-                                    {t}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                          )
+                        })}
+                      </div>
                     </div>
                   )
                 })}
+                {/* Prácticas sin grupo conocido */}
+                {(() => {
+                  const ungrouped = procedures.filter((p: any) => !GRUPOS_DERIVACION.some(g => p.code?.startsWith(g.prefix)))
+                  if (ungrouped.length === 0) return null
+                  return (
+                    <div className="rounded-xl border p-3 bg-slate-50 border-slate-200">
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-2 text-slate-400">Otros</p>
+                      <div className="flex flex-wrap gap-2">
+                        {ungrouped.map((proc: any) => {
+                          const sel = derivacion.procedimientosSeleccionados.includes(proc.id)
+                          const cfg = derivacionConfig[proc.id] || {}
+                          return (
+                            <button key={proc.id} onClick={() => toggleProcedimiento(proc.id)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${sel ? 'bg-white text-brand-700 border-brand-600 shadow-sm' : 'bg-white/60 text-neutral-600 border-transparent hover:border-neutral-300'}`}>
+                              {sel && '✓ '}{proc.name}
+                              {sel && proc.options?.length > 0 && (cfg.options||[]).length > 0 && <span className="ml-1 text-brand-500">({(cfg.options||[]).join('/')})</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
               <div className="space-y-1">
                 <Label className="text-xs font-bold uppercase text-neutral-500">Otro / Especificar</Label>
