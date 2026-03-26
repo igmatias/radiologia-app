@@ -458,25 +458,32 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 {toothModalProc.name} — Seleccionar Piezas
               </DialogTitle>
             </DialogHeader>
-            <div className="py-4 space-y-3">
-              {[
-                [18,17,16,15,14,13,12,11],
-                [21,22,23,24,25,26,27,28],
-                [48,47,46,45,44,43,42,41],
-                [31,32,33,34,35,36,37,38],
-              ].map((row, ri) => (
-                <div key={ri} className={`flex gap-1.5 justify-center ${ri === 1 ? 'pb-2 border-b border-slate-200' : ri === 2 ? 'pt-1' : ''}`}>
-                  {row.map(t => {
-                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                    return (
-                      <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)}
-                        className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400 hover:text-brand-600'}`}>
-                        {t}
-                      </button>
-                    )
-                  })}
-                </div>
-              ))}
+            <div className="py-4 space-y-2">
+              {/* Superior */}
+              <div className="flex justify-center gap-1">
+                {[18,17,16,15,14,13,12,11].map(t => {
+                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                })}
+                <div className="w-px bg-slate-200 mx-1"/>
+                {[21,22,23,24,25,26,27,28].map(t => {
+                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                })}
+              </div>
+              <div className="border-t border-dashed border-slate-300 my-1"/>
+              {/* Inferior */}
+              <div className="flex justify-center gap-1">
+                {[48,47,46,45,44,43,42,41].map(t => {
+                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                })}
+                <div className="w-px bg-slate-200 mx-1"/>
+                {[31,32,33,34,35,36,37,38].map(t => {
+                  const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                  return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-8 h-8 rounded-lg text-[11px] font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                })}
+              </div>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <p className="text-xs text-slate-400 font-medium">
