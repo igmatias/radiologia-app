@@ -43,6 +43,12 @@ enum DailyRegisterStatus {
   CERRADA
 }
 
+enum TicketStatus {
+  ABIERTO
+  RESPONDIDO
+  CERRADO
+}
+
 enum MovementType {
   GASTO
   RETIRO
@@ -174,6 +180,25 @@ model Dentist {
 
   password           String?
   mustChangePassword Boolean  @default(true)
+
+  tickets            Ticket[]
+}
+
+model Ticket {
+  id          String       @id @default(cuid())
+  dentistId   String
+  dentist     Dentist      @relation(fields: [dentistId], references: [id])
+  subject     String
+  message     String
+  status      TicketStatus @default(ABIERTO)
+  reply       String?
+  repliedAt   DateTime?
+  repliedBy   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([dentistId])
 }
 
 model ObraSocial {

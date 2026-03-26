@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
+import { createTicket } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
@@ -64,17 +65,15 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
     
     setLoadingTicket(true)
     try {
-      // AQUÍ IRÍA TU FUNCIÓN REAL PARA CREAR EL TICKET EN SUPABASE
-      // const res = await createTicket(dentist.id, ticketSubject, ticketMessage)
-      
-      // Simulamos la carga por ahora
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      toast.success("¡Solicitud enviada a Recepción!", {
-        description: "Nos comunicaremos a la brevedad."
-      })
-      setShowTicketModal(false)
-      setTicketMessage("")
+      const res = await createTicket(dentist.id, ticketSubject, ticketMessage)
+      if (res.success) {
+        toast.success("¡Solicitud enviada a Recepción!", { description: "Nos comunicaremos a la brevedad." })
+        setShowTicketModal(false)
+        setTicketMessage("")
+        router.refresh()
+      } else {
+        toast.error("Error al enviar la solicitud")
+      }
     } catch (error) {
       toast.error("Error al enviar la solicitud")
     } finally {
@@ -457,6 +456,52 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
             )})
           )}
         </div>
+
+        {/* ── MIS SOLICITUDES ── */}
+        {dentist.tickets && dentist.tickets.length > 0 && (
+          <div className="mt-10 space-y-4">
+            <h2 className="text-base font-black uppercase tracking-widest text-neutral-500 flex items-center gap-2">
+              <MessageSquarePlus size={16} className="text-brand-500"/> Mis Solicitudes
+            </h2>
+            {dentist.tickets.map((ticket: any) => {
+              const statusCfg: Record<string, { label: string, color: string }> = {
+                ABIERTO:    { label: 'Pendiente',   color: 'bg-amber-100 text-amber-700 border-amber-200' },
+                RESPONDIDO: { label: 'Respondido ✓', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+                CERRADO:    { label: 'Cerrado',      color: 'bg-neutral-100 text-neutral-500 border-neutral-200' },
+              }
+              const subjectLabels: Record<string, string> = {
+                ESTUDIO_FALTANTE: 'Falta subir un estudio',
+                ERROR_DATOS: 'Error en datos de paciente',
+                CONSULTA_TECNICA: 'Consulta técnica',
+                OTROS: 'Otra consulta'
+              }
+              const cfg = statusCfg[ticket.status] || statusCfg.ABIERTO
+              return (
+                <div key={ticket.id} className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between p-4 border-b border-neutral-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black uppercase text-neutral-500">{subjectLabels[ticket.subject] || ticket.subject}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-neutral-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR')}</span>
+                      <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border ${cfg.color}`}>{cfg.label}</span>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <p className="text-sm text-neutral-700 bg-neutral-50 rounded-xl p-3 border border-neutral-100">{ticket.message}</p>
+                    {ticket.reply && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                        <p className="text-[10px] font-black uppercase text-emerald-600 mb-1">Respuesta de Recepción {ticket.repliedBy ? `· ${ticket.repliedBy}` : ''}</p>
+                        <p className="text-sm text-emerald-900">{ticket.reply}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
       </div>
     </div>
   )

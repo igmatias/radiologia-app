@@ -23,14 +23,23 @@ import { useRouter } from "next/navigation"
 import {
   UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
-  Send, RefreshCw, Plus, ChevronRight, ChevronDown
+  Send, RefreshCw, Plus, ChevronRight, ChevronDown, MessageSquare, CheckCircle, X
 } from "lucide-react"
+import { getTickets, replyTicket, closeTicket } from "@/actions/tickets"
 
 export default function RecepcionClient({ branches, dentists, obrasSociales, procedures, saldos }: any) {
   const router = useRouter()
-  
-  const [activeTab, setActiveTab] = useState<"NUEVA_ORDEN" | "ORDENES" | "CAJA" | "SALDOS">("NUEVA_ORDEN")
+
+  const [activeTab, setActiveTab] = useState<"NUEVA_ORDEN" | "ORDENES" | "CAJA" | "SALDOS" | "MENSAJES">("NUEVA_ORDEN")
   const [resetTrigger, setResetTrigger] = useState(0)
+
+  // Tickets
+  const [tickets, setTickets] = useState<any[]>([])
+  const [ticketFilter, setTicketFilter] = useState<"ABIERTO" | "RESPONDIDO" | "CERRADO">("ABIERTO")
+  const [loadingTickets, setLoadingTickets] = useState(false)
+  const [replyText, setReplyText] = useState<Record<string, string>>({})
+  const [replyingId, setReplyingId] = useState<string | null>(null)
+  const [openTicketCount, setOpenTicketCount] = useState(0)
 
   const [branchId, setBranchId] = useState<string | null>(null)
   const [userName, setUserName] = useState("Recepcionista")
@@ -66,6 +75,18 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     init()
   }, [])
 
+  // Cargar contador de tickets abiertos al inicio
+  useEffect(() => {
+    getTickets("ABIERTO").then(res => {
+      if (res.success) setOpenTicketCount((res.data as any[]).length)
+    })
+  }, [])
+
+  // Cargar tickets al entrar al tab
+  useEffect(() => {
+    if (activeTab === "MENSAJES") cargarTickets(ticketFilter)
+  }, [activeTab, ticketFilter])
+
   // 👉 AUTO-ACTUALIZACIÓN DE CAJA CADA 30 SEGUNDOS
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -82,6 +103,34 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     const res = await getEstadoCaja(idSede)
     if (res.success) setEstadoCaja(res)
     setCargandoCaja(false)
+  }
+
+  const cargarTickets = async (status: "ABIERTO" | "RESPONDIDO" | "CERRADO" = "ABIERTO") => {
+    setLoadingTickets(true)
+    const res = await getTickets(status)
+    if (res.success) {
+      setTickets(res.data as any[])
+      if (status === "ABIERTO") setOpenTicketCount((res.data as any[]).length)
+    }
+    setLoadingTickets(false)
+  }
+
+  const handleReply = async (ticketId: string) => {
+    const reply = replyText[ticketId]?.trim()
+    if (!reply) return toast.error("Escribí una respuesta")
+    setReplyingId(ticketId)
+    const res = await replyTicket(ticketId, reply, userName)
+    if (res.success) {
+      toast.success("Respuesta enviada ✓")
+      setReplyText(prev => ({ ...prev, [ticketId]: "" }))
+      cargarTickets(ticketFilter)
+    } else toast.error("Error al responder")
+    setReplyingId(null)
+  }
+
+  const handleCloseTicket = async (ticketId: string) => {
+    await closeTicket(ticketId)
+    cargarTickets(ticketFilter)
   }
 
   const saldosFiltrados = branchId ? saldos.filter((s: any) => s.order?.branchId === branchId) : []
@@ -186,6 +235,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           {navBtn("Órdenes", <LayoutGrid size={16}/>, () => setActiveTab("ORDENES"), activeTab === "ORDENES", "bg-slate-700", dailyOrderCount || undefined)}
           {navBtn("Caja", <Banknote size={16}/>, () => setActiveTab("CAJA"), activeTab === "CAJA", "bg-emerald-700")}
           {navBtn("Saldos", <Wallet size={16}/>, () => setActiveTab("SALDOS"), activeTab === "SALDOS", "bg-brand-800", saldosFiltrados.length || undefined)}
+          {navBtn("Mensajes", <MessageSquare size={16}/>, () => setActiveTab("MENSAJES"), activeTab === "MENSAJES", "bg-brand-700", openTicketCount || undefined)}
 
           <div className="pt-2 border-t border-slate-800 mt-2">
             {navBtn("Entregas", <Send size={16}/>, () => router.push("/entregas"), false, "bg-slate-700")}
@@ -202,6 +252,109 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       {/* ===== ÁREA DE CONTENIDO ===== */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 space-y-4 max-w-[1400px] mx-auto">
+
+      {activeTab === "MENSAJES" && (
+        <div className="max-w-4xl animate-in fade-in duration-300 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 flex items-center gap-2">
+              <MessageSquare className="text-brand-600" size={24}/> Mensajes de Odontólogos
+            </h2>
+            <button onClick={() => cargarTickets(ticketFilter)} className="text-slate-400 hover:text-slate-700 transition-colors">
+              <RefreshCw size={16}/>
+            </button>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit border border-slate-200">
+            {(["ABIERTO", "RESPONDIDO", "CERRADO"] as const).map(s => {
+              const labels = { ABIERTO: "Pendientes", RESPONDIDO: "Respondidos", CERRADO: "Cerrados" }
+              return (
+                <button key={s} onClick={() => setTicketFilter(s)}
+                  className={`px-4 py-2 rounded-xl font-black uppercase text-xs transition-all ${ticketFilter === s ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+                  {labels[s]}
+                  {s === "ABIERTO" && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
+                </button>
+              )
+            })}
+          </div>
+
+          {loadingTickets ? (
+            <div className="text-center py-20 font-black uppercase text-slate-400 animate-pulse">Cargando...</div>
+          ) : tickets.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <MessageSquare size={48} className="mx-auto text-slate-200 mb-4"/>
+              <p className="font-black uppercase text-slate-400">No hay mensajes {ticketFilter === "ABIERTO" ? "pendientes" : ticketFilter === "RESPONDIDO" ? "respondidos" : "cerrados"}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {tickets.map((ticket: any) => {
+                const subjectLabels: Record<string, string> = {
+                  ESTUDIO_FALTANTE: '📁 Falta subir un estudio',
+                  ERROR_DATOS: '✏️ Error en datos de paciente',
+                  CONSULTA_TECNICA: '🔧 Consulta técnica',
+                  OTROS: '💬 Otra consulta'
+                }
+                return (
+                  <div key={ticket.id} className="bg-white rounded-[2rem] border border-slate-100 shadow-md overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                      <div>
+                        <p className="font-black uppercase text-slate-900 text-sm">Dr. {ticket.dentist?.lastName}, {ticket.dentist?.firstName}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{subjectLabels[ticket.subject] || ticket.subject}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })}</span>
+                        {ticket.status === "RESPONDIDO" && (
+                          <button onClick={() => handleCloseTicket(ticket.id)} title="Cerrar ticket" className="text-slate-300 hover:text-slate-500 transition-colors">
+                            <X size={16}/>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mensaje */}
+                    <div className="p-5 space-y-4">
+                      <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1.5">Mensaje</p>
+                        <p className="text-sm text-slate-700 leading-relaxed">{ticket.message}</p>
+                      </div>
+
+                      {/* Respuesta existente */}
+                      {ticket.reply && (
+                        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200">
+                          <p className="text-[10px] font-black uppercase text-emerald-600 mb-1.5">Tu respuesta · {ticket.repliedBy}</p>
+                          <p className="text-sm text-emerald-900 leading-relaxed">{ticket.reply}</p>
+                        </div>
+                      )}
+
+                      {/* Input de respuesta (solo tickets abiertos o para re-responder) */}
+                      {ticket.status !== "CERRADO" && (
+                        <div className="flex gap-2 pt-1">
+                          <input
+                            type="text"
+                            placeholder="Escribir respuesta..."
+                            value={replyText[ticket.id] || ""}
+                            onChange={e => setReplyText(prev => ({ ...prev, [ticket.id]: e.target.value }))}
+                            onKeyDown={e => { if (e.key === "Enter") handleReply(ticket.id) }}
+                            className="flex-1 h-11 px-4 rounded-xl border border-slate-200 text-sm font-medium bg-slate-50 focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-200 transition-all"
+                          />
+                          <button
+                            onClick={() => handleReply(ticket.id)}
+                            disabled={replyingId === ticket.id}
+                            className="h-11 px-5 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl transition-all disabled:opacity-50 flex items-center gap-1.5"
+                          >
+                            <Send size={14}/> {replyingId === ticket.id ? '...' : 'Enviar'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {(activeTab === "NUEVA_ORDEN" || activeTab === "ORDENES") && (
         <div className="animate-in fade-in duration-500">
