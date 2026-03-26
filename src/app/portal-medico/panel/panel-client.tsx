@@ -145,8 +145,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
       .header-brand{display:flex;align-items:center;gap:12px}
-      .header-logo{height:40px;width:auto;background:white;border-radius:6px;padding:3px 6px}
-      .header-brand-name{font-family:'Futura PT','Futura','Barlow Condensed','Century Gothic',Calibri,sans-serif;font-size:20px;font-weight:600;color:#fff;line-height:1;letter-spacing:0.5px;font-style:normal}
+      .header-logo{height:52px;width:auto}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
       .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
@@ -188,8 +187,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="header">
         <div class="header-brand">
-          <img src="${window.location.origin}/logo.png" class="header-logo" alt="i-R Dental" />
-          <div class="header-brand-name">i-R Dental</div>
+          <img src="${window.location.origin}/irdental.svg" class="header-logo" alt="i-R Dental" />
         </div>
         <div class="header-right">
           <h2>Orden de Derivación</h2>
