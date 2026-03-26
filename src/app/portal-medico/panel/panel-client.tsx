@@ -127,12 +127,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       : '<li style="color:#bbb;font-style:italic">Sin estudios especificados</li>'
 
     const selloHTML = esParticular
-      ? `<div style="display:inline-block;border:2px solid #BA2C66;border-radius:5px;padding:8px 14px;text-align:center">
-           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:16px;color:#111;margin:0 0 3px;line-height:1.2">Dr. ${dentist.lastName}, ${dentist.firstName}</p>
-           ${dentist.matriculaProv ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MP: ${dentist.matriculaProv}</p>` : ''}
-           ${dentist.matriculaNac ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MN: ${dentist.matriculaNac}</p>` : ''}
+      ? `<div style="display:inline-block;border:2px solid #BA2C66;border-radius:8px;padding:8px 16px;text-align:center;min-width:160px">
+           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:17px;color:#111;margin:0 0 4px;line-height:1.2">${dentist.lastName}, ${dentist.firstName}</p>
+           ${dentist.matriculaProv ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MP: ${dentist.matriculaProv}</p>` : ''}
+           ${dentist.matriculaNac ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MN: ${dentist.matriculaNac}</p>` : ''}
          </div>`
-      : `<div style="border:2px dashed #ccc;border-radius:5px;padding:8px 14px;text-align:center;min-height:48px;min-width:160px"></div>`
+      : `<div style="border:2px dashed #ccc;border-radius:8px;padding:8px 16px;text-align:center;min-height:58px;min-width:160px"></div>`
 
     const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
@@ -143,68 +143,66 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       *{box-sizing:border-box;margin:0;padding:0}
       body{font-family:'Inter',Arial,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
 
-      /* HEADER */
-      .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-      .logo img{height:30px;width:auto;filter:brightness(0) invert(1)}
-      .doc-title{text-align:right}
-      .doc-title h2{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
-      .doc-title p{font-size:9px;color:rgba(255,255,255,0.7);margin-top:2px}
+      .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+      .header-brand{display:flex;align-items:center;gap:10px}
+      .header-brand-icon{width:36px;height:36px;background:rgba(255,255,255,0.18);border-radius:8px;display:flex;align-items:center;justify-content:center}
+      .header-brand-icon svg{width:22px;height:22px;fill:white}
+      .header-brand-name{font-family:'Century Gothic','Gill Sans',Calibri,sans-serif;font-size:18px;font-weight:700;color:#fff;line-height:1;letter-spacing:-0.3px}
+      .header-brand-name span{font-style:italic;color:rgba(255,255,255,0.75)}
+      .header-right{text-align:right}
+      .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
+      .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
 
-      /* SECTIONS */
-      .section{margin-bottom:11px;background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:10px 12px}
-      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+      .aviso{text-align:center;margin-bottom:10px;padding:5px 0}
+      .aviso p{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#b45309}
+
+      .section{margin-bottom:10px;background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:9px 12px}
+      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:7px;display:flex;align-items:center;gap:4px}
       .section-title::after{content:'';flex:1;height:1px;background:#f0dde8;margin-left:4px}
 
-      /* FIELDS */
       .row{display:flex;gap:10px;margin-bottom:6px}
       .field{flex:1}
       .field label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#aaa;display:block;margin-bottom:2px;letter-spacing:0.5px}
       .field .value{font-size:10.5px;font-weight:600;color:#111;background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:3px 7px;min-height:22px}
 
-      /* STUDIES */
       .studies-box{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px}
       .studies-list{padding-left:14px;margin:0;columns:2;column-gap:14px}
       .studies-list li{margin-bottom:4px;font-size:10.5px;font-weight:600;break-inside:avoid;color:#222}
 
-      /* INDICACION */
       .indicacion{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px;min-height:44px;font-size:10.5px;color:#333;white-space:pre-wrap;line-height:1.6}
 
-      /* FIRMA */
       .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px;gap:20px}
-      .firma-box{flex:1;border:1.5px dashed #ddd;border-radius:8px;padding:10px 12px;text-align:center;min-height:56px;display:flex;flex-direction:column;justify-content:flex-end}
+      .firma-box{flex:1;border:1.5px dashed #ddd;border-radius:8px;padding:10px 12px;text-align:center;min-height:58px;display:flex;flex-direction:column;justify-content:flex-end}
       .firma-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-top:4px}
       .sello-box{text-align:center}
       .sello-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-bottom:3px}
 
-      /* SEDES */
-      .sedes-footer{margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-around;gap:6px}
+      .footer-bottom{margin-top:12px;padding-top:8px;border-top:1px solid #f0f0f0}
+      .sedes-row{display:flex;justify-content:space-around;gap:4px;margin-bottom:5px}
       .sede-item{text-align:center}
-      .sede-item a{text-decoration:none;color:#BA2C66;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+      .sede-item a{text-decoration:none;color:#BA2C66;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
       .sede-item p{font-size:7.5px;color:#bbb;margin-top:1px}
+      .horarios-row{text-align:center;font-size:8px;color:#999;font-weight:600}
+      .horarios-row span{color:#BA2C66;font-weight:700}
 
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
 
       <div class="header">
-        <div class="logo"><img src="${window.location.origin}/logo.png" alt="i-R Dental" /></div>
-        <div class="doc-title">
+        <div class="header-brand">
+          <div class="header-brand-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 2.5C6 2.5 3 4.5 3 8c0 2.5 1 4 1.5 5.5C5.5 17 6 20.5 7.5 21.5c1 .5 2-1.5 3-4 .5-1 1-2 1.5-2s1 1 1.5 2c1 2.5 2 4.5 3 4 1.5-1 2-4.5 3-8 .5-1.5 1.5-3 1.5-5.5 0-3.5-3-5.5-5.5-5.5-1.5 0-2.5 1-3.5 1s-2-1-3.5-1z" stroke="white" stroke-width="1.5" fill="none"/><path d="M10 6c1.5-1 3.5-.5 4.5.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </div>
+          <div class="header-brand-name">i-R <span>Dental</span></div>
+        </div>
+        <div class="header-right">
           <h2>Orden de Derivación</h2>
-          <p>Fecha: ${d.fecha}</p>
+          <div class="fecha">${d.fecha}</div>
         </div>
       </div>
 
-      <div style="background:#fff7ed;border:2px solid #f59e0b;border-radius:10px;padding:8px 14px;margin-bottom:12px;text-align:center">
-        <p style="font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#92400e;line-height:1">SIN TURNO</p>
-        <p style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#b45309;margin-top:2px">Atención sin turno — Por orden de llegada</p>
-      </div>
-
-      <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:8px 14px;margin-bottom:12px">
-        <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:6px">Horarios de Atención</div>
-        <div style="display:flex;justify-content:space-between;gap:8px;font-size:9px">
-          <div><span style="font-weight:700;color:#555">Quilmes</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
-          <div><span style="font-weight:700;color:#555">Avellaneda</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
-          <div><span style="font-weight:700;color:#555">Lomas de Zamora</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
-        </div>
+      <div class="aviso">
+        <p>✦ Atención sin turno &nbsp;·&nbsp; Por orden de llegada ✦</p>
       </div>
 
       <div class="section">
@@ -241,18 +239,23 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         </div>
       </div>
 
-      <div class="sedes-footer">
-        <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes">📍 Quilmes</a>
-          <p>Olavarría 88</p>
+      <div class="footer-bottom">
+        <div class="sedes-row">
+          <div class="sede-item">
+            <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes">📍 Quilmes</a>
+            <p>Olavarría 88 · (011) 4257-2950</p>
+          </div>
+          <div class="sede-item">
+            <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda">📍 Avellaneda</a>
+            <p>9 de Julio 64, 2do A · (011) 4201-1061</p>
+          </div>
+          <div class="sede-item">
+            <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora">📍 Lomas de Zamora</a>
+            <p>España 156, PB · (011) 4244-0519</p>
+          </div>
         </div>
-        <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda">📍 Avellaneda</a>
-          <p>9 de Julio 64, 2do A</p>
-        </div>
-        <div class="sede-item">
-          <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora">📍 Lomas de Zamora</a>
-          <p>España 156, PB</p>
+        <div class="horarios-row">
+          <span>0810.333.4507</span> &nbsp;·&nbsp; Lun–Vie 9:00–17:30 hs &nbsp;·&nbsp; Sáb 9:00–12:30 hs
         </div>
       </div>
 
