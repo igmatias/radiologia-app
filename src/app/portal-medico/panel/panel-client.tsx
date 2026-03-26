@@ -596,7 +596,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => toggleProcedimiento(proc.id)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all whitespace-nowrap ${sel ? 'bg-white text-brand-700 border-brand-600 shadow-sm' : 'bg-white/60 text-neutral-600 border-transparent hover:border-neutral-300'}`}>
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all whitespace-nowrap ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-300 hover:border-brand-400 hover:text-brand-600'}`}>
                                   {sel && '✓ '}{proc.name}
                                 </button>
                                 {sel && proc.requiresTooth && (
@@ -636,7 +636,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                           const cfg = derivacionConfig[proc.id] || {}
                           return (
                             <button key={proc.id} onClick={() => toggleProcedimiento(proc.id)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${sel ? 'bg-white text-brand-700 border-brand-600 shadow-sm' : 'bg-white/60 text-neutral-600 border-transparent hover:border-neutral-300'}`}>
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-300 hover:border-brand-400 hover:text-brand-600'}`}>
                               {sel && '✓ '}{proc.name}
                               {sel && proc.options?.length > 0 && (cfg.options||[]).length > 0 && <span className="ml-1 text-brand-500">({(cfg.options||[]).join('/')})</span>}
                             </button>
