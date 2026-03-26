@@ -45,7 +45,6 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const [showMisSolicitudes, setShowMisSolicitudes] = useState(false)
 
   // Estado para Orden de Derivación
-  const [loadingPDF, setLoadingPDF] = useState(false)
   const [showDerivacion, setShowDerivacion] = useState(false)
   const [derivacion, setDerivacion] = useState({
     pacienteApellido: "",
@@ -264,47 +263,22 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     setTimeout(() => { w.print(); w.onafterprint = () => w.close() }, 400)
   }
 
-  const handleDownloadPDF = async () => {
-    setLoadingPDF(true)
-    try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ])
-      const iframe = document.createElement('iframe')
-      iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:620px;height:1000px;border:none;'
-      document.body.appendChild(iframe)
-      const iDoc = iframe.contentDocument!
-      iDoc.open(); iDoc.write(buildDerivacionHTML()); iDoc.close()
-      await new Promise(r => setTimeout(r, 900))
-      const canvas = await html2canvas(iDoc.body, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#fff', width: 620 })
-      document.body.removeChild(iframe)
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-      const W = pdf.internal.pageSize.getWidth()
-      const H = pdf.internal.pageSize.getHeight()
-      const imgH = (canvas.height * W) / canvas.width
-      if (imgH <= H) {
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, W, imgH)
-      } else {
-        const pxPerMm = canvas.width / W
-        const slicePx = Math.floor(H * pxPerMm)
-        let y = 0
-        while (y < canvas.height) {
-          const slice = document.createElement('canvas')
-          slice.width = canvas.width
-          slice.height = Math.min(slicePx, canvas.height - y)
-          slice.getContext('2d')!.drawImage(canvas, 0, y, canvas.width, slice.height, 0, 0, canvas.width, slice.height)
-          if (y > 0) pdf.addPage()
-          pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, W, (slice.height / pxPerMm))
-          y += slicePx
-        }
-      }
-      pdf.save(`orden-${derivacion.pacienteApellido || 'paciente'}.pdf`)
-    } catch (e) {
-      toast.error('No se pudo generar el PDF')
-    } finally {
-      setLoadingPDF(false)
-    }
+  const handleDownloadPDF = () => {
+    const html = buildDerivacionHTML().replace(
+      '</head>',
+      `<style>
+        .no-print{display:flex;align-items:center;gap:10px;background:#1a1a1a;color:#fff;padding:10px 16px;font-family:sans-serif;font-size:13px;position:sticky;top:0;z-index:99}
+        .no-print button{background:#BA2C66;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px}
+        @media print{.no-print{display:none!important}}
+      </style></head>`
+    ).replace(
+      '<body>',
+      `<body><div class="no-print"><span>📄 Para guardar como PDF tocá <strong>Imprimir</strong> y elegí <strong>"Guardar como PDF"</strong></span><button onclick="window.print()">Imprimir / PDF</button></div>`
+    )
+    const w = window.open('', '_blank', 'width=650,height=900')
+    if (!w) return
+    w.document.write(html)
+    w.document.close()
   }
 
   // Manejadores
@@ -711,8 +685,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
           <div className="px-6 py-4 border-t border-neutral-100 shrink-0 space-y-2">
             <div className="flex gap-2">
-              <Button onClick={handleDownloadPDF} disabled={loadingPDF} className="flex-1 h-11 bg-neutral-900 hover:bg-neutral-800 text-white font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2">
-                <Download size={15}/> {loadingPDF ? 'Generando...' : 'Descargar PDF'}
+              <Button onClick={handleDownloadPDF} className="flex-1 h-11 bg-neutral-900 hover:bg-neutral-800 text-white font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2">
+                <Download size={15}/> Ver / Guardar PDF
               </Button>
               <Button onClick={handlePrintDerivacion} variant="outline" className="flex-1 h-11 font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2 border-brand-600 text-brand-600 hover:bg-brand-50">
                 <Printer size={15}/> Imprimir
