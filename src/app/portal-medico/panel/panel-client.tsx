@@ -19,7 +19,7 @@ import {
 import Link from "next/link"
 
 
-export default function PanelMedicoClient({ dentist }: { dentist: any }) {
+export default function PanelMedicoClient({ dentist, procedures = [] }: { dentist: any, procedures: any[] }) {
   const router = useRouter()
   
   // Estados principales
@@ -51,14 +51,23 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
     pacienteNombre: "",
     dni: "",
     fechaNacimiento: "",
-    telefono: "",
     cobertura: "particular" as "particular" | "obrasocial",
     obraSocial: "",
     nroAfiliado: "",
-    estudios: [""] as string[],
+    procedimientosSeleccionados: [] as string[],
+    otro: "",
     indicacion: "",
     fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
   })
+
+  const toggleProcedimiento = (nombre: string) => {
+    setDerivacion(prev => ({
+      ...prev,
+      procedimientosSeleccionados: prev.procedimientosSeleccionados.includes(nombre)
+        ? prev.procedimientosSeleccionados.filter(p => p !== nombre)
+        : [...prev.procedimientosSeleccionados, nombre]
+    }))
+  }
   const [respondedCount, setRespondedCount] = useState(
     dentist.tickets?.filter((t: any) => t.status === 'RESPONDIDO').length || 0
   )
@@ -75,53 +84,61 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
   const handlePrintDerivacion = () => {
     const d = derivacion
     const esParticular = d.cobertura === 'particular'
-    const estudiosHTML = d.estudios.filter(e => e.trim()).map(e => `<li>${e}</li>`).join('')
-    const selloHTML = esParticular ? `
-      <div style="display:inline-block;border:2px solid #BA2C66;border-radius:6px;padding:10px 16px;min-width:200px;text-align:center;margin-top:8px">
-        <p style="font-style:italic;font-weight:900;font-size:14px;color:#111;margin:0 0 4px">Dr. ${dentist.lastName}, ${dentist.firstName}</p>
-        ${dentist.matriculaProv ? `<p style="font-size:11px;color:#555;margin:0">MP: ${dentist.matriculaProv}</p>` : ''}
-        ${dentist.matriculaNac ? `<p style="font-size:11px;color:#555;margin:0">MN: ${dentist.matriculaNac}</p>` : ''}
-      </div>` : `
-      <div style="border:2px dashed #f59e0b;border-radius:6px;padding:10px 16px;background:#fffbeb;min-width:200px;text-align:center;margin-top:8px">
-        <p style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin:0">⚠ Requiere sello y firma analógica</p>
-        <p style="font-size:9px;color:#b45309;margin:4px 0 0">Estampar sello profesional y firmar<br>antes de presentar en recepción</p>
-      </div>`
 
-    const w = window.open('', '_blank', 'width=750,height:980')
+    const todosEstudios = [
+      ...d.procedimientosSeleccionados,
+      ...(d.otro.trim() ? [d.otro.trim()] : [])
+    ]
+    const estudiosHTML = todosEstudios.length
+      ? todosEstudios.map(e => `<li>${e}</li>`).join('')
+      : '<li style="color:#bbb;font-style:italic">Sin estudios especificados</li>'
+
+    const selloHTML = esParticular
+      ? `<div style="display:inline-block;border:2px solid #BA2C66;border-radius:5px;padding:8px 14px;text-align:center">
+           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:16px;color:#111;margin:0 0 3px;line-height:1.2">Dr. ${dentist.lastName}, ${dentist.firstName}</p>
+           ${dentist.matriculaProv ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MP: ${dentist.matriculaProv}</p>` : ''}
+           ${dentist.matriculaNac ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MN: ${dentist.matriculaNac}</p>` : ''}
+         </div>`
+      : `<div style="border:2px dashed #f59e0b;border-radius:5px;padding:8px 12px;background:#fffbeb;text-align:center">
+           <p style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;margin:0;font-family:Arial,sans-serif">⚠ Requerido: sello y firma analógica</p>
+         </div>`
+
+    const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
-    w.document.write(`<!DOCTYPE html><html><head><title>Orden de Derivación</title>
+    w.document.write(`<!DOCTYPE html><html><head><title>Derivación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
+      @page { size: A5; margin: 12mm 14mm; }
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:Arial,sans-serif;padding:32px;max-width:700px;margin:0 auto;color:#111;font-size:13px}
-      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #BA2C66;padding-bottom:16px;margin-bottom:20px}
-      .logo-name{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#111}
-      .logo-sub{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#888;margin-top:2px}
-      .logo-cuit{font-size:9px;color:#aaa;margin-top:1px}
+      body{font-family:Arial,sans-serif;color:#111;font-size:11px;background:#fff}
+      .header{display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #BA2C66;padding-bottom:10px;margin-bottom:12px}
+      .logo img{height:32px;width:auto}
       .doc-title{text-align:right}
-      .doc-title h2{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#BA2C66}
-      .doc-title p{font-size:11px;color:#888;margin-top:2px}
-      .section{margin-bottom:18px}
-      .section-title{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;border-bottom:1px solid #f0e0e8;padding-bottom:4px;margin-bottom:10px}
-      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .field{margin-bottom:6px}
-      .field label{font-size:9px;font-weight:700;text-transform:uppercase;color:#888;display:block;margin-bottom:2px}
-      .field .value{font-size:13px;font-weight:700;border-bottom:1px solid #ddd;padding-bottom:3px;min-height:20px}
-      .studies-list{padding-left:18px;margin:0}
-      .studies-list li{margin-bottom:5px;font-size:13px}
-      .indicacion{border:1px solid #ddd;border-radius:4px;padding:10px;min-height:60px;font-size:13px;color:#333;white-space:pre-wrap}
-      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding-top:20px;border-top:1px dashed #ccc}
-      .firma-line{text-align:center;min-width:200px}
-      .firma-line .line{border-top:1.5px solid #111;margin-bottom:6px}
-      .firma-line p{font-size:9px;color:#888;text-transform:uppercase}
-      .footer-contact{margin-top:24px;text-align:center;font-size:9px;color:#bbb;border-top:1px solid #f0f0f0;padding-top:12px}
-      @media print{body{padding:20px}}
+      .doc-title h2{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;color:#BA2C66;margin:0}
+      .doc-title p{font-size:9px;color:#999;margin-top:1px}
+      .section{margin-bottom:12px}
+      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;border-bottom:1px solid #f0dde8;padding-bottom:3px;margin-bottom:7px}
+      .row{display:flex;gap:12px;margin-bottom:5px}
+      .field{flex:1}
+      .field label{font-size:8px;font-weight:700;text-transform:uppercase;color:#999;display:block;margin-bottom:1px}
+      .field .value{font-size:11px;font-weight:700;border-bottom:1px solid #e0e0e0;padding-bottom:2px;min-height:17px}
+      .studies-list{padding-left:14px;margin:0;columns:2;column-gap:16px}
+      .studies-list li{margin-bottom:3px;font-size:11px;break-inside:avoid}
+      .indicacion{border:1px solid #e5e5e5;border-radius:4px;padding:7px;min-height:44px;font-size:11px;color:#333;white-space:pre-wrap;line-height:1.5}
+      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc}
+      .firma-line{text-align:center;min-width:160px}
+      .firma-line .line{border-top:1px solid #111;margin-bottom:4px}
+      .firma-line p{font-size:8px;color:#999;text-transform:uppercase}
+      .sedes-footer{margin-top:14px;padding-top:8px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;gap:6px}
+      .sede-item{flex:1;text-align:center}
+      .sede-item a{text-decoration:none;color:#BA2C66;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+      .sede-item p{font-size:8px;color:#aaa;margin-top:1px}
+      @media print{body{}}
     </style></head><body>
+
       <div class="header">
-        <div>
-          <div class="logo-name">i-R Dental</div>
-          <div class="logo-sub">Instituto Radiodiagnóstico Dentomaxilofacial</div>
-          <div class="logo-cuit">CUIT: 30-66397607-5</div>
-        </div>
+        <div class="logo"><img src="${window.location.origin}/logo.png" alt="i-R Dental" /></div>
         <div class="doc-title">
           <h2>Orden de Derivación</h2>
           <p>Fecha: ${d.fecha}</p>
@@ -130,20 +147,20 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
 
       <div class="section">
         <div class="section-title">Datos del Paciente</div>
-        <div class="grid2">
-          <div class="field"><label>Apellido</label><div class="value">${d.pacienteApellido}</div></div>
-          <div class="field"><label>Nombre</label><div class="value">${d.pacienteNombre}</div></div>
-          <div class="field"><label>DNI</label><div class="value">${d.dni}</div></div>
-          <div class="field"><label>Fecha de Nacimiento</label><div class="value">${d.fechaNacimiento}</div></div>
-          <div class="field"><label>Teléfono</label><div class="value">${d.telefono}</div></div>
+        <div class="row">
+          <div class="field"><label>Apellido y Nombre</label><div class="value">${d.pacienteApellido}${d.pacienteApellido && d.pacienteNombre ? ', ' : ''}${d.pacienteNombre}</div></div>
+          <div class="field" style="max-width:90px"><label>DNI</label><div class="value">${d.dni}</div></div>
+        </div>
+        <div class="row">
+          <div class="field" style="max-width:110px"><label>Fecha de Nac.</label><div class="value">${d.fechaNacimiento ? new Date(d.fechaNacimiento + 'T00:00:00').toLocaleDateString('es-AR') : ''}</div></div>
           <div class="field"><label>Cobertura</label><div class="value">${esParticular ? 'Particular' : d.obraSocial}</div></div>
-          ${!esParticular ? `<div class="field" style="grid-column:span 2"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
+          ${!esParticular ? `<div class="field" style="max-width:110px"><label>N° Afiliado</label><div class="value">${d.nroAfiliado}</div></div>` : ''}
         </div>
       </div>
 
       <div class="section">
         <div class="section-title">Estudios Solicitados</div>
-        <ul class="studies-list">${estudiosHTML || '<li style="color:#bbb;font-style:italic">Sin estudios especificados</li>'}</ul>
+        <ul class="studies-list">${estudiosHTML}</ul>
       </div>
 
       ${d.indicacion.trim() ? `
@@ -153,17 +170,31 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
       </div>` : ''}
 
       <div class="footer-firma">
-        <div class="firma-line" style="min-width:220px">
+        <div class="firma-line">
           <div class="line"></div>
           <p>Firma del Profesional</p>
         </div>
         <div style="text-align:center">
-          <p style="font-size:9px;color:#888;text-transform:uppercase;margin-bottom:4px">Sello Profesional</p>
+          <p style="font-size:8px;color:#aaa;text-transform:uppercase;margin-bottom:3px">Sello</p>
           ${selloHTML}
         </div>
       </div>
 
-      <div class="footer-contact">i-R Dental — 0810.333.4507 — info@irdental.com — www.irdental.com</div>
+      <div class="sedes-footer">
+        <div class="sede-item">
+          <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes" target="_blank">📍 Quilmes</a>
+          <p>Olavarría 88</p>
+        </div>
+        <div class="sede-item">
+          <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda" target="_blank">📍 Avellaneda</a>
+          <p>9 de Julio 64, 2do A</p>
+        </div>
+        <div class="sede-item">
+          <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora" target="_blank">📍 Lomas de Zamora</a>
+          <p>España 156, PB</p>
+        </div>
+      </div>
+
     </body></html>`)
     w.document.close()
     setTimeout(() => { w.print(); w.onafterprint = () => w.close() }, 400)
@@ -419,11 +450,19 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-bold uppercase text-neutral-500">Fecha de Nacimiento</Label>
-                  <Input type="date" value={derivacion.fechaNacimiento} onChange={e => setDerivacion({...derivacion, fechaNacimiento: e.target.value})} className="h-10 bg-neutral-50 text-sm"/>
-                </div>
-                <div className="space-y-1 col-span-2">
-                  <Label className="text-xs font-bold uppercase text-neutral-500">Teléfono</Label>
-                  <Input value={derivacion.telefono} onChange={e => setDerivacion({...derivacion, telefono: e.target.value})} placeholder="11 2345-6789" className="h-10 bg-neutral-50 text-sm"/>
+                  <Input
+                    type="text"
+                    value={derivacion.fechaNacimiento}
+                    onChange={e => {
+                      let v = e.target.value.replace(/[^\d]/g, '').slice(0, 8)
+                      if (v.length > 4) v = v.slice(0,2) + '-' + v.slice(2,4) + '-' + v.slice(4)
+                      else if (v.length > 2) v = v.slice(0,2) + '-' + v.slice(2)
+                      setDerivacion({...derivacion, fechaNacimiento: v})
+                    }}
+                    placeholder="DD-MM-AAAA"
+                    maxLength={10}
+                    className="h-10 bg-neutral-50 text-sm font-mono"
+                  />
                 </div>
               </div>
             </div>
@@ -451,47 +490,37 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
                   </div>
                 </div>
               )}
-              {/* AVISOS */}
               {derivacion.cobertura === 'particular' && (
                 <div className="mt-3 flex items-start gap-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
                   <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5"/>
-                  <p className="text-xs text-emerald-800 font-medium">Podés imprimir esta orden tal como está. Incluirá tu sello profesional simulado con tus matrículas.</p>
+                  <p className="text-xs text-emerald-800 font-medium">Podés imprimir esta orden tal como está. Se incluirá tu sello con matrículas.</p>
                 </div>
               )}
               {derivacion.cobertura === 'obrasocial' && (
                 <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
                   <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5"/>
-                  <p className="text-xs text-amber-800 font-medium">Para presentar por obra social debés <strong>firmar y estampar tu sello físico</strong> en la orden impresa antes de entregarla al paciente.</p>
+                  <p className="text-xs text-amber-800 font-medium">Para obra social debés <strong>firmar y estampar tu sello físico</strong> antes de entregarla al paciente.</p>
                 </div>
               )}
             </div>
 
             {/* ESTUDIOS */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-brand-600">Estudios Solicitados</p>
-                <button onClick={() => setDerivacion({...derivacion, estudios: [...derivacion.estudios, ""]})}
-                  className="flex items-center gap-1 text-[10px] font-black uppercase text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition-all border border-brand-200">
-                  <Plus size={12}/> Agregar
-                </button>
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 mb-3">Estudios Solicitados</p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {procedures.map((proc: any) => {
+                  const sel = derivacion.procedimientosSeleccionados.includes(proc.name)
+                  return (
+                    <button key={proc.id} onClick={() => toggleProcedimiento(proc.name)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-sm' : 'bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600'}`}>
+                      {sel && <span className="mr-1">✓</span>}{proc.name}
+                    </button>
+                  )
+                })}
               </div>
-              <div className="space-y-2">
-                {derivacion.estudios.map((estudio, idx) => (
-                  <div key={idx} className="flex gap-2">
-                    <Input
-                      value={estudio}
-                      onChange={e => { const arr = [...derivacion.estudios]; arr[idx] = e.target.value; setDerivacion({...derivacion, estudios: arr}) }}
-                      placeholder={`Ej: Periapical pieza ${11 + idx}, Rx Panorámica...`}
-                      className="h-10 bg-neutral-50 text-sm flex-1"
-                    />
-                    {derivacion.estudios.length > 1 && (
-                      <button onClick={() => setDerivacion({...derivacion, estudios: derivacion.estudios.filter((_, i) => i !== idx)})}
-                        className="text-neutral-300 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
-                        <Trash2 size={15}/>
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-1">
+                <Label className="text-xs font-bold uppercase text-neutral-500">Otro / Especificar</Label>
+                <Input value={derivacion.otro} onChange={e => setDerivacion({...derivacion, otro: e.target.value})} placeholder="Escribí un estudio personalizado..." className="h-10 bg-neutral-50 text-sm"/>
               </div>
             </div>
 
@@ -501,8 +530,8 @@ export default function PanelMedicoClient({ dentist }: { dentist: any }) {
               <textarea
                 value={derivacion.indicacion}
                 onChange={e => setDerivacion({...derivacion, indicacion: e.target.value})}
-                placeholder="Diagnóstico presuntivo, motivo del estudio, información relevante para el técnico..."
-                className="w-full min-h-[80px] bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                placeholder="Diagnóstico presuntivo, motivo del estudio, información relevante..."
+                className="w-full min-h-[72px] bg-neutral-50 border border-neutral-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
             </div>
 

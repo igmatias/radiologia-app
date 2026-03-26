@@ -11,7 +11,7 @@ export default async function PanelMedicoPage() {
     redirect("/portal-medico")
   }
 
-  const [dentist, tickets] = await Promise.all([
+  const [dentist, procedures] = await Promise.all([
     prisma.dentist.findUnique({
       where: { id: dentistId },
       include: {
@@ -22,12 +22,16 @@ export default async function PanelMedicoPage() {
         tickets: { orderBy: { createdAt: 'desc' }, take: 20 }
       }
     }),
-    Promise.resolve([]) // ya incluido en dentist.tickets
+    prisma.procedure.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, category: true },
+      orderBy: { name: 'asc' }
+    })
   ])
 
   if (!dentist) {
     redirect("/portal-medico")
   }
 
-  return <PanelMedicoClient dentist={dentist} />
+  return <PanelMedicoClient dentist={dentist} procedures={procedures} />
 }
