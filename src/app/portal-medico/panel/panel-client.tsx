@@ -130,9 +130,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
            ${dentist.matriculaProv ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MP: ${dentist.matriculaProv}</p>` : ''}
            ${dentist.matriculaNac ? `<p style="font-size:10px;color:#555;margin:0;font-family:Arial,sans-serif">MN: ${dentist.matriculaNac}</p>` : ''}
          </div>`
-      : `<div style="border:2px dashed #f59e0b;border-radius:5px;padding:8px 12px;background:#fffbeb;text-align:center">
-           <p style="font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;margin:0;font-family:Arial,sans-serif">⚠ Requerido: sello y firma analógica</p>
-         </div>`
+      : `<div style="border:2px dashed #ccc;border-radius:5px;padding:8px 14px;text-align:center;min-height:48px;min-width:160px"></div>`
 
     const w = window.open('', '_blank', 'width=600,height=820')
     if (!w) return
