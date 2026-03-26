@@ -620,8 +620,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 {GRUPOS_DERIVACION.map(grupo => {
                   const procs = procedures.filter((p: any) =>
                     'codes' in grupo
-                      ? grupo.codes.includes(p.code)
-                      : p.code?.startsWith(grupo.prefix) && !(grupo.exclude || []).includes(p.code)
+                      ? (grupo.codes ?? []).includes(p.code)
+                      : p.code?.startsWith((grupo as any).prefix) && !((grupo as any).exclude || []).includes(p.code)
                   )
                   if (procs.length === 0) return null
                   const key = 'codes' in grupo ? grupo.label : grupo.prefix
@@ -668,7 +668,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 {/* Prácticas sin grupo conocido */}
                 {(() => {
                   const ungrouped = procedures.filter((p: any) => !GRUPOS_DERIVACION.some(g =>
-                    'codes' in g ? g.codes.includes(p.code) : p.code?.startsWith(g.prefix) && !(g.exclude||[]).includes(p.code)
+                    'codes' in g ? (g.codes ?? []).includes(p.code) : p.code?.startsWith((g as any).prefix) && !((g as any).exclude||[]).includes(p.code)
                   ))
                   if (ungrouped.length === 0) return null
                   return (
