@@ -144,11 +144,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       body{font-family:'Inter',Arial,sans-serif;color:#1a1a1a;font-size:10.5px;background:#fff}
 
       .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-      .header-brand{display:flex;align-items:center;gap:10px}
-      .header-brand-icon{width:36px;height:36px;background:rgba(255,255,255,0.18);border-radius:8px;display:flex;align-items:center;justify-content:center}
-      .header-brand-icon svg{width:22px;height:22px;fill:white}
-      .header-brand-name{font-family:'Century Gothic','Gill Sans',Calibri,sans-serif;font-size:18px;font-weight:700;color:#fff;line-height:1;letter-spacing:-0.3px}
-      .header-brand-name span{font-style:italic;color:rgba(255,255,255,0.75)}
+      .header-brand{display:flex;align-items:center;gap:12px}
+      .header-logo{height:40px;width:auto;background:white;border-radius:6px;padding:3px 6px}
+      .header-brand-name{font-family:'Futura PT','Futura','Barlow Condensed','Century Gothic',Calibri,sans-serif;font-size:20px;font-weight:600;color:#fff;line-height:1;letter-spacing:0.5px;font-style:normal}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
       .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
@@ -171,18 +169,18 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       .indicacion{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px;min-height:44px;font-size:10.5px;color:#333;white-space:pre-wrap;line-height:1.6}
 
-      .footer-firma{display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px;gap:20px}
-      .firma-box{flex:1;border:1.5px dashed #ddd;border-radius:8px;padding:10px 12px;text-align:center;min-height:58px;display:flex;flex-direction:column;justify-content:flex-end}
-      .firma-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-top:4px}
-      .sello-box{text-align:center}
-      .sello-box p{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-bottom:3px}
+      .footer-firma{margin-top:14px;border:1.5px dashed #ddd;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;min-height:70px}
+      .firma-col{flex:1;text-align:center;border-right:1px dashed #eee;padding-right:16px}
+      .sello-col{text-align:center;padding-left:16px}
+      .firma-label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#bbb;letter-spacing:1px;margin-top:8px}
 
-      .footer-bottom{margin-top:12px;padding-top:8px;border-top:1px solid #f0f0f0}
-      .sedes-row{display:flex;justify-content:space-around;gap:4px;margin-bottom:5px}
+      .footer-bottom{margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0}
+      .sedes-row{display:flex;justify-content:space-around;gap:6px;margin-bottom:7px}
       .sede-item{text-align:center}
-      .sede-item a{text-decoration:none;color:#BA2C66;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
-      .sede-item p{font-size:7.5px;color:#bbb;margin-top:1px}
-      .horarios-row{text-align:center;font-size:8px;color:#999;font-weight:600}
+      .sede-item a{text-decoration:none;color:#BA2C66;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+      .sede-item .dir{font-size:8.5px;color:#888;margin-top:1px;font-weight:600}
+      .sede-item .tel{font-size:8.5px;color:#BA2C66;font-weight:700;margin-top:1px}
+      .horarios-row{text-align:center;font-size:9px;color:#888;font-weight:600}
       .horarios-row span{color:#BA2C66;font-weight:700}
 
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -190,10 +188,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="header">
         <div class="header-brand">
-          <div class="header-brand-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 2.5C6 2.5 3 4.5 3 8c0 2.5 1 4 1.5 5.5C5.5 17 6 20.5 7.5 21.5c1 .5 2-1.5 3-4 .5-1 1-2 1.5-2s1 1 1.5 2c1 2.5 2 4.5 3 4 1.5-1 2-4.5 3-8 .5-1.5 1.5-3 1.5-5.5 0-3.5-3-5.5-5.5-5.5-1.5 0-2.5 1-3.5 1s-2-1-3.5-1z" stroke="white" stroke-width="1.5" fill="none"/><path d="M10 6c1.5-1 3.5-.5 4.5.5" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
-          </div>
-          <div class="header-brand-name">i-R <span>Dental</span></div>
+          <img src="${window.location.origin}/logo.png" class="header-logo" alt="i-R Dental" />
+          <div class="header-brand-name">i-R Dental</div>
         </div>
         <div class="header-right">
           <h2>Orden de Derivación</h2>
@@ -230,11 +226,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       </div>` : ''}
 
       <div class="footer-firma">
-        <div class="firma-box">
-          <p>Firma del Profesional</p>
+        <div class="firma-col">
+          <div class="firma-label">Firma del Profesional</div>
         </div>
-        <div class="sello-box">
-          <p>Sello</p>
+        <div class="sello-col">
+          <div class="firma-label" style="margin-bottom:4px">Sello</div>
           ${selloHTML}
         </div>
       </div>
@@ -243,15 +239,18 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         <div class="sedes-row">
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=Olavarria+88,+Quilmes">📍 Quilmes</a>
-            <p>Olavarría 88 · (011) 4257-2950</p>
+            <p class="dir">Olavarría 88</p>
+            <p class="tel">(011) 4257-2950</p>
           </div>
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=9+de+Julio+64,+Avellaneda">📍 Avellaneda</a>
-            <p>9 de Julio 64, 2do A · (011) 4201-1061</p>
+            <p class="dir">9 de Julio 64, 2do A</p>
+            <p class="tel">(011) 4201-1061</p>
           </div>
           <div class="sede-item">
             <a href="https://maps.google.com/maps?q=España+156,+Lomas+de+Zamora">📍 Lomas de Zamora</a>
-            <p>España 156, PB · (011) 4244-0519</p>
+            <p class="dir">España 156, PB</p>
+            <p class="tel">(011) 4244-0519</p>
           </div>
         </div>
         <div class="horarios-row">
