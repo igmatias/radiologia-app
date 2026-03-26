@@ -291,9 +291,6 @@ export default function Home() {
                 <div className="h-48 overflow-hidden relative">
                   <img src="/tomos.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Tomografías 3D" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <Activity size={32} />
-                  </div>
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Tomografías 3D</h3>
@@ -306,9 +303,6 @@ export default function Home() {
                 <div className="h-48 overflow-hidden relative">
                   <img src="/intra.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Intraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <Scan size={32} />
-                  </div>
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Intraorales</h3>
@@ -321,9 +315,6 @@ export default function Home() {
                 <div className="h-48 overflow-hidden relative">
                   <img src="/extra.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Placas Extraorales" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <FileText size={32} />
-                  </div>
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Placas Extraorales</h3>
@@ -336,9 +327,6 @@ export default function Home() {
                 <div className="h-48 overflow-hidden relative">
                   <img src="/fotoclinica.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" alt="Fotografías Clínicas" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <Camera size={32} />
-                  </div>
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Fotografías Clínicas</h3>
@@ -351,9 +339,6 @@ export default function Home() {
                 <div className="h-48 overflow-hidden relative">
                   <img src="/cefalometria.jpg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 object-center" alt="Análisis Cefalométricos" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <ToothIcon size={32} />
-                  </div>
                 </div>
                 <div className="p-6 flex-grow">
                   <h3 className="font-bold text-neutral-800 text-xl mb-2">Análisis Cefalométricos</h3>
