@@ -256,26 +256,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   }
 
   const handlePrintDerivacion = () => {
-    const w = window.open('', '_blank', 'width=600,height=820')
-    if (!w) return
-    w.document.write(buildDerivacionHTML())
-    w.document.close()
-    setTimeout(() => { w.print(); w.onafterprint = () => w.close() }, 400)
-  }
-
-  const handleDownloadPDF = () => {
     const html = buildDerivacionHTML().replace(
-      '</head>',
-      `<style>
-        .no-print{display:flex;align-items:center;gap:10px;background:#1a1a1a;color:#fff;padding:10px 16px;font-family:sans-serif;font-size:13px;position:sticky;top:0;z-index:99}
-        .no-print button{background:#BA2C66;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px}
-        @media print{.no-print{display:none!important}}
-      </style></head>`
-    ).replace(
       '<body>',
-      `<body><div class="no-print"><span>📄 Para guardar como PDF tocá <strong>Imprimir</strong> y elegí <strong>"Guardar como PDF"</strong></span><button onclick="window.print()">Imprimir / PDF</button></div>`
+      `<body><script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script>`
     )
-    const w = window.open('', '_blank', 'width=650,height=900')
+    const w = window.open('', '_blank')
     if (!w) return
     w.document.write(html)
     w.document.close()
@@ -683,17 +668,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
           </div>
 
-          <div className="px-6 py-4 border-t border-neutral-100 shrink-0 space-y-2">
-            <div className="flex gap-2">
-              <Button onClick={handleDownloadPDF} className="flex-1 h-11 bg-neutral-900 hover:bg-neutral-800 text-white font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2">
-                <Download size={15}/> Ver / Guardar PDF
-              </Button>
-              <Button onClick={handlePrintDerivacion} variant="outline" className="flex-1 h-11 font-black uppercase text-xs rounded-xl flex items-center justify-center gap-2 border-brand-600 text-brand-600 hover:bg-brand-50">
-                <Printer size={15}/> Imprimir
-              </Button>
-            </div>
-            <Button variant="ghost" onClick={() => setShowDerivacion(false)} className="w-full h-9 text-xs text-neutral-400 hover:text-neutral-600">
+          <div className="px-6 py-4 border-t border-neutral-100 shrink-0 flex gap-3">
+            <Button variant="outline" onClick={() => setShowDerivacion(false)} className="flex-1 h-11 font-bold uppercase text-xs rounded-xl">
               Cancelar
+            </Button>
+            <Button onClick={handlePrintDerivacion} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center justify-center gap-2">
+              <Printer size={16}/> Imprimir / Guardar PDF
             </Button>
           </div>
 
