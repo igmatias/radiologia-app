@@ -201,9 +201,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       <div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:8px 14px;margin-bottom:12px">
         <div style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:6px">Horarios de Atención</div>
         <div style="display:flex;justify-content:space-between;gap:8px;font-size:9px">
-          <div><span style="font-weight:700;color:#555">Quilmes</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
-          <div><span style="font-weight:700;color:#555">Avellaneda</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
-          <div><span style="font-weight:700;color:#555">Lomas de Zamora</span><br/><span style="color:#888">Lun–Vie 8:00–20:00<br/>Sáb 8:00–14:00</span></div>
+          <div><span style="font-weight:700;color:#555">Quilmes</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
+          <div><span style="font-weight:700;color:#555">Avellaneda</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
+          <div><span style="font-weight:700;color:#555">Lomas de Zamora</span><br/><span style="color:#888">Lun–Vie 9:00–17:30<br/>Sáb 9:00–12:30</span></div>
         </div>
       </div>
 
