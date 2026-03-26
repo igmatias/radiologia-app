@@ -680,32 +680,38 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                   <X size={20}/>
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-3">
+              <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-widest text-brand-600 text-center mb-4">Seleccioná las piezas dentarias</p>
                 {/* Superior */}
-                <div className="flex justify-center gap-1 flex-wrap">
-                  {[18,17,16,15,14,13,12,11].map(t => {
-                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                  })}
-                  <div className="w-px bg-slate-200 mx-0.5"/>
-                  {[21,22,23,24,25,26,27,28].map(t => {
-                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                  })}
+                <div className="grid grid-cols-2 gap-x-3">
+                  <div className="flex flex-wrap justify-end gap-1">
+                    {[18,17,16,15,14,13,12,11].map(t => {
+                      const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                      return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                    })}
+                  </div>
+                  <div className="flex flex-wrap justify-start gap-1">
+                    {[21,22,23,24,25,26,27,28].map(t => {
+                      const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                      return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                    })}
+                  </div>
                 </div>
-                <div className="border-t border-dashed border-slate-300 mx-4"/>
+                <div className="border-t border-dashed border-slate-300"/>
                 {/* Inferior */}
-                <div className="flex justify-center gap-1 flex-wrap">
-                  {[48,47,46,45,44,43,42,41].map(t => {
-                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                  })}
-                  <div className="w-px bg-slate-200 mx-0.5"/>
-                  {[31,32,33,34,35,36,37,38].map(t => {
-                    const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
-                    return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
-                  })}
+                <div className="grid grid-cols-2 gap-x-3">
+                  <div className="flex flex-wrap justify-end gap-1">
+                    {[48,47,46,45,44,43,42,41].map(t => {
+                      const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                      return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                    })}
+                  </div>
+                  <div className="flex flex-wrap justify-start gap-1">
+                    {[31,32,33,34,35,36,37,38].map(t => {
+                      const sel = (derivacionConfig[toothModalProc.id]?.teeth || []).includes(t)
+                      return <button key={t} onClick={() => toggleTooth(toothModalProc.id, t)} className={`w-9 h-9 rounded-lg text-xs font-black border-2 transition-all ${sel ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-brand-400'}`}>{t}</button>
+                    })}
+                  </div>
                 </div>
               </div>
               <div className="px-6 py-4 border-t border-slate-100 shrink-0 flex items-center justify-between">
