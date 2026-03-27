@@ -261,10 +261,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const handleDownloadPDF = async () => {
     setLoadingPDF(true)
     try {
-      const [{ default: pdfMake }, pdfFontsModule] = await Promise.all([
-        import('pdfmake/build/pdfmake' as any),
-        import('pdfmake/build/vfs_fonts' as any),
-      ])
+      // @ts-ignore
+      const pdfMakeModule = await import('pdfmake/build/pdfmake')
+      // @ts-ignore
+      const pdfFontsModule = await import('pdfmake/build/vfs_fonts')
+      const pdfMake = (pdfMakeModule as any).default ?? pdfMakeModule
       pdfMake.vfs = (pdfFontsModule as any).default?.pdfMake?.vfs ?? (pdfFontsModule as any).pdfMake?.vfs
 
       const logoRes = await fetch('/logo.png')
