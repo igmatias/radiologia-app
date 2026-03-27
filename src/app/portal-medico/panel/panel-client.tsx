@@ -129,7 +129,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
     const selloHTML = esParticular
       ? `<div style="display:inline-block;border:2px solid #BA2C66;border-radius:8px;padding:8px 16px;text-align:center;min-width:160px">
-           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:17px;color:#111;margin:0 0 4px;line-height:1.2">${dentist.lastName}, ${dentist.firstName}</p>
+           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:19px;color:#111;margin:0 0 4px;line-height:1.3;letter-spacing:0.5px;word-spacing:3px">${dentist.lastName},&nbsp;${dentist.firstName}</p>
            ${dentist.matriculaProv ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MP: ${dentist.matriculaProv}</p>` : ''}
            ${dentist.matriculaNac ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MN: ${dentist.matriculaNac}</p>` : ''}
          </div>`
@@ -275,7 +275,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         </style></head>`)
 
       const iframe = document.createElement('iframe')
-      iframe.style.cssText = `position:fixed;top:-99999px;left:0;width:${RENDER_W}px;height:800px;border:none;visibility:hidden`
+      iframe.style.cssText = `position:fixed;top:-99999px;left:0;width:${RENDER_W}px;height:1400px;border:none;visibility:hidden`
       document.body.appendChild(iframe)
 
       await new Promise<void>(resolve => {
@@ -307,9 +307,13 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       document.body.removeChild(iframe)
 
+      // Escalar para que quepa en A5 (148x210mm) sin cortar
+      const maxW = 148, maxH = 210
+      const ratio = canvas.width / canvas.height
+      let imgW = maxW, imgH = maxW / ratio
+      if (imgH > maxH) { imgH = maxH; imgW = maxH * ratio }
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-      const imgH = (canvas.height / canvas.width) * 148
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, imgH)
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.93), 'JPEG', (maxW-imgW)/2, (maxH-imgH)/2, imgW, imgH)
       pdf.save(`orden-${derivacion.pacienteApellido || 'paciente'}.pdf`)
       return
     } catch(_e) {}
