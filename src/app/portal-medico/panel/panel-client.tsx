@@ -272,9 +272,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                   : fm?.['Roboto-Regular.ttf'] ? fm
                   : {}
 
-      const [logoBlob, fontBuffer] = await Promise.all([
+      const [logoBlob] = await Promise.all([
         fetch('/logo.png').then(r => r.blob()),
-        fetch('/fonts/DancingScript-Bold.ttf').then(r => r.arrayBuffer()),
       ])
 
       // Logo simple base64
@@ -285,19 +284,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         reader.readAsDataURL(logoBlob)
       })
 
-      // Dancing Script font
-      const fontBytes = new Uint8Array(fontBuffer)
-      let fontBinary = ''
-      const CHUNK = 1024
-      for (let i = 0; i < fontBytes.length; i += CHUNK) {
-        fontBinary += String.fromCharCode(...fontBytes.subarray(i, i + CHUNK))
-      }
-      const fontBase64 = btoa(fontBinary)
-      if (!pdfMake.vfs) pdfMake.vfs = {}
-      pdfMake.vfs['DancingScript-Bold.ttf'] = fontBase64
+      // fonts — usar Roboto (ya en vfs)
       pdfMake.fonts = {
-        Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' },
-        DancingScript: { normal: 'DancingScript-Bold.ttf', bold: 'DancingScript-Bold.ttf', italics: 'DancingScript-Bold.ttf', bolditalics: 'DancingScript-Bold.ttf' }
+        Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' }
       }
 
       const d = derivacion
@@ -392,7 +381,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               body: [[{
                 stack: [
                   esParticular
-                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 16, font: 'DancingScript', bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
+                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 13, italics: true, bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
                     : { text: ' ', margin: [0, 20, 0, 0] },
                   { text: 'Firma y Sello', fontSize: 7, color: '#ccc', bold: true, margin: [0, 6, 0, 0] }
                 ],
