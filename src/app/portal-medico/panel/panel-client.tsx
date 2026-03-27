@@ -266,11 +266,16 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       // @ts-ignore
       const { jsPDF } = await import('jspdf')
 
+      // A5 en px a 96dpi: 148mm = 559px, 210mm = 794px
+      const RENDER_W = 559
       const html = buildDerivacionHTML()
+        .replace('</head>', `<style>
+          html,body{width:${RENDER_W}px!important;max-width:${RENDER_W}px!important;margin:0!important;padding:8px!important}
+          .studies-list{columns:1!important}
+        </style></head>`)
 
-      // Renderizar en iframe oculto (mismo origen = html2canvas puede capturarlo)
       const iframe = document.createElement('iframe')
-      iframe.style.cssText = 'position:fixed;top:-99999px;left:0;width:650px;height:900px;border:none;visibility:hidden'
+      iframe.style.cssText = `position:fixed;top:-99999px;left:0;width:${RENDER_W}px;height:800px;border:none;visibility:hidden`
       document.body.appendChild(iframe)
 
       await new Promise<void>(resolve => {
@@ -278,28 +283,33 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         iframe.srcdoc = html
       })
 
-      // Esperar que los estilos/imágenes carguen
-      await new Promise(r => setTimeout(r, 800))
+      await new Promise(r => setTimeout(r, 1200))
 
-      const body = iframe.contentDocument?.body
-      if (!body) throw new Error('No se pudo acceder al contenido del iframe')
+      const iDoc = iframe.contentDocument
+      if (!iDoc) throw new Error('No se pudo acceder al iframe')
 
+      const body = iDoc.body
       const canvas = await html2canvas(body, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 650,
-        windowWidth: 650,
+        width: RENDER_W,
+        height: body.scrollHeight,
+        windowWidth: RENDER_W,
+        logging: false,
+        onclone: (clonedDoc: Document) => {
+          const b = clonedDoc.body
+          b.style.width = RENDER_W + 'px'
+          b.style.maxWidth = RENDER_W + 'px'
+        }
       })
 
       document.body.removeChild(iframe)
 
-      // A5 en mm: 148 x 210
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
-      const imgW = 148
-      const imgH = (canvas.height * imgW) / canvas.width
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, imgW, imgH)
+      const imgH = (canvas.height / canvas.width) * 148
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, imgH)
       pdf.save(`orden-${derivacion.pacienteApellido || 'paciente'}.pdf`)
       return
     } catch(_e) {}
