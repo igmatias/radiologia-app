@@ -321,7 +321,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         margin: [0, 0, 0, 6]
       })
 
-      const doc: any = {
+      const doc: any = { content: [{ text: 'TEST PDF - ' + d.pacienteApellido }] }
+      const docFull: any = {
         pageSize: 'A5',
         pageOrientation: 'portrait',
         pageMargins: [20, 20, 20, 20],
