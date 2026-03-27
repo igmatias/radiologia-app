@@ -261,34 +261,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const handleDownloadPDF = async () => {
     setLoadingPDF(true)
     try {
-      // @ts-ignore
-      const pdfMakeModule = await import('pdfmake/build/pdfmake')
-      // @ts-ignore
-      const pdfFontsModule = await import('pdfmake/build/vfs_fonts')
-      const pdfMake = (pdfMakeModule as any).default ?? pdfMakeModule
-      // vfs_fonts exporta directamente { 'Roboto-Regular.ttf': '...', ... }
-      const fm = pdfFontsModule as any
-      pdfMake.vfs = fm?.default?.['Roboto-Regular.ttf'] ? fm.default
-                  : fm?.['Roboto-Regular.ttf'] ? fm
-                  : {}
-
-      const [logoBlob] = await Promise.all([
-        fetch('/logo.png').then(r => r.blob()),
-      ])
-
-      // Logo simple base64
-      const logoBase64: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onerror = reject
-        reader.onload = () => resolve(reader.result as string)
-        reader.readAsDataURL(logoBlob)
-      })
-
-      // fonts — usar Roboto (ya en vfs)
-      pdfMake.fonts = {
-        Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' }
-      }
-
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib')
       const d = derivacion
       const esParticular = d.cobertura === 'particular'
       const todosEstudios = [
@@ -297,144 +270,184 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
           if (!proc) return null
           const cfg = derivacionConfig[procId] || {}
           let label = proc.name
-          if (cfg.teeth?.length) label += ` - Piezas: ${cfg.teeth.sort((a: number, b: number) => a - b).join(', ')}`
+          if (cfg.teeth?.length) label += ` - Piezas: ${cfg.teeth.sort((a: number,b: number) => a-b).join(', ')}`
           if (cfg.options?.length) label += ` - ${cfg.options.join(' / ')}`
           return label
         }).filter(Boolean),
         ...(d.otro.trim() ? [d.otro.trim()] : [])
       ] as string[]
 
-      const BRAND = '#BA2C66'
-      const GRAY = '#888888'
-      const DARK = '#1a1a1a'
+      const pdfDoc = await PDFDocument.create()
+      // A5 en puntos
+      const W = 419.53, H = 595.28
+      const page = pdfDoc.addPage([W, H])
+      const margin = 20
+      const cw = W - margin * 2
 
-      const sectionLabel = (text: string) => ({ text: text.toUpperCase(), fontSize: 7, bold: true, color: BRAND, characterSpacing: 1, margin: [0, 0, 0, 4] })
-      const fieldVal = (label: string, value: string) => ({
-        stack: [
-          { text: label.toUpperCase(), fontSize: 6.5, color: GRAY, bold: true },
-          { text: value || '-', fontSize: 9.5, bold: true, color: DARK, margin: [0, 1, 0, 0] }
-        ]
-      })
-      const sectionBox = (content: any) => ({
-        table: { widths: ['*'], body: [[{ stack: content, border: [true, true, true, true], borderColor: ['#eeeeee', '#eeeeee', '#eeeeee', '#eeeeee'], fillColor: '#fafafa', margin: [10, 8, 10, 8] }]] },
-        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#eeeeee', vLineColor: () => '#eeeeee' },
-        margin: [0, 0, 0, 6]
-      })
+      const fR  = await pdfDoc.embedFont(StandardFonts.Helvetica)
+      const fB  = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+      const fI  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+      const fBI = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
 
-      const doc: any = { content: [{ text: 'TEST PDF - ' + d.pacienteApellido }] }
-      const docFull: any = {
-        pageSize: 'A5',
-        pageOrientation: 'portrait',
-        pageMargins: [20, 20, 20, 20],
-        defaultStyle: { font: 'Roboto', fontSize: 9, color: DARK },
-        content: [
-          // HEADER
-          {
-            table: {
-              widths: ['*'],
-              body: [[{
-                columns: [
-                  { image: logoBase64, width: 38, margin: [0, 2, 6, 2] },
-                  { text: 'i-R Dental', fontSize: 14, bold: true, color: '#ffffff', margin: [0, 10, 0, 0], width: '*' },
-                  {
-                    stack: [
-                      { text: 'ORDEN DE DERIVACION', fontSize: 7.5, bold: true, color: '#fff', alignment: 'right' },
-                      {
-                        table: { widths: ['auto'], body: [[{ text: d.fecha, fontSize: 8.5, bold: true, color: '#fff', fillColor: '#9e2456', border: [false,false,false,false], margin: [6, 2, 6, 2] }]] },
-                        layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
-                        alignment: 'right',
-                        margin: [0, 3, 0, 0]
-                      }
-                    ],
-                    width: 'auto',
-                    margin: [0, 5, 0, 0]
-                  }
-                ],
-                fillColor: BRAND,
-                border: [false, false, false, false],
-                margin: [10, 8, 10, 8]
-              }]]
-            },
-            layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
-            margin: [0, 0, 0, 8]
-          },
-          // AVISO
-          { text: 'Atencion sin turno  -  Por orden de llegada', fontSize: 8, bold: true, color: '#b45309', alignment: 'center', margin: [0, 0, 0, 8] },
-          // PACIENTE
-          sectionBox([
-            sectionLabel('Paciente'),
-            { columns: [fieldVal('Apellido y Nombre', `${d.pacienteApellido}${d.pacienteApellido && d.pacienteNombre ? ', ' : ''}${d.pacienteNombre}`), fieldVal('DNI', d.dni)], columnGap: 8, margin: [0, 0, 0, 6] },
-            { columns: [fieldVal('Fecha de Nac.', d.fechaNacimiento), fieldVal('Cobertura', esParticular ? 'Particular' : d.obraSocial), ...(!esParticular ? [fieldVal('N° Afiliado', d.nroAfiliado)] : [])], columnGap: 8 }
-          ]),
-          // ESTUDIOS
-          sectionBox([
-            sectionLabel('Estudios Solicitados'),
-            todosEstudios.length > 0
-              ? { ul: todosEstudios, fontSize: 9.5, bold: true, color: DARK, margin: [4, 0, 0, 0] }
-              : { text: 'Sin estudios especificados', fontSize: 9, color: GRAY, italics: true }
-          ]),
-          // INDICACION
-          ...(d.indicacion.trim() ? [sectionBox([sectionLabel('Indicacion Clinica'), { text: d.indicacion, fontSize: 9.5 }])] : []),
-          // FIRMA
-          {
-            table: {
-              widths: ['*'],
-              body: [[{
-                stack: [
-                  esParticular
-                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 13, italics: true, bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
-                    : { text: ' ', margin: [0, 20, 0, 0] },
-                  { text: 'Firma y Sello', fontSize: 7, color: '#ccc', bold: true, margin: [0, 6, 0, 0] }
-                ],
-                border: [true, true, true, true],
-                margin: [10, 6, 10, 6]
-              }]]
-            },
-            layout: {
-              hLineWidth: () => 0.5, vLineWidth: () => 0.5,
-              hLineColor: () => '#ccc', vLineColor: () => '#ccc',
-              hLineStyle: () => ({ dash: { length: 4 } }), vLineStyle: () => ({ dash: { length: 4 } })
-            },
-            margin: [0, 4, 0, 10]
-          },
-          // FOOTER
-          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 397, y2: 0, lineWidth: 0.5, lineColor: '#eee' }], margin: [0, 0, 0, 6] },
-          {
-            columns: [
-              { stack: [{ text: 'Quilmes', fontSize: 8, bold: true, color: BRAND }, { text: 'Olavarria 88', fontSize: 7, color: GRAY }, { text: '4257-2950', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-5820-9986', fontSize: 7, color: BRAND }], alignment: 'center' },
-              { stack: [{ text: 'Avellaneda', fontSize: 8, bold: true, color: BRAND }, { text: '9 de Julio 64, 2do A', fontSize: 7, color: GRAY }, { text: '4201-1061', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-3865-7094', fontSize: 7, color: BRAND }], alignment: 'center' },
-              { stack: [{ text: 'Lomas de Zamora', fontSize: 8, bold: true, color: BRAND }, { text: 'Espana 156, PB', fontSize: 7, color: GRAY }, { text: '4244-0519', fontSize: 7.5, bold: true, color: BRAND }, { text: 'WA: 11-7044-2131', fontSize: 7, color: BRAND }], alignment: 'center' }
-            ],
-            columnGap: 4, margin: [0, 0, 0, 5]
-          },
-          { text: '0810.333.4507  -  info@irdental.com.ar', fontSize: 8, bold: true, color: BRAND, alignment: 'center', margin: [0, 0, 0, 2] },
-          { text: 'Lunes a Viernes: 9:00 a 17:30 hs  -  Sabados: 9:00 a 12:30 hs', fontSize: 7.5, bold: true, color: '#444', alignment: 'center' }
-        ]
+      const BRAND = rgb(186/255, 44/255, 102/255)
+      const BRAND_D = rgb(120/255, 20/255, 65/255)
+      const WHITE = rgb(1,1,1)
+      const DARK  = rgb(0.1,0.1,0.1)
+      const GRAY  = rgb(0.55,0.55,0.55)
+      const LGRAY = rgb(0.97,0.97,0.97)
+      const BGRAY = rgb(0.88,0.88,0.88)
+
+      // pdf-lib: (0,0) = bottom-left → helper y desde arriba
+      let curY = H  // cursor desde arriba
+      const py = (fromTop: number) => fromTop  // ya manejo desde arriba directamente
+
+      // ── HEADER ───────────────────────────────────────────
+      const hH = 58
+      page.drawRectangle({ x:0, y: H-hH, width:W, height:hH, color:BRAND })
+
+      // Logo
+      const logoBytes = await fetch('/logo.png').then(r => r.arrayBuffer())
+      const logoImg = await pdfDoc.embedPng(new Uint8Array(logoBytes))
+      const lH = 40, lW = logoImg.width*(lH/logoImg.height)
+      page.drawImage(logoImg, { x:margin, y:H-hH+(hH-lH)/2, width:lW, height:lH })
+
+      // i-R Dental
+      page.drawText('i-R Dental', { x:margin+lW+8, y:H-hH/2-4, size:15, font:fB, color:WHITE })
+
+      // ORDEN DE DERIVACION + fecha
+      const titleTxt = 'ORDEN DE DERIVACION'
+      const tW = fB.widthOfTextAtSize(titleTxt, 7.5)
+      page.drawText(titleTxt, { x:W-margin-tW, y:H-22, size:7.5, font:fB, color:WHITE })
+      const fechaTxt = d.fecha
+      const fW2 = fB.widthOfTextAtSize(fechaTxt, 9)+14
+      page.drawRectangle({ x:W-margin-fW2, y:H-22-18, width:fW2, height:16, color:BRAND_D })
+      page.drawText(fechaTxt, { x:W-margin-fW2+7, y:H-22-18+4, size:9, font:fB, color:WHITE })
+
+      curY = H - hH - 8
+
+      // ── AVISO ─────────────────────────────────────────────
+      const avisoTxt = 'Atencion sin turno  -  Por orden de llegada'
+      const aW = fB.widthOfTextAtSize(avisoTxt, 8)
+      page.drawText(avisoTxt, { x:(W-aW)/2, y:curY-10, size:8, font:fB, color:rgb(0.6,0.3,0) })
+      curY -= 22
+
+      // ── HELPER: sección con fondo ─────────────────────────
+      const drawSection = (label: string, lines: Array<{cols: Array<{lbl: string, val: string}> }>, extraH = 0) => {
+        const rowH = 18, labelH = 14, padV = 8, padH = 10
+        const totalH = labelH + lines.length * rowH + padV * 2 + extraH
+        page.drawRectangle({ x:margin, y:curY-totalH, width:cw, height:totalH, color:LGRAY })
+        page.drawRectangle({ x:margin, y:curY-totalH, width:cw, height:totalH, borderColor:BGRAY, borderWidth:0.5 })
+        page.drawText(label.toUpperCase(), { x:margin+padH, y:curY-padV-10, size:7, font:fB, color:BRAND })
+        let rowY = curY - padV - labelH
+        for (const row of lines) {
+          const colW = cw / row.cols.length
+          row.cols.forEach((col, i) => {
+            const cx = margin + padH + i * colW
+            page.drawText(col.lbl.toUpperCase(), { x:cx, y:rowY-2, size:6.5, font:fB, color:GRAY })
+            page.drawText(col.val || '-', { x:cx, y:rowY-13, size:9.5, font:fB, color:DARK })
+          })
+          rowY -= rowH
+        }
+        curY -= totalH + 6
       }
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout: pdfmake no respondió. VFS keys: ' + Object.keys(pdfMake.vfs||{}).length)), 10000)
-        try {
-          pdfMake.createPdf(doc).getBase64((data: string) => {
-            clearTimeout(timeout)
-            try {
-              const bytes = atob(data)
-              const arr = new Uint8Array(bytes.length)
-              for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
-              const blob = new Blob([arr], { type: 'application/pdf' })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = `orden-${d.pacienteApellido || 'paciente'}.pdf`
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              setTimeout(() => URL.revokeObjectURL(url), 2000)
-              resolve()
-            } catch(e2) { reject(e2) }
-          })
-        } catch(e3) { reject(e3) }
+      // ── PACIENTE ──────────────────────────────────────────
+      drawSection('Paciente', [
+        { cols: [{ lbl:'Apellido y Nombre', val:`${d.pacienteApellido}${d.pacienteApellido&&d.pacienteNombre?', ':''}${d.pacienteNombre}` }, { lbl:'DNI', val:d.dni }] },
+        { cols: esParticular
+          ? [{ lbl:'Fecha de Nac.', val:d.fechaNacimiento }, { lbl:'Cobertura', val:'Particular' }]
+          : [{ lbl:'Fecha de Nac.', val:d.fechaNacimiento }, { lbl:'Cobertura', val:d.obraSocial }, { lbl:'N° Afiliado', val:d.nroAfiliado }]
+        }
+      ])
+
+      // ── ESTUDIOS ──────────────────────────────────────────
+      const estH = todosEstudios.length * 13
+      const estTotalH = 14 + estH + 16 + 6
+      page.drawRectangle({ x:margin, y:curY-estTotalH, width:cw, height:estTotalH, color:LGRAY })
+      page.drawRectangle({ x:margin, y:curY-estTotalH, width:cw, height:estTotalH, borderColor:BGRAY, borderWidth:0.5 })
+      page.drawText('ESTUDIOS SOLICITADOS', { x:margin+10, y:curY-14, size:7, font:fB, color:BRAND })
+      todosEstudios.forEach((est, i) => {
+        page.drawText(`• ${est}`, { x:margin+14, y:curY-26-i*13, size:9, font:fB, color:DARK })
       })
+      curY -= estTotalH + 6
+
+      // ── INDICACION ────────────────────────────────────────
+      if (d.indicacion.trim()) {
+        const indH = 40
+        page.drawRectangle({ x:margin, y:curY-indH, width:cw, height:indH, color:LGRAY })
+        page.drawRectangle({ x:margin, y:curY-indH, width:cw, height:indH, borderColor:BGRAY, borderWidth:0.5 })
+        page.drawText('INDICACION CLINICA', { x:margin+10, y:curY-14, size:7, font:fB, color:BRAND })
+        page.drawText(d.indicacion.substring(0,80), { x:margin+10, y:curY-28, size:9, font:fR, color:DARK })
+        curY -= indH + 6
+      }
+
+      // ── FIRMA Y SELLO ─────────────────────────────────────
+      const firmaH = 55
+      // dashed box simulado con rectángulos pequeños
+      const dashLen = 4, gap = 3
+      const drawDashed = (x1: number, y1: number, x2: number, y2: number) => {
+        const dx = x2-x1, dy = y2-y1, len = Math.sqrt(dx*dx+dy*dy)
+        const nx = dx/len, ny = dy/len
+        let pos = 0
+        while (pos < len) {
+          const end = Math.min(pos+dashLen, len)
+          page.drawLine({ start:{x:x1+nx*pos, y:y1+ny*pos}, end:{x:x1+nx*end, y:y1+ny*end}, thickness:0.5, color:BGRAY })
+          pos += dashLen + gap
+        }
+      }
+      const fx = margin, fy = curY-firmaH, fw = cw, fh = firmaH
+      drawDashed(fx, fy+fh, fx+fw, fy+fh)
+      drawDashed(fx+fw, fy+fh, fx+fw, fy)
+      drawDashed(fx+fw, fy, fx, fy)
+      drawDashed(fx, fy, fx, fy+fh)
+
+      if (esParticular) {
+        const nombre = `${dentist.lastName}, ${dentist.firstName}`
+        const nW = fBI.widthOfTextAtSize(nombre, 13)
+        page.drawText(nombre, { x:W-margin-nW-10, y:curY-22, size:13, font:fBI, color:DARK })
+        if (dentist.matriculaProv) page.drawText(`MP: ${dentist.matriculaProv}`, { x:W-margin-60, y:curY-36, size:8, font:fR, color:GRAY })
+        if (dentist.matriculaNac)  page.drawText(`MN: ${dentist.matriculaNac}`,  { x:W-margin-60, y:curY-46, size:8, font:fR, color:GRAY })
+      }
+      page.drawText('Firma y Sello', { x:margin+8, y:fy+6, size:7, font:fB, color:BGRAY })
+      curY -= firmaH + 10
+
+      // ── FOOTER ────────────────────────────────────────────
+      page.drawLine({ start:{x:margin, y:curY}, end:{x:W-margin, y:curY}, thickness:0.5, color:BGRAY })
+      curY -= 10
+
+      const sedes = [
+        { n:'Quilmes',        d:'Olavarria 88',         t:'4257-2950',  wa:'WA: 11-5820-9986'  },
+        { n:'Avellaneda',     d:'9 de Julio 64, 2do A', t:'4201-1061',  wa:'WA: 11-3865-7094'  },
+        { n:'Lomas de Zamora',d:'Espana 156, PB',        t:'4244-0519',  wa:'WA: 11-7044-2131'  },
+      ]
+      const colW3 = cw/3
+      sedes.forEach((s, i) => {
+        const cx = margin + i*colW3 + colW3/2
+        const center = (txt: string, font: any, size: number) => cx - font.widthOfTextAtSize(txt, size)/2
+        page.drawText(s.n, { x:center(s.n,fB,8), y:curY-8,  size:8,   font:fB, color:BRAND })
+        page.drawText(s.d, { x:center(s.d,fR,7), y:curY-17, size:7,   font:fR, color:GRAY  })
+        page.drawText(s.t, { x:center(s.t,fB,8), y:curY-26, size:8,   font:fB, color:BRAND })
+        page.drawText(s.wa,{ x:center(s.wa,fR,7),y:curY-35, size:7,   font:fR, color:BRAND })
+      })
+      curY -= 44
+
+      const tel = '0810.333.4507  -  info@irdental.com.ar'
+      page.drawText(tel, { x:(W-fB.widthOfTextAtSize(tel,8))/2, y:curY-8, size:8, font:fB, color:BRAND })
+      const hor = 'Lunes a Viernes: 9:00 a 17:30 hs  -  Sabados: 9:00 a 12:30 hs'
+      page.drawText(hor, { x:(W-fB.widthOfTextAtSize(hor,7.5))/2, y:curY-18, size:7.5, font:fB, color:DARK })
+
+      // ── DESCARGAR ─────────────────────────────────────────
+      const pdfBytes = await pdfDoc.save()
+      const blob = new Blob([pdfBytes as Uint8Array], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `orden-${d.pacienteApellido || 'paciente'}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+
     } catch (e: any) {
       console.error('PDF ERROR:', e)
       toast.error(`Error: ${e?.message || String(e)}`)
