@@ -272,40 +272,20 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                   : fm?.['Roboto-Regular.ttf'] ? fm
                   : {}
 
-      const [logoBlob, svgText, fontBuffer] = await Promise.all([
+      const [logoBlob, fontBuffer] = await Promise.all([
         fetch('/logo.png').then(r => r.blob()),
-        fetch('/irdental.svg').then(r => r.text()),
         fetch('/fonts/DancingScript-Bold.ttf').then(r => r.arrayBuffer()),
       ])
 
-      // Logo con sombra pre-procesada en canvas
+      // Logo simple base64
       const logoBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onerror = reject
-        reader.onload = () => {
-          const img = new Image()
-          img.onerror = reject
-          img.onload = () => {
-            try {
-              const pad = 18
-              const cvs = document.createElement('canvas')
-              cvs.width = img.width + pad * 2
-              cvs.height = img.height + pad * 2
-              const ctx = cvs.getContext('2d')!
-              ctx.shadowColor = 'rgba(0,0,0,0.55)'
-              ctx.shadowBlur = 14
-              ctx.shadowOffsetX = 3
-              ctx.shadowOffsetY = 4
-              ctx.drawImage(img, pad, pad)
-              resolve(cvs.toDataURL('image/png'))
-            } catch(e) { reject(e) }
-          }
-          img.src = reader.result as string
-        }
+        reader.onload = () => resolve(reader.result as string)
         reader.readAsDataURL(logoBlob)
       })
 
-      // Dancing Script font — btoa chunkeado para evitar stack overflow con arrays grandes
+      // Dancing Script font
       const fontBytes = new Uint8Array(fontBuffer)
       let fontBinary = ''
       const CHUNK = 1024
@@ -313,15 +293,12 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         fontBinary += String.fromCharCode(...fontBytes.subarray(i, i + CHUNK))
       }
       const fontBase64 = btoa(fontBinary)
+      if (!pdfMake.vfs) pdfMake.vfs = {}
       pdfMake.vfs['DancingScript-Bold.ttf'] = fontBase64
       pdfMake.fonts = {
-        Roboto: (pdfMake.fonts || {}).Roboto || { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' },
+        Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' },
         DancingScript: { normal: 'DancingScript-Bold.ttf', bold: 'DancingScript-Bold.ttf', italics: 'DancingScript-Bold.ttf', bolditalics: 'DancingScript-Bold.ttf' }
       }
-      // pdfmake necesita fill inline (no CSS classes)
-      const irdentalSvg = svgText
-        .replace(/<defs>[\s\S]*?<\/defs>/g, '')
-        .replace(/class="st0"/g, 'fill="#ffffff"')
 
       const d = derivacion
       const esParticular = d.cobertura === 'particular'
@@ -368,7 +345,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               body: [[{
                 columns: [
                   { image: logoBase64, width: 38, margin: [0, 2, 6, 2] },
-                  { svg: irdentalSvg, fit: [90, 15], margin: [0, 10, 0, 0], width: '*' },
+                  { text: 'i-R Dental', fontSize: 14, bold: true, color: '#ffffff', margin: [0, 10, 0, 0], width: '*' },
                   {
                     stack: [
                       { text: 'ORDEN DE DERIVACION', fontSize: 7.5, bold: true, color: '#fff', alignment: 'right' },
@@ -446,8 +423,10 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       }
 
       await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Timeout: pdfmake no respondió. VFS keys: ' + Object.keys(pdfMake.vfs||{}).length)), 10000)
         try {
           pdfMake.createPdf(doc).getBase64((data: string) => {
+            clearTimeout(timeout)
             try {
               const bytes = atob(data)
               const arr = new Uint8Array(bytes.length)
