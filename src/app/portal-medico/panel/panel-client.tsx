@@ -261,6 +261,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const handleDownloadPDF = async () => {
     setLoadingPDF(true)
     try {
+      // @ts-ignore
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib')
       const d = derivacion
       const esParticular = d.cobertura === 'particular'
