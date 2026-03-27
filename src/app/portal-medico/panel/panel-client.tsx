@@ -302,9 +302,21 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       let curY = H  // cursor desde arriba
       const py = (fromTop: number) => fromTop  // ya manejo desde arriba directamente
 
+      // Helper: rectángulo con esquinas redondeadas via SVG path
+      const drawRounded = (x: number, y: number, w: number, h: number, r: number, color: any, onlyBottomRound = false) => {
+        let path: string
+        if (onlyBottomRound) {
+          // esquinas redondeadas solo abajo
+          path = `M ${x} ${y+h} L ${x+w} ${y+h} L ${x+w} ${y+r} Q ${x+w} ${y} ${x+w-r} ${y} L ${x+r} ${y} Q ${x} ${y} ${x} ${y+r} Z`
+        } else {
+          path = `M ${x+r} ${y+h} L ${x+w-r} ${y+h} Q ${x+w} ${y+h} ${x+w} ${y+h-r} L ${x+w} ${y+r} Q ${x+w} ${y} ${x+w-r} ${y} L ${x+r} ${y} Q ${x} ${y} ${x} ${y+r} L ${x} ${y+h-r} Q ${x} ${y+h} ${x+r} ${y+h} Z`
+        }
+        page.drawSvgPath(path, { color })
+      }
+
       // ── HEADER ───────────────────────────────────────────
-      const hH = 58
-      page.drawRectangle({ x:0, y: H-hH, width:W, height:hH, color:BRAND })
+      const hH = 62
+      drawRounded(0, H-hH, W, hH, 14, BRAND, true)
 
       // Logo con sombra via canvas
       const logoWithShadow: string = await new Promise((resolve, reject) => {
@@ -329,16 +341,16 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const lH = 44, lW = logoImg.width*(lH/logoImg.height)
       page.drawImage(logoImg, { x:margin, y:H-hH+(hH-lH)/2, width:lW, height:lH })
 
-      // irdental.svg renderizado a canvas → PNG blanco sobre transparente
-      const irdentalPng: string = await new Promise((resolve, reject) => {
+      // irdental.svg → canvas con fondo transparente (viewBox 192x32, fill:#fff)
+      const irdentalPng: string = await new Promise((resolve) => {
         const img = new Image()
-        img.crossOrigin = 'anonymous'
         img.onerror = () => resolve('')
         img.onload = () => {
-          const scale = 3
+          const scale = 4
           const cvs = document.createElement('canvas')
-          cvs.width = img.naturalWidth * scale; cvs.height = img.naturalHeight * scale
+          cvs.width = 192 * scale; cvs.height = 33 * scale
           const ctx = cvs.getContext('2d')!
+          // fondo transparente (default) — paths blancos quedarán visibles sobre header rosa en PDF
           ctx.drawImage(img, 0, 0, cvs.width, cvs.height)
           resolve(cvs.toDataURL('image/png'))
         }
@@ -358,9 +370,10 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const tW = fB.widthOfTextAtSize(titleTxt, 7.5)
       page.drawText(titleTxt, { x:W-margin-tW, y:H-22, size:7.5, font:fB, color:WHITE })
       const fechaTxt = d.fecha
-      const fW2 = fB.widthOfTextAtSize(fechaTxt, 9)+14
-      page.drawRectangle({ x:W-margin-fW2, y:H-22-18, width:fW2, height:16, color:BRAND_D })
-      page.drawText(fechaTxt, { x:W-margin-fW2+7, y:H-22-18+4, size:9, font:fB, color:WHITE })
+      const fW2 = fB.widthOfTextAtSize(fechaTxt, 9)+16
+      const fBoxH = 17, fBoxY = H-22-fBoxH-3
+      drawRounded(W-margin-fW2, fBoxY, fW2, fBoxH, 4, BRAND_D)
+      page.drawText(fechaTxt, { x:W-margin-fW2+8, y:fBoxY+4, size:9, font:fB, color:WHITE })
 
       curY = H - hH - 8
 
@@ -463,17 +476,17 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       sedes.forEach((s, i) => {
         const cx = margin + i*colW3 + colW3/2
         const center = (txt: string, font: any, size: number) => cx - font.widthOfTextAtSize(txt, size)/2
-        page.drawText(s.n, { x:center(s.n,fB,8), y:curY-8,  size:8,   font:fB, color:BRAND })
-        page.drawText(s.d, { x:center(s.d,fR,7), y:curY-17, size:7,   font:fR, color:GRAY  })
-        page.drawText(s.t, { x:center(s.t,fB,8), y:curY-26, size:8,   font:fB, color:BRAND })
-        page.drawText(s.wa,{ x:center(s.wa,fR,7),y:curY-35, size:7,   font:fR, color:BRAND })
+        page.drawText(s.n, { x:center(s.n,fB,9.5), y:curY-10, size:9.5, font:fB, color:BRAND })
+        page.drawText(s.d, { x:center(s.d,fR,8),   y:curY-21, size:8,   font:fR, color:GRAY  })
+        page.drawText(s.t, { x:center(s.t,fB,9.5), y:curY-32, size:9.5, font:fB, color:BRAND })
+        page.drawText(s.wa,{ x:center(s.wa,fR,8),  y:curY-43, size:8,   font:fR, color:BRAND })
       })
-      curY -= 44
+      curY -= 54
 
       const tel = '0810.333.4507  -  info@irdental.com.ar'
-      page.drawText(tel, { x:(W-fB.widthOfTextAtSize(tel,8))/2, y:curY-8, size:8, font:fB, color:BRAND })
+      page.drawText(tel, { x:(W-fB.widthOfTextAtSize(tel,9))/2, y:curY-9, size:9, font:fB, color:BRAND })
       const hor = 'Lunes a Viernes: 9:00 a 17:30 hs  -  Sabados: 9:00 a 12:30 hs'
-      page.drawText(hor, { x:(W-fB.widthOfTextAtSize(hor,7.5))/2, y:curY-18, size:7.5, font:fB, color:DARK })
+      page.drawText(hor, { x:(W-fB.widthOfTextAtSize(hor,8.5))/2, y:curY-20, size:8.5, font:fB, color:DARK })
 
       // ── DESCARGAR ─────────────────────────────────────────
       const pdfBytes = await pdfDoc.save()
