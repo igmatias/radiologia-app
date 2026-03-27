@@ -275,30 +275,40 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       ])
 
       // Logo con sombra pre-procesada en canvas
-      const logoBase64: string = await new Promise(resolve => {
+      const logoBase64: string = await new Promise((resolve, reject) => {
         const reader = new FileReader()
+        reader.onerror = reject
         reader.onload = () => {
           const img = new Image()
+          img.onerror = reject
           img.onload = () => {
-            const pad = 18
-            const cvs = document.createElement('canvas')
-            cvs.width = img.width + pad * 2
-            cvs.height = img.height + pad * 2
-            const ctx = cvs.getContext('2d')!
-            ctx.shadowColor = 'rgba(0,0,0,0.55)'
-            ctx.shadowBlur = 14
-            ctx.shadowOffsetX = 3
-            ctx.shadowOffsetY = 4
-            ctx.drawImage(img, pad, pad)
-            resolve(cvs.toDataURL('image/png'))
+            try {
+              const pad = 18
+              const cvs = document.createElement('canvas')
+              cvs.width = img.width + pad * 2
+              cvs.height = img.height + pad * 2
+              const ctx = cvs.getContext('2d')!
+              ctx.shadowColor = 'rgba(0,0,0,0.55)'
+              ctx.shadowBlur = 14
+              ctx.shadowOffsetX = 3
+              ctx.shadowOffsetY = 4
+              ctx.drawImage(img, pad, pad)
+              resolve(cvs.toDataURL('image/png'))
+            } catch(e) { reject(e) }
           }
           img.src = reader.result as string
         }
         reader.readAsDataURL(logoBlob)
       })
 
-      // Dancing Script font para firma
-      const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(fontBuffer)))
+      // Dancing Script font — btoa chunkeado para evitar stack overflow con arrays grandes
+      const fontBytes = new Uint8Array(fontBuffer)
+      let fontBinary = ''
+      const CHUNK = 1024
+      for (let i = 0; i < fontBytes.length; i += CHUNK) {
+        fontBinary += String.fromCharCode(...fontBytes.subarray(i, i + CHUNK))
+      }
+      const fontBase64 = btoa(fontBinary)
       pdfMake.vfs['DancingScript-Bold.ttf'] = fontBase64
       pdfMake.fonts = {
         Roboto: (pdfMake.fonts || {}).Roboto || { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' },
