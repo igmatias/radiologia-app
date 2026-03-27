@@ -68,28 +68,33 @@ export default function ResultadosClient() {
                 <div className="mx-auto bg-brand-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-3 border-2 border-brand-100">
                   <ShieldCheck size={28} className="text-brand-600" />
                 </div>
-                <h1 className="text-2xl font-black uppercase text-slate-900 tracking-tighter">Verificá tu identidad</h1>
-                <p className="text-xs font-bold text-slate-400 leading-relaxed">
-                  Por privacidad médica, ingresá tu DNI para acceder a tus estudios.
+                <h1 className="text-xl font-black text-slate-900 tracking-tight">Verificá tu identidad</h1>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Ingresá tu DNI para acceder a tus estudios de forma segura.
                 </p>
               </div>
 
               <form onSubmit={handleVerify} className="space-y-4">
-                <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
-                  <Input
-                    type="number"
-                    placeholder="Número de DNI"
-                    value={dni}
-                    onChange={(e) => setDni(e.target.value)}
-                    className="h-14 pl-11 text-center font-black text-xl tracking-widest border-2 focus-visible:ring-brand-600 focus-visible:border-brand-400 bg-slate-50 rounded-xl"
-                    autoFocus
-                  />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 pl-1">Número de DNI</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="Ej: 35123456"
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value.replace(/\D/g, ""))}
+                      className="h-13 pl-11 text-base font-semibold border-2 focus-visible:ring-brand-600 focus-visible:border-brand-400 bg-slate-50 rounded-xl placeholder:text-slate-300"
+                      autoFocus
+                    />
+                  </div>
                 </div>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-13 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase rounded-xl shadow-lg transition-all text-sm border-b-4 border-brand-800 active:border-b-0 active:translate-y-px"
+                  className="w-full h-13 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase rounded-xl shadow-lg transition-all text-sm border-b-4 border-brand-800 active:border-b-0 active:translate-y-px"
                 >
                   {loading ? "Verificando..." : "Acceder a mis estudios"}
                 </Button>
@@ -98,11 +103,11 @@ export default function ResultadosClient() {
           </Card>
 
           <div className="text-center space-y-1.5">
-            <p className="text-xs text-neutral-500 font-semibold">¿Problemas para acceder?</p>
-            <a href="tel:08103334507" className="block text-base font-black text-brand-400 hover:text-brand-300 tracking-wider transition-colors">
-              0810.333.4507
+            <p className="text-xs text-neutral-500">¿Problemas para acceder?</p>
+            <a href="tel:08103334507" className="block text-base font-bold text-brand-400 hover:text-brand-300 tracking-wider transition-colors">
+              0810 333 4507
             </a>
-            <a href="mailto:info@irdental.com.ar" className="block text-sm font-bold text-neutral-500 hover:text-brand-400 transition-colors">
+            <a href="mailto:info@irdental.com.ar" className="block text-xs text-neutral-500 hover:text-brand-400 transition-colors">
               info@irdental.com.ar
             </a>
           </div>
