@@ -442,9 +442,9 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       }
 
       pdfMake.createPdf(doc).download(`orden-${d.pacienteApellido || 'paciente'}.pdf`)
-    } catch (e) {
-      console.error(e)
-      toast.error('No se pudo generar el PDF')
+    } catch (e: any) {
+      console.error('PDF ERROR:', e)
+      toast.error(`Error: ${e?.message || String(e)}`)
     } finally {
       setLoadingPDF(false)
     }
