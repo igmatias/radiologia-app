@@ -268,13 +268,19 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const pdfMake = (pdfMakeModule as any).default ?? pdfMakeModule
       pdfMake.vfs = (pdfFontsModule as any).default?.pdfMake?.vfs ?? (pdfFontsModule as any).pdfMake?.vfs
 
-      const logoRes = await fetch('/logo.png')
-      const logoBlob = await logoRes.blob()
+      const [logoBlob, svgText] = await Promise.all([
+        fetch('/logo.png').then(r => r.blob()),
+        fetch('/irdental.svg').then(r => r.text()),
+      ])
       const logoBase64: string = await new Promise(resolve => {
         const reader = new FileReader()
         reader.onload = () => resolve(reader.result as string)
         reader.readAsDataURL(logoBlob)
       })
+      // pdfmake necesita fill inline (no CSS classes)
+      const irdentalSvg = svgText
+        .replace(/<defs>[\s\S]*?<\/defs>/g, '')
+        .replace(/class="st0"/g, 'fill="#ffffff"')
 
       const d = derivacion
       const esParticular = d.cobertura === 'particular'
@@ -303,8 +309,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         ]
       })
       const sectionBox = (content: any) => ({
-        table: { widths: ['*'], body: [[{ stack: content, border: [false, false, false, false], fillColor: '#fafafa', margin: [10, 8, 10, 8] }]] },
-        layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
+        table: { widths: ['*'], body: [[{ stack: content, border: [true, true, true, true], borderColor: ['#eeeeee', '#eeeeee', '#eeeeee', '#eeeeee'], fillColor: '#fafafa', margin: [10, 8, 10, 8] }]] },
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#eeeeee', vLineColor: () => '#eeeeee' },
         margin: [0, 0, 0, 6]
       })
 
@@ -320,15 +326,20 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               widths: ['*'],
               body: [[{
                 columns: [
-                  { image: logoBase64, width: 40, margin: [0, 0, 8, 0] },
-                  { text: 'i-R Dental', fontSize: 16, bold: true, color: '#fff', margin: [0, 8, 0, 0], width: '*' },
+                  { image: logoBase64, width: 38, margin: [0, 2, 6, 2] },
+                  { svg: irdentalSvg, fit: [90, 15], margin: [0, 10, 0, 0], width: '*' },
                   {
                     stack: [
-                      { text: 'ORDEN DE DERIVACION', fontSize: 8, bold: true, color: '#fff', alignment: 'right' },
-                      { text: d.fecha, fontSize: 9, bold: true, color: '#fff', alignment: 'right', margin: [0, 3, 0, 0] }
+                      { text: 'ORDEN DE DERIVACION', fontSize: 7.5, bold: true, color: '#fff', alignment: 'right' },
+                      {
+                        table: { widths: ['auto'], body: [[{ text: d.fecha, fontSize: 8.5, bold: true, color: '#fff', fillColor: '#9e2456', border: [false,false,false,false], margin: [6, 2, 6, 2] }]] },
+                        layout: { hLineWidth: () => 0, vLineWidth: () => 0 },
+                        alignment: 'right',
+                        margin: [0, 3, 0, 0]
+                      }
                     ],
                     width: 'auto',
-                    margin: [0, 6, 0, 0]
+                    margin: [0, 5, 0, 0]
                   }
                 ],
                 fillColor: BRAND,
