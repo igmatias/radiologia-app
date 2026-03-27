@@ -302,21 +302,15 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       let curY = H  // cursor desde arriba
       const py = (fromTop: number) => fromTop  // ya manejo desde arriba directamente
 
-      // Helper: rectángulo con esquinas redondeadas via SVG path
-      const drawRounded = (x: number, y: number, w: number, h: number, r: number, color: any, onlyBottomRound = false) => {
-        let path: string
-        if (onlyBottomRound) {
-          // esquinas redondeadas solo abajo
-          path = `M ${x} ${y+h} L ${x+w} ${y+h} L ${x+w} ${y+r} Q ${x+w} ${y} ${x+w-r} ${y} L ${x+r} ${y} Q ${x} ${y} ${x} ${y+r} Z`
-        } else {
-          path = `M ${x+r} ${y+h} L ${x+w-r} ${y+h} Q ${x+w} ${y+h} ${x+w} ${y+h-r} L ${x+w} ${y+r} Q ${x+w} ${y} ${x+w-r} ${y} L ${x+r} ${y} Q ${x} ${y} ${x} ${y+r} L ${x} ${y+h-r} Q ${x} ${y+h} ${x+r} ${y+h} Z`
-        }
-        page.drawSvgPath(path, { color })
-      }
-
       // ── HEADER ───────────────────────────────────────────
       const hH = 62
-      drawRounded(0, H-hH, W, hH, 14, BRAND, true)
+      page.drawRectangle({ x:0, y:H-hH, width:W, height:hH, color:BRAND })
+      // Esquinas redondeadas solo abajo: dos arcos blancos en esquinas inferiores
+      page.drawEllipse({ x:14, y:H-hH, xScale:14, yScale:14, color:rgb(1,1,1) })
+      page.drawEllipse({ x:W-14, y:H-hH, xScale:14, yScale:14, color:rgb(1,1,1) })
+      // Tapar los cuartos superiores de los círculos (para dejar solo el efecto esquina)
+      page.drawRectangle({ x:0, y:H-hH, width:28, height:14, color:BRAND })
+      page.drawRectangle({ x:W-28, y:H-hH, width:28, height:14, color:BRAND })
 
       // Logo con sombra via canvas
       const logoWithShadow: string = await new Promise((resolve, reject) => {
@@ -372,7 +366,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const fechaTxt = d.fecha
       const fW2 = fB.widthOfTextAtSize(fechaTxt, 9)+16
       const fBoxH = 17, fBoxY = H-22-fBoxH-3
-      drawRounded(W-margin-fW2, fBoxY, fW2, fBoxH, 4, BRAND_D)
+      page.drawRectangle({ x:W-margin-fW2, y:fBoxY, width:fW2, height:fBoxH, color:BRAND_D })
       page.drawText(fechaTxt, { x:W-margin-fW2+8, y:fBoxY+4, size:9, font:fB, color:WHITE })
 
       curY = H - hH - 8
@@ -453,13 +447,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       drawDashed(fx+fw, fy, fx, fy)
       drawDashed(fx, fy, fx, fy+fh)
 
-      if (esParticular) {
-        const nombre = `${dentist.lastName}, ${dentist.firstName}`
-        const nW = fBI.widthOfTextAtSize(nombre, 13)
-        page.drawText(nombre, { x:W-margin-nW-10, y:curY-22, size:13, font:fBI, color:DARK })
-        if (dentist.matriculaProv) page.drawText(`MP: ${dentist.matriculaProv}`, { x:W-margin-60, y:curY-36, size:8, font:fR, color:GRAY })
-        if (dentist.matriculaNac)  page.drawText(`MN: ${dentist.matriculaNac}`,  { x:W-margin-60, y:curY-46, size:8, font:fR, color:GRAY })
-      }
+      const nombre = `${dentist.lastName}, ${dentist.firstName}`
+      const nW = fBI.widthOfTextAtSize(nombre, 15)
+      page.drawText(nombre, { x:W-margin-nW-10, y:curY-20, size:15, font:fBI, color:DARK })
+      if (dentist.matriculaProv) page.drawText(`MP: ${dentist.matriculaProv}`, { x:W-margin-70, y:curY-34, size:8.5, font:fR, color:GRAY })
+      if (dentist.matriculaNac)  page.drawText(`MN: ${dentist.matriculaNac}`,  { x:W-margin-70, y:curY-45, size:8.5, font:fR, color:GRAY })
       page.drawText('Firma y Sello', { x:margin+8, y:fy+6, size:7, font:fB, color:BGRAY })
       curY -= firmaH + 10
 
@@ -468,18 +460,28 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       curY -= 10
 
       const sedes = [
-        { n:'Quilmes',        d:'Olavarria 88',         t:'4257-2950',  wa:'WA: 11-5820-9986'  },
-        { n:'Avellaneda',     d:'9 de Julio 64, 2do A', t:'4201-1061',  wa:'WA: 11-3865-7094'  },
-        { n:'Lomas de Zamora',d:'Espana 156, PB',        t:'4244-0519',  wa:'WA: 11-7044-2131'  },
+        { n:'Quilmes',        d:'Olavarria 88',         t:'4257-2950',  wa:'11-5820-9986'  },
+        { n:'Avellaneda',     d:'9 de Julio 64, 2do A', t:'4201-1061',  wa:'11-3865-7094'  },
+        { n:'Lomas de Zamora',d:'Espana 156, PB',        t:'4244-0519',  wa:'11-7044-2131'  },
       ]
       const colW3 = cw/3
+      // Icono WhatsApp: círculo brand + "W" blanco
+      const drawWAIcon = (cx: number, y: number) => {
+        const r = 5
+        page.drawEllipse({ x:cx, y:y+r/2, xScale:r, yScale:r, color:BRAND })
+        page.drawText('W', { x:cx-fB.widthOfTextAtSize('W',6)/2, y:y+1, size:6, font:fB, color:WHITE })
+      }
       sedes.forEach((s, i) => {
         const cx = margin + i*colW3 + colW3/2
         const center = (txt: string, font: any, size: number) => cx - font.widthOfTextAtSize(txt, size)/2
-        page.drawText(s.n, { x:center(s.n,fB,9.5), y:curY-10, size:9.5, font:fB, color:BRAND })
-        page.drawText(s.d, { x:center(s.d,fR,8),   y:curY-21, size:8,   font:fR, color:GRAY  })
-        page.drawText(s.t, { x:center(s.t,fB,9.5), y:curY-32, size:9.5, font:fB, color:BRAND })
-        page.drawText(s.wa,{ x:center(s.wa,fR,8),  y:curY-43, size:8,   font:fR, color:BRAND })
+        page.drawText(s.n, { x:center(s.n,fB,10), y:curY-10, size:10, font:fB, color:BRAND })
+        page.drawText(s.d, { x:center(s.d,fR,9),  y:curY-21, size:9,  font:fR, color:GRAY  })
+        page.drawText(s.t, { x:center(s.t,fB,10), y:curY-32, size:10, font:fB, color:BRAND })
+        // WhatsApp: icono + número
+        const waW = fR.widthOfTextAtSize(s.wa, 8.5)
+        const waX = cx - (waW + 14)/2
+        drawWAIcon(waX + 5, curY-44)
+        page.drawText(s.wa, { x:waX+14, y:curY-44, size:8.5, font:fR, color:BRAND })
       })
       curY -= 54
 
