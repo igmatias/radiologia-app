@@ -266,7 +266,11 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       // @ts-ignore
       const pdfFontsModule = await import('pdfmake/build/vfs_fonts')
       const pdfMake = (pdfMakeModule as any).default ?? pdfMakeModule
-      pdfMake.vfs = (pdfFontsModule as any).default?.pdfMake?.vfs ?? (pdfFontsModule as any).pdfMake?.vfs
+      const vfsData = (pdfFontsModule as any).default?.pdfMake?.vfs
+                   ?? (pdfFontsModule as any).pdfMake?.vfs
+                   ?? (pdfFontsModule as any).default?.vfs
+                   ?? {}
+      pdfMake.vfs = vfsData
 
       const [logoBlob, svgText, fontBuffer] = await Promise.all([
         fetch('/logo.png').then(r => r.blob()),
