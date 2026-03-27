@@ -270,8 +270,10 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const RENDER_W = 559
       const html = buildDerivacionHTML()
         .replace('</head>', `<style>
-          html,body{width:${RENDER_W}px!important;max-width:${RENDER_W}px!important;margin:0!important;padding:8px!important}
+          html,body{width:${RENDER_W}px!important;max-width:${RENDER_W}px!important;margin:0!important;padding:6px!important;overflow:visible!important}
+          .field .value{background:transparent!important;border:none!important;border-bottom:1px solid #ddd!important;border-radius:0!important;padding:1px 4px!important;min-height:auto!important}
           .studies-list{columns:1!important}
+          *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
         </style></head>`)
 
       const iframe = document.createElement('iframe')
@@ -293,21 +295,18 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const iDoc = iframe.contentDocument
       if (!iDoc) throw new Error('No se pudo acceder al iframe')
 
-      const body = iDoc.body
-      const canvas = await html2canvas(body, {
+      const docEl = iDoc.documentElement
+      const totalH = Math.max(docEl.scrollHeight, iDoc.body.scrollHeight) + 40
+      const canvas = await html2canvas(iDoc.body, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         width: RENDER_W,
-        height: body.scrollHeight,
+        height: totalH,
         windowWidth: RENDER_W,
+        windowHeight: totalH,
         logging: false,
-        onclone: (clonedDoc: Document) => {
-          const b = clonedDoc.body
-          b.style.width = RENDER_W + 'px'
-          b.style.maxWidth = RENDER_W + 'px'
-        }
       })
 
       document.body.removeChild(iframe)
