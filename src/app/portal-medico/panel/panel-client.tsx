@@ -306,14 +306,52 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const hH = 58
       page.drawRectangle({ x:0, y: H-hH, width:W, height:hH, color:BRAND })
 
-      // Logo
-      const logoBytes = await fetch('/logo.png').then(r => r.arrayBuffer())
-      const logoImg = await pdfDoc.embedPng(new Uint8Array(logoBytes))
-      const lH = 40, lW = logoImg.width*(lH/logoImg.height)
+      // Logo con sombra via canvas
+      const logoWithShadow: string = await new Promise((resolve, reject) => {
+        const logoUrl = '/logo.png'
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onerror = reject
+        img.onload = () => {
+          const pad = 16
+          const cvs = document.createElement('canvas')
+          cvs.width = img.width + pad*2; cvs.height = img.height + pad*2
+          const ctx = cvs.getContext('2d')!
+          ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 12
+          ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 3
+          ctx.drawImage(img, pad, pad)
+          resolve(cvs.toDataURL('image/png'))
+        }
+        img.src = logoUrl
+      })
+      const logoBytes = Uint8Array.from(atob(logoWithShadow.split(',')[1]), c => c.charCodeAt(0))
+      const logoImg = await pdfDoc.embedPng(logoBytes)
+      const lH = 44, lW = logoImg.width*(lH/logoImg.height)
       page.drawImage(logoImg, { x:margin, y:H-hH+(hH-lH)/2, width:lW, height:lH })
 
-      // i-R Dental
-      page.drawText('i-R Dental', { x:margin+lW+8, y:H-hH/2-4, size:15, font:fB, color:WHITE })
+      // irdental.svg renderizado a canvas → PNG blanco sobre transparente
+      const irdentalPng: string = await new Promise((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onerror = () => resolve('')
+        img.onload = () => {
+          const scale = 3
+          const cvs = document.createElement('canvas')
+          cvs.width = img.naturalWidth * scale; cvs.height = img.naturalHeight * scale
+          const ctx = cvs.getContext('2d')!
+          ctx.drawImage(img, 0, 0, cvs.width, cvs.height)
+          resolve(cvs.toDataURL('image/png'))
+        }
+        img.src = '/irdental.svg'
+      })
+      if (irdentalPng) {
+        const svgBytes = Uint8Array.from(atob(irdentalPng.split(',')[1]), c => c.charCodeAt(0))
+        const svgImg = await pdfDoc.embedPng(svgBytes)
+        const sH = 14, sW = svgImg.width*(sH/svgImg.height)
+        page.drawImage(svgImg, { x:margin+lW+8, y:H-hH/2-4, width:sW, height:sH })
+      } else {
+        page.drawText('i-R Dental', { x:margin+lW+8, y:H-hH/2-4, size:15, font:fB, color:WHITE })
+      }
 
       // ORDEN DE DERIVACION + fecha
       const titleTxt = 'ORDEN DE DERIVACION'
