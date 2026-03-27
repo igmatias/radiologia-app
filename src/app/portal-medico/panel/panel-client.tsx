@@ -262,6 +262,51 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     setLoadingPDF(true)
     try {
       // @ts-ignore
+      const html2canvas = (await import('html2canvas')).default
+      // @ts-ignore
+      const { jsPDF } = await import('jspdf')
+
+      const html = buildDerivacionHTML()
+
+      // Renderizar en iframe oculto (mismo origen = html2canvas puede capturarlo)
+      const iframe = document.createElement('iframe')
+      iframe.style.cssText = 'position:fixed;top:-99999px;left:0;width:650px;height:900px;border:none;visibility:hidden'
+      document.body.appendChild(iframe)
+
+      await new Promise<void>(resolve => {
+        iframe.onload = () => resolve()
+        iframe.srcdoc = html
+      })
+
+      // Esperar que los estilos/imágenes carguen
+      await new Promise(r => setTimeout(r, 800))
+
+      const body = iframe.contentDocument?.body
+      if (!body) throw new Error('No se pudo acceder al contenido del iframe')
+
+      const canvas = await html2canvas(body, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 650,
+        windowWidth: 650,
+      })
+
+      document.body.removeChild(iframe)
+
+      // A5 en mm: 148 x 210
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' })
+      const imgW = 148
+      const imgH = (canvas.height * imgW) / canvas.width
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, imgW, imgH)
+      pdf.save(`orden-${derivacion.pacienteApellido || 'paciente'}.pdf`)
+      return
+    } catch(_e) {}
+
+    // Fallback: pdf-lib si html2canvas falla
+    try {
+      // @ts-ignore
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib')
       const d = derivacion
       const esParticular = d.cobertura === 'particular'
@@ -503,7 +548,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       setTimeout(() => URL.revokeObjectURL(url), 2000)
 
     } catch (e: any) {
-      console.error('PDF ERROR:', e)
+      console.error('PDF fallback ERROR:', e)
       toast.error(`Error: ${e?.message || String(e)}`)
     } finally {
       setLoadingPDF(false)
