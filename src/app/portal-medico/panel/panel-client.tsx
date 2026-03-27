@@ -129,7 +129,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
     const selloHTML = esParticular
       ? `<div style="display:inline-block;border:2px solid #BA2C66;border-radius:8px;padding:8px 16px;text-align:center;min-width:160px">
-           <p style="font-family:'Dancing Script','Segoe Script','Brush Script MT',cursive;font-size:19px;color:#111;margin:0 0 4px;line-height:1.3;letter-spacing:0.5px;word-spacing:3px">${dentist.lastName},&nbsp;${dentist.firstName}</p>
+           <p style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:bold;font-size:18px;color:#1a1a1a;margin:0 0 4px;line-height:1.3;letter-spacing:0.3px">${dentist.lastName}, ${dentist.firstName}</p>
            ${dentist.matriculaProv ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MP: ${dentist.matriculaProv}</p>` : ''}
            ${dentist.matriculaNac ? `<p style="font-size:9.5px;color:#777;margin:0;font-family:Arial,sans-serif;font-weight:600">MN: ${dentist.matriculaNac}</p>` : ''}
          </div>`
@@ -150,7 +150,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       .header-logo-svg{height:34px;width:auto}
       .header-right{text-align:right}
       .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
-      .header-right .fecha{display:inline-block;margin-top:4px;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
+      .header-right .fecha{display:inline-block;margin-top:4px;background:#8b1d4a;border-radius:6px;padding:3px 10px;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:0.3px}
 
       .aviso{text-align:center;margin-bottom:10px;padding:5px 0}
       .aviso p{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#b45309}
@@ -279,11 +279,16 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       document.body.appendChild(iframe)
 
       await new Promise<void>(resolve => {
-        iframe.onload = () => resolve()
+        iframe.onload = () => {
+          // Ajustar altura del iframe al contenido real
+          const h = iframe.contentDocument!.documentElement.scrollHeight + 100
+          iframe.style.height = h + 'px'
+          resolve()
+        }
         iframe.srcdoc = html
       })
 
-      await new Promise(r => setTimeout(r, 1200))
+      await new Promise(r => setTimeout(r, 1000))
 
       const iDoc = iframe.contentDocument
       if (!iDoc) throw new Error('No se pudo acceder al iframe')
