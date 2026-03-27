@@ -33,5 +33,10 @@ export default async function PanelMedicoPage() {
     redirect("/portal-medico")
   }
 
-  return <PanelMedicoClient dentist={dentist} procedures={procedures} />
+  // Serializar Decimals de Prisma antes de pasar al Client Component
+  const serialize = (obj: any): any => JSON.parse(JSON.stringify(obj, (_k, v) =>
+    v?.constructor?.name === 'Decimal' ? Number(v) : v
+  ))
+
+  return <PanelMedicoClient dentist={serialize(dentist)} procedures={serialize(procedures)} />
 }
