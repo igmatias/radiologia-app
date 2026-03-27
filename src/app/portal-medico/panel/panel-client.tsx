@@ -445,7 +445,27 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         ]
       }
 
-      pdfMake.createPdf(doc).download(`orden-${d.pacienteApellido || 'paciente'}.pdf`)
+      await new Promise<void>((resolve, reject) => {
+        try {
+          pdfMake.createPdf(doc).getBase64((data: string) => {
+            try {
+              const bytes = atob(data)
+              const arr = new Uint8Array(bytes.length)
+              for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i)
+              const blob = new Blob([arr], { type: 'application/pdf' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `orden-${d.pacienteApellido || 'paciente'}.pdf`
+              document.body.appendChild(a)
+              a.click()
+              document.body.removeChild(a)
+              setTimeout(() => URL.revokeObjectURL(url), 2000)
+              resolve()
+            } catch(e2) { reject(e2) }
+          })
+        } catch(e3) { reject(e3) }
+      })
     } catch (e: any) {
       console.error('PDF ERROR:', e)
       toast.error(`Error: ${e?.message || String(e)}`)
