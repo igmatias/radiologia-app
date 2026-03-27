@@ -268,15 +268,42 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       const pdfMake = (pdfMakeModule as any).default ?? pdfMakeModule
       pdfMake.vfs = (pdfFontsModule as any).default?.pdfMake?.vfs ?? (pdfFontsModule as any).pdfMake?.vfs
 
-      const [logoBlob, svgText] = await Promise.all([
+      const [logoBlob, svgText, fontBuffer] = await Promise.all([
         fetch('/logo.png').then(r => r.blob()),
         fetch('/irdental.svg').then(r => r.text()),
+        fetch('/fonts/DancingScript-Bold.ttf').then(r => r.arrayBuffer()),
       ])
+
+      // Logo con sombra pre-procesada en canvas
       const logoBase64: string = await new Promise(resolve => {
         const reader = new FileReader()
-        reader.onload = () => resolve(reader.result as string)
+        reader.onload = () => {
+          const img = new Image()
+          img.onload = () => {
+            const pad = 18
+            const cvs = document.createElement('canvas')
+            cvs.width = img.width + pad * 2
+            cvs.height = img.height + pad * 2
+            const ctx = cvs.getContext('2d')!
+            ctx.shadowColor = 'rgba(0,0,0,0.55)'
+            ctx.shadowBlur = 14
+            ctx.shadowOffsetX = 3
+            ctx.shadowOffsetY = 4
+            ctx.drawImage(img, pad, pad)
+            resolve(cvs.toDataURL('image/png'))
+          }
+          img.src = reader.result as string
+        }
         reader.readAsDataURL(logoBlob)
       })
+
+      // Dancing Script font para firma
+      const fontBase64 = btoa(String.fromCharCode(...new Uint8Array(fontBuffer)))
+      pdfMake.vfs['DancingScript-Bold.ttf'] = fontBase64
+      pdfMake.fonts = {
+        Roboto: (pdfMake.fonts || {}).Roboto || { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' },
+        DancingScript: { normal: 'DancingScript-Bold.ttf', bold: 'DancingScript-Bold.ttf', italics: 'DancingScript-Bold.ttf', bolditalics: 'DancingScript-Bold.ttf' }
+      }
       // pdfmake necesita fill inline (no CSS classes)
       const irdentalSvg = svgText
         .replace(/<defs>[\s\S]*?<\/defs>/g, '')
@@ -374,7 +401,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               body: [[{
                 stack: [
                   esParticular
-                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 13, bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
+                    ? { columns: [{ width: '*', text: '' }, { width: 'auto', alignment: 'right', stack: [{ text: `${dentist.lastName}, ${dentist.firstName}`, fontSize: 16, font: 'DancingScript', bold: true, color: DARK }, ...(dentist.matriculaProv ? [{ text: `MP: ${dentist.matriculaProv}`, fontSize: 8, color: GRAY }] : []), ...(dentist.matriculaNac ? [{ text: `MN: ${dentist.matriculaNac}`, fontSize: 8, color: GRAY }] : [])] }] }
                     : { text: ' ', margin: [0, 20, 0, 0] },
                   { text: 'Firma y Sello', fontSize: 7, color: '#ccc', bold: true, margin: [0, 6, 0, 0] }
                 ],
