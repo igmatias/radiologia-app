@@ -472,7 +472,6 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         <DialogTitle className="sr-only">Detalle</DialogTitle>
         <DialogContent className="sm:max-w-[350px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl font-black uppercase italic text-slate-900">i-R Dental</h2>
             <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 border-dashed inline-block shadow-inner" data-qr-ticket>
               {ticketOrder?.accessCode && <QRCode value={`${window.location.origin}/resultados/${ticketOrder.accessCode}`} size={160} />}
             </div>

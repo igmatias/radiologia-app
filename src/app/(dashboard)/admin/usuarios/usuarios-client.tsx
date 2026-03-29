@@ -9,8 +9,9 @@ import { saveStaffUser, resetDentistPassword } from "@/actions/admin-users"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
-import { 
-  Users, Key, ShieldCheck, UserPlus, MapPin, CheckCircle2, XCircle, Search
+import { Label } from "@/components/ui/label"
+import {
+  Users, Key, ShieldCheck, UserPlus, MapPin, CheckCircle2, XCircle, Search, User, Lock, AtSign, Building2
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 
@@ -206,59 +207,89 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
 
       {/* MODAL: EDITAR PERSONAL */}
       <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>
-        <DialogContent className="sm:max-w-[400px] bg-white rounded-[2rem] border-t-8 border-slate-900">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black italic uppercase text-slate-900">
-              {editingUser.id ? "Editar Personal" : "Nuevo Usuario"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <Input placeholder="Nombre" value={editingUser.firstName || ""} onChange={e => setEditingUser({...editingUser, firstName: e.target.value})} className="h-12 border-2 bg-slate-50 font-bold"/>
-              <Input placeholder="Apellido" value={editingUser.lastName || ""} onChange={e => setEditingUser({...editingUser, lastName: e.target.value})} className="h-12 border-2 bg-slate-50 font-bold"/>
+        <DialogContent className="sm:max-w-[460px] bg-white rounded-2xl border-none p-0 overflow-hidden outline-none">
+          {/* Header */}
+          <div className="bg-slate-900 px-6 py-5 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-700 flex items-center justify-center shrink-0">
+              <UserPlus size={18} className="text-white" />
             </div>
-            
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Gestión de Accesos</p>
+              <DialogTitle className="text-lg font-black italic uppercase text-white leading-none">
+                {editingUser.id ? "Editar Usuario" : "Nuevo Usuario"}
+              </DialogTitle>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-5">
+            {/* Nombre y Apellido */}
             <div className="grid grid-cols-2 gap-3">
-              <Input placeholder="Usuario (Ej: juan.p)" value={editingUser.username || ""} onChange={e => setEditingUser({...editingUser, username: e.target.value})} className="h-12 border-2 bg-slate-50 font-bold"/>
-              <Input placeholder="PIN (Ej: 1234)" value={editingUser.pin || ""} onChange={e => setEditingUser({...editingUser, pin: e.target.value})} className="h-12 border-2 bg-slate-50 font-bold"/>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><User size={10}/> Nombre</Label>
+                <Input placeholder="Ej: Juan" value={editingUser.firstName || ""} onChange={e => setEditingUser({...editingUser, firstName: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400">Apellido</Label>
+                <Input placeholder="Ej: Pérez" value={editingUser.lastName || ""} onChange={e => setEditingUser({...editingUser, lastName: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
+              </div>
             </div>
 
-            <Select value={editingUser.role} onValueChange={v => setEditingUser({...editingUser, role: v})}>
-              <SelectTrigger className="h-12 border-2 bg-slate-50 font-black uppercase text-xs">
-                <SelectValue placeholder="Rol" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="RECEPTIONIST" className="font-bold text-xs">Recepcionista</SelectItem>
-                <SelectItem value="TECHNICIAN" className="font-bold text-xs">Técnico/a</SelectItem>
-                <SelectItem value="ADMIN" className="font-bold text-xs text-slate-700">Administrador</SelectItem>
-                <SelectItem value="SUPERADMIN" className="font-bold text-xs text-brand-700">★ Super Admin</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Usuario y PIN */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><AtSign size={10}/> Usuario</Label>
+                <Input placeholder="Ej: juan.p" value={editingUser.username || ""} onChange={e => setEditingUser({...editingUser, username: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Lock size={10}/> PIN</Label>
+                <Input placeholder="Ej: 1234" value={editingUser.pin || ""} onChange={e => setEditingUser({...editingUser, pin: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
+              </div>
+            </div>
 
-            <Select value={editingUser.branchId || "ALL"} onValueChange={v => setEditingUser({...editingUser, branchId: v === "ALL" ? "" : v})}>
-              <SelectTrigger className="h-12 border-2 bg-slate-50 font-bold text-xs uppercase">
-                <SelectValue placeholder="Sede asignada" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL" className="font-bold text-xs uppercase text-slate-400">Sin restricción (Múltiples Sedes)</SelectItem>
-                {branches.map((b: any) => (
-                  <SelectItem key={b.id} value={b.id} className="font-bold text-xs uppercase">{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Rol */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><ShieldCheck size={10}/> Rol</Label>
+              <Select value={editingUser.role} onValueChange={v => setEditingUser({...editingUser, role: v})}>
+                <SelectTrigger className="h-11 border-2 bg-slate-50 font-bold uppercase text-xs focus:ring-brand-600">
+                  <SelectValue placeholder="Seleccioná un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="RECEPTIONIST" className="font-bold text-xs">Recepcionista</SelectItem>
+                  <SelectItem value="TECHNICIAN" className="font-bold text-xs">Técnico/a</SelectItem>
+                  <SelectItem value="ADMIN" className="font-bold text-xs">Administrador</SelectItem>
+                  <SelectItem value="SUPERADMIN" className="font-bold text-xs text-brand-700">★ Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
+            {/* Sede */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Building2 size={10}/> Sede Asignada</Label>
+              <Select value={editingUser.branchId || "ALL"} onValueChange={v => setEditingUser({...editingUser, branchId: v === "ALL" ? "" : v})}>
+                <SelectTrigger className="h-11 border-2 bg-slate-50 font-bold text-xs uppercase focus:ring-brand-600">
+                  <SelectValue placeholder="Sede asignada" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL" className="font-bold text-xs uppercase text-slate-500">Sin restricción — Múltiples Sedes</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id} className="font-bold text-xs uppercase">{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Activar/Desactivar (solo al editar) */}
             {editingUser.id && (
-              <Button 
-                variant={editingUser.isActive ? "outline" : "default"}
+              <button
                 onClick={() => setEditingUser({...editingUser, isActive: !editingUser.isActive})}
-                className={`w-full h-12 font-black uppercase border-2 text-xs ${!editingUser.isActive ? 'bg-emerald-600 text-white' : 'border-brand-200 text-brand-700'}`}
+                className={`w-full h-10 rounded-xl font-black uppercase text-xs border-2 transition-all ${editingUser.isActive ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100'}`}
               >
-                {editingUser.isActive ? "Desactivar Usuario" : "Reactivar Usuario"}
-              </Button>
+                {editingUser.isActive ? "Desactivar usuario" : "✓ Reactivar usuario"}
+              </button>
             )}
 
-            <Button onClick={handleSaveUser} disabled={loading} className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase italic rounded-xl text-sm">
-              {loading ? "Guardando..." : "Guardar Accesos"}
+            <Button onClick={handleSaveUser} disabled={loading} className="w-full h-12 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase rounded-xl shadow-md border-b-4 border-brand-800 active:border-b-0 active:translate-y-px transition-all">
+              {loading ? "Guardando..." : "Guardar accesos"}
             </Button>
           </div>
         </DialogContent>
