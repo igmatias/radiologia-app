@@ -119,8 +119,12 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               <Card key={u.id} className={`border-none shadow-lg rounded-[2rem] overflow-hidden border-t-8 ${u.isActive ? 'border-emerald-500' : 'border-slate-300 opacity-60'}`}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
-                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm ${u.role === 'ADMIN' ? 'bg-slate-900 text-white' : u.role === 'TECHNICIAN' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'}`}>
-                      {u.role}
+                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm ${
+                      u.role === 'SUPERADMIN' ? 'bg-brand-700 text-white' :
+                      u.role === 'ADMIN' ? 'bg-slate-900 text-white' :
+                      u.role === 'TECHNICIAN' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'
+                    }`}>
+                      {u.role === 'SUPERADMIN' ? '★ SuperAdmin' : u.role === 'ADMIN' ? 'Admin' : u.role === 'TECHNICIAN' ? 'Técnico' : 'Recepcionista'}
                     </span>
                     {u.isActive ? <CheckCircle2 size={18} className="text-emerald-500"/> : <XCircle size={18} className="text-slate-400"/>}
                   </div>
@@ -226,7 +230,8 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               <SelectContent>
                 <SelectItem value="RECEPTIONIST" className="font-bold text-xs">Recepcionista</SelectItem>
                 <SelectItem value="TECHNICIAN" className="font-bold text-xs">Técnico/a</SelectItem>
-                <SelectItem value="ADMIN" className="font-bold text-xs text-brand-700">Administrador</SelectItem>
+                <SelectItem value="ADMIN" className="font-bold text-xs text-slate-700">Administrador</SelectItem>
+                <SelectItem value="SUPERADMIN" className="font-bold text-xs text-brand-700">★ Super Admin</SelectItem>
               </SelectContent>
             </Select>
 

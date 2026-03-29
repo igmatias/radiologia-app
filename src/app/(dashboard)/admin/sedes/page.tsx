@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import SedesClient from "./sedes-client"
+import { getSession } from "@/lib/session"
+import { redirect } from "next/navigation"
 
 export default async function SedesPage() {
+  const session = await getSession()
+  if (!session || session.role !== "SUPERADMIN") redirect("/admin/reportes")
   // Traemos las sedes y todos sus equipos asociados
   const branches = await prisma.branch.findMany({
     include: {

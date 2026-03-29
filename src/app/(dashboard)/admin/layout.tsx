@@ -1,31 +1,41 @@
 "use client"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, LogOut, Settings2
+  LayoutDashboard, Receipt, ClipboardList, LogOut
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
-import { logoutUser } from "@/actions/auth"
+import { logoutUser, getCurrentSession } from "@/actions/auth"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [userRole, setUserRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    getCurrentSession().then(s => setUserRole(s?.role ?? null))
+  }, [])
 
   const handleLogout = async () => {
     await logoutUser()
     router.push("/login")
   }
 
-  const menuItems = [
-    { name: "Resumen", icon: LayoutDashboard, href: "/admin" },
-    { name: "Facturación", icon: Receipt, href: "/admin/reportes" }, 
-    { name: "Prácticas", icon: ClipboardList, href: "/admin/estudios" },
-    { name: "Usuarios", icon: ShieldCheck, href: "/admin/usuarios" },
-    { name: "Odontólogos", icon: ToothIcon, href: "/admin/dentistas" },
-    { name: "Obras Sociales", icon: CreditCard, href: "/admin/obras-sociales" },
-    { name: "Sedes", icon: Building2, href: "/admin/sedes" },
+  const allMenuItems = [
+    { name: "Resumen",       icon: LayoutDashboard, href: "/admin",               superAdminOnly: true },
+    { name: "Facturación",   icon: Receipt,         href: "/admin/reportes" },
+    { name: "Prácticas",     icon: ClipboardList,   href: "/admin/estudios" },
+    { name: "Usuarios",      icon: ShieldCheck,     href: "/admin/usuarios",       superAdminOnly: true },
+    { name: "Odontólogos",   icon: ToothIcon,       href: "/admin/dentistas" },
+    { name: "Obras Sociales",icon: CreditCard,      href: "/admin/obras-sociales" },
+    { name: "Sedes",         icon: Building2,       href: "/admin/sedes",          superAdminOnly: true },
   ]
+
+  const menuItems = allMenuItems.filter(item =>
+    !item.superAdminOnly || userRole === "SUPERADMIN"
+  )
 
   return (
     <div className="flex h-full bg-slate-50 overflow-hidden">
@@ -42,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-          {menuItems.map((item) => {
+          {menuItems.map((item: any) => {
             const isActive = pathname === item.href || (pathname.startsWith(`${item.href}/`) && item.href !== '/admin');
             
             return (

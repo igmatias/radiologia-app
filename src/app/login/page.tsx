@@ -26,8 +26,10 @@ export default function LoginPage() {
 
     if (res.success) {
       toast.success("¡Bienvenido/a!")
-      if (res.role === "ADMIN") router.push("/admin")
-      else if (res.role === "TECHNICIAN") router.push("/tecnico")
+      const role = res.role as string
+      if (role === "SUPERADMIN") router.push("/admin")
+      else if (role === "ADMIN") router.push("/admin/reportes")
+      else if (role === "TECHNICIAN") router.push("/tecnico")
       else router.push("/recepcion")
     } else {
       toast.error(res.error)

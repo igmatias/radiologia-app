@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import UsuariosClient from "./usuarios-client"
+import { getSession } from "@/lib/session"
+import { redirect } from "next/navigation"
 
 export default async function UsuariosPage() {
+  const session = await getSession()
+  if (!session || session.role !== "SUPERADMIN") redirect("/admin/reportes")
   // Traemos todo el personal, los odontólogos y las sedes de una sola vez
   const [users, dentists, branches] = await Promise.all([
     prisma.user.findMany({ 

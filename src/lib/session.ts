@@ -5,7 +5,7 @@ export interface SessionData {
   id: string;
   username: string;
   name: string;
-  role: "ADMIN" | "RECEPTIONIST" | "TECHNICIAN";
+  role: "SUPERADMIN" | "ADMIN" | "RECEPTIONIST" | "TECHNICIAN";
 }
 
 export interface DentistSessionData {
