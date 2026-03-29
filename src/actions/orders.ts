@@ -337,6 +337,8 @@ export async function updateOrderItemStatusAction(itemId: string, status: 'CREAD
   } catch (e) {
     console.error(e)
     return { success: false, error: "Error al actualizar el estado del ítem" }
+  }
+}
 
 export async function searchOrdersAdmin(filters: {
   search?: string
