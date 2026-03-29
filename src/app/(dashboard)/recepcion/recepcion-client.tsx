@@ -163,6 +163,116 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     toast.success(`Derivación #${derivResult.prescriptionCode} cargada en el formulario`)
   }
 
+  const handleVerDerivacion = (deriv: any) => {
+    const origin = window.location.origin
+    const esParticular = deriv.cobertura === "particular"
+    const procs = (deriv.procedures as any[])
+    const estudiosHTML = procs.length
+      ? procs.map((p: any) => {
+          let label = p.procName
+          if (p.teeth?.length) label += ` — Piezas: ${p.teeth.join(", ")}`
+          if (p.options?.length) label += ` — ${p.options.join(" / ")}`
+          return `<li>${label}</li>`
+        }).join("")
+      : '<li style="color:#bbb;font-style:italic">Sin estudios especificados</li>'
+
+    const fechaCreacion = new Date(deriv.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })
+
+    const html = `<!DOCTYPE html><html><head><title>Derivación #${deriv.prescriptionCode}</title>
+    <style>
+      @page{size:A4 portrait;margin:12mm 15mm}
+      *{box-sizing:border-box;margin:0;padding:0}
+      html,body{width:210mm;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:11px;background:#fff}
+      @media print{html,body{width:210mm!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+      .header{background:linear-gradient(135deg,#BA2C66 0%,#8b1d4a 100%);border-radius:12px;padding:13px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+      .header-brand{display:flex;align-items:center;gap:12px}
+      .header-logo{height:44px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5))}
+      .header-right{text-align:right}
+      .header-right h2{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:0}
+      .code{font-size:17px;font-weight:900;color:#fff;letter-spacing:3px;margin:3px 0 2px;font-family:monospace}
+      .fecha{display:inline-block;margin-top:4px;background:#8b1d4a;border-radius:6px;padding:3px 10px;font-size:9.5px;font-weight:700;color:#fff}
+      .section{margin-bottom:10px;background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:9px 12px}
+      .section-title{font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#BA2C66;margin-bottom:7px}
+      .row{display:flex;gap:10px;margin-bottom:6px}
+      .field{flex:1}
+      .field label{font-size:7.5px;font-weight:700;text-transform:uppercase;color:#aaa;display:block;margin-bottom:2px}
+      .field .value{font-size:10.5px;font-weight:600;color:#111;background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:3px 7px;min-height:22px}
+      .studies-box{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px}
+      .studies-list{padding-left:14px;margin:0;columns:2;column-gap:14px}
+      .studies-list li{margin-bottom:4px;font-size:10.5px;font-weight:600;break-inside:avoid;color:#222}
+      .indicacion{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:8px 10px;min-height:44px;font-size:10.5px;color:#333;white-space:pre-wrap}
+      .footer-firma{margin-top:14px;border:1.5px dashed #ddd;border-radius:10px;padding:12px 16px;display:flex;justify-content:flex-end;min-height:70px}
+      .sello{display:inline-block;border:2px solid #BA2C66;border-radius:8px;padding:8px 16px;text-align:center;min-width:160px}
+      .sello-nombre{font-weight:900;font-size:18px;font-style:italic;color:#1a1a1a;margin:0 0 4px;font-family:Georgia,serif}
+      .sello-mat{font-size:9.5px;color:#777;margin:0;font-weight:600}
+      .footer-bottom{margin-top:12px;padding-top:10px;border-top:1px solid #f0f0f0}
+      .sedes-row{display:flex;justify-content:space-around;gap:6px;margin-bottom:7px}
+      .sede-item{text-align:center}
+      .sede-item .name{font-size:9.5px;font-weight:700;text-transform:uppercase;color:#BA2C66}
+      .sede-item .dir{font-size:8.5px;color:#888;margin-top:1px;font-weight:600}
+      .sede-item .tel{font-size:8.5px;color:#BA2C66;font-weight:700;margin-top:1px}
+      .contacto-row{text-align:center;font-size:9.5px;font-weight:700;color:#BA2C66;margin-bottom:4px}
+      .horarios-row{text-align:center;font-size:9.5px;color:#444;font-weight:700}
+    </style></head>
+    <body>
+    <script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script>
+
+    <div class="header">
+      <div class="header-brand">
+        <img src="${origin}/logo.png" class="header-logo" alt="i-R Dental"/>
+        <svg viewBox="0 0 192.08 32.18" style="height:34px;width:auto" xmlns="http://www.w3.org/2000/svg"><defs><style>.st0{fill:#fff}</style></defs><path class="st0" d="M67.54,6.16c-2.99-2.23-6.27-2.63-10.04-2.63h-5.67v26.99h5.58c3.76,0,6.72-.36,9.87-2.59,3.56-2.51,5.42-6.39,5.42-10.89s-1.9-8.42-5.18-10.89ZM64.91,24.74c-2.35,1.74-5.14,1.9-7.16,1.9h-1.78V7.42h1.78c1.98,0,4.86.16,7.2,1.86,1.94,1.42,3.64,4.21,3.64,7.77s-1.82,6.27-3.68,7.69Z"/><polygon class="st0" points="79.52 30.52 94.41 30.52 94.41 26.64 83.65 26.64 83.65 18.14 94.09 18.14 94.09 14.25 83.65 14.25 83.65 7.42 94.41 7.42 94.41 3.53 79.52 3.53 79.52 30.52"/><polygon class="st0" points="120.96 22.23 101.37 1.71 101.37 30.52 105.5 30.52 105.5 11.66 125.09 32.18 125.09 3.53 120.96 3.53 120.96 22.23"/><polygon class="st0" points="130.35 7.42 136.54 7.42 136.54 30.52 140.67 30.52 140.67 7.42 146.86 7.42 146.86 3.53 130.35 3.53 130.35 7.42"/><path class="st0" d="M147.43,30.52h4.45l2.95-6.52h11.53l2.83,6.52h4.45l-12.79-28.57-13.43,28.57ZM156.53,20.12l4.17-9.15,4.01,9.15h-8.17Z"/><polygon class="st0" points="182.8 26.64 182.8 3.53 178.67 3.53 178.67 30.52 190.73 30.52 190.73 26.64 182.8 26.64"/><path class="st0" d="M36.19,10.98c0-1.17-.24-4.37-3.2-6.35-1.74-1.17-3.84-1.58-7.12-1.58h-4.82v12.13h-4.77v3.93h4.77v10.93h4.13v-11.05h.73l7.73,11.05h4.98l-8.42-11.53c3.6-.81,5.99-3.64,5.99-7.53ZM25.18,15.43V6.85h1.42c2.02,0,5.62.36,5.62,4.17,0,4.29-4.61,4.41-5.75,4.41h-1.29Z"/><rect class="st0" x="9.17" y="15.17" width="3.93" height="3.93"/><rect class="st0" x="1.62" y="15.17" width="3.93" height="14.86"/><rect class="st0" x="1.62" y="3.92" width="3.93" height="4.24"/></svg>
+      </div>
+      <div class="header-right">
+        <h2>Orden de Derivación</h2>
+        <div class="code">#${deriv.prescriptionCode}</div>
+        <div class="fecha">${fechaCreacion}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Paciente</div>
+      <div class="row">
+        <div class="field"><label>Apellido y Nombre</label><div class="value">${deriv.patientApellido}${deriv.patientApellido && deriv.patientNombre ? ", " : ""}${deriv.patientNombre}</div></div>
+        <div class="field" style="max-width:90px"><label>DNI</label><div class="value">${deriv.patientDni || ""}</div></div>
+      </div>
+      <div class="row">
+        <div class="field" style="max-width:110px"><label>Fecha de Nac.</label><div class="value">${deriv.patientBirthDate || ""}</div></div>
+        <div class="field"><label>Cobertura</label><div class="value">${esParticular ? "Particular" : (deriv.obraSocial || "")}</div></div>
+        ${!esParticular && deriv.nroAfiliado ? `<div class="field" style="max-width:120px"><label>N° Afiliado</label><div class="value">${deriv.nroAfiliado}</div></div>` : ""}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Estudios Solicitados</div>
+      <div class="studies-box"><ul class="studies-list">${estudiosHTML}</ul></div>
+    </div>
+
+    ${deriv.indicaciones ? `<div class="section"><div class="section-title">Indicación Clínica</div><div class="indicacion">${deriv.indicaciones}</div></div>` : ""}
+
+    <div class="footer-firma">
+      <div class="sello">
+        <p class="sello-nombre">${deriv.dentist.lastName}, ${deriv.dentist.firstName}</p>
+        ${deriv.dentist.matriculaProv ? `<p class="sello-mat">MP: ${deriv.dentist.matriculaProv}</p>` : ""}
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="sedes-row">
+        <div class="sede-item"><p class="name">📍 Quilmes</p><p class="dir">Olavarría 88</p><p class="tel">4257-2950</p><p class="tel">WA: 11-5820-9986</p></div>
+        <div class="sede-item"><p class="name">📍 Avellaneda</p><p class="dir">9 de Julio 64, 2do A</p><p class="tel">4201-1061</p><p class="tel">WA: 11-3865-7094</p></div>
+        <div class="sede-item"><p class="name">📍 Lomas de Zamora</p><p class="dir">España 156, PB</p><p class="tel">4244-0519</p><p class="tel">WA: 11-7044-2131</p></div>
+      </div>
+      <div class="contacto-row">0810.333.4507 · info@irdental.com.ar</div>
+      <div class="horarios-row">Lunes a Viernes: 9:00 a 17:30 hs · Sábados: 9:00 a 12:30 hs</div>
+    </div>
+    </body></html>`
+
+    const w = window.open("", "_blank")
+    if (!w) return
+    w.document.write(html)
+    w.document.close()
+  }
+
   const saldosFiltrados = branchId ? saldos.filter((s: any) => s.order?.branchId === branchId) : []
   const nombreSedeActual = branches.find((b: any) => b.id === branchId)?.name || "Sin sede"
 
@@ -437,6 +547,9 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     <div className="flex flex-col gap-2 shrink-0">
                       <Button onClick={handleUsarDerivacion} size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">
                         <CheckCircle size={13} className="mr-1" /> Usar datos
+                      </Button>
+                      <Button onClick={() => handleVerDerivacion(derivResult)} size="sm" variant="outline" className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 text-xs font-bold whitespace-nowrap">
+                        <Search size={13} className="mr-1" /> Ver / Imprimir
                       </Button>
                       <Button onClick={() => { setDerivResult(null); setDerivSearch("") }} size="sm" variant="ghost" className="text-slate-400 text-xs">
                         Cancelar

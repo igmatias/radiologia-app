@@ -14,7 +14,7 @@ import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 import {
-  AlertTriangle, History, Calendar
+  AlertTriangle, History, Calendar, Stethoscope, X as XIcon
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 
@@ -45,6 +45,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
   const [orderSearch, setOrderSearch] = useState("")
+  const [suggestedProcedures, setSuggestedProcedures] = useState<any[]>([])
 
   const form = useForm({
     defaultValues: {
@@ -99,12 +100,28 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   // Aplicar datos precargados desde derivación médica
   useEffect(() => {
     if (!prefillData || !session) return
+
     form.setValue("patient.dni", prefillData.patientDni || "")
     form.setValue("patient.firstName", (prefillData.patientNombre || "").toUpperCase())
     form.setValue("patient.lastName", (prefillData.patientApellido || "").toUpperCase())
+
+    // Convertir fecha DD-MM-AAAA → YYYY-MM-DD para el input date
+    if (prefillData.patientBirthDate) {
+      const parts = prefillData.patientBirthDate.split("-")
+      if (parts.length === 3 && parts[2].length === 4) {
+        form.setValue("patient.birthDate", `${parts[2]}-${parts[1]}-${parts[0]}`)
+      }
+    }
+
     if (prefillData.dentistId) form.setValue("dentistId", prefillData.dentistId)
+
+    // Guardar prestaciones sugeridas para mostrar en paso 2
+    if (prefillData.procedures?.length) {
+      setSuggestedProcedures(prefillData.procedures)
+    }
+
     setStep(1)
-    // Si hay DNI, dispara búsqueda del paciente en la DB
+    // Si hay DNI, dispara búsqueda del paciente en la DB (sobrescribe nombre/fecha si existe)
     if (prefillData.patientDni && prefillData.patientDni.length >= 7) {
       handleDniChange(prefillData.patientDni)
     }
@@ -513,6 +530,38 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   onDniChange={handleDniChange}
                   onDniBlur={handleDniBlur}
                 />
+              )}
+
+              {step === 2 && suggestedProcedures.length > 0 && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-5 flex items-start gap-2">
+                  <Stethoscope size={15} className="text-indigo-600 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs font-black uppercase tracking-widest text-indigo-700 mb-2">Prácticas solicitadas por el médico</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {suggestedProcedures.map((sp: any) => {
+                        const alreadyAdded = form.getValues("items").find((i: any) => i.procedureId === sp.procId)
+                        return (
+                          <button
+                            key={sp.procId}
+                            type="button"
+                            onClick={() => { if (!alreadyAdded) toggleProcedure(sp.procId) }}
+                            className={`text-xs px-2.5 py-1 rounded-lg font-bold border transition-all ${
+                              alreadyAdded
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-200 cursor-default"
+                                : "bg-white text-indigo-700 border-indigo-300 hover:bg-indigo-100 active:scale-95"
+                            }`}
+                          >
+                            {alreadyAdded ? "✓ " : "+ "}{sp.procName}
+                            {sp.teeth?.length ? ` — Pzas: ${sp.teeth.join(", ")}` : ""}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setSuggestedProcedures([])} className="text-indigo-300 hover:text-indigo-600 transition-colors shrink-0 mt-0.5">
+                    <XIcon size={14} />
+                  </button>
+                </div>
               )}
 
               {step === 2 && (
