@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import {
   Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, LogOut
+  LayoutDashboard, Receipt, ClipboardList, LogOut, ClipboardCheck
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
@@ -25,6 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const allMenuItems = [
     { name: "Resumen",       icon: LayoutDashboard, href: "/admin",               superAdminOnly: true },
+    { name: "Órdenes",        icon: ClipboardCheck,  href: "/admin/ordenes" },
     { name: "Facturación",   icon: Receipt,         href: "/admin/reportes" },
     { name: "Prácticas",     icon: ClipboardList,   href: "/admin/estudios" },
     { name: "Usuarios",      icon: ShieldCheck,     href: "/admin/usuarios",       superAdminOnly: true },
