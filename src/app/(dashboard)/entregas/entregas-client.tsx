@@ -497,9 +497,9 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { width: 80mm; padding: 4mm 4mm 6mm; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #fff; }
                 .logo-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 5px; margin-top: 3px; }
-                .logo { height: 30px; width: auto; }
-                .sep { width: 1px; height: 22px; background: #ccc; }
-                .irdental { height: 18px; width: auto; }
+                .logo { height: 40px; width: auto; }
+                .sep { width: 1px; height: 28px; background: #ccc; }
+                .irdental { height: 22px; width: auto; filter: brightness(0); }
                 hr { width: 100%; border: none; border-top: 1.5px solid #111; margin: 4px 0; }
                 .qr-box { background: #fff; padding: 3px; margin: 4px 0 2px; }
                 .qr-box svg { width: 56mm; height: 56mm; display: block; }
@@ -520,8 +520,6 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                 <hr/>
                 <p class="patient">${paciente}</p>
                 <p class="info">DNI: ${dni}</p>
-                <p class="info">ORDEN: ${orderId}</p>
-                <p class="footer">i-R Dental · Radiología Digital</p>
               </body></html>`;
               const win = window.open('', '_blank', 'width=320,height=520');
               if (!win) return;
