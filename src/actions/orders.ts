@@ -337,5 +337,149 @@ export async function updateOrderItemStatusAction(itemId: string, status: 'CREAD
   } catch (e) {
     console.error(e)
     return { success: false, error: "Error al actualizar el estado del ítem" }
+
+export async function searchOrdersAdmin(filters: {
+  search?: string
+  branchId?: string
+  obraSocialId?: string
+  procedureId?: string
+  startDate?: string
+  endDate?: string
+  status?: string
+}) {
+  try {
+    const where: any = {}
+
+    if (filters.startDate || filters.endDate) {
+      where.createdAt = {}
+      if (filters.startDate) where.createdAt.gte = startOfDay(new Date(filters.startDate + "T12:00:00"))
+      if (filters.endDate) where.createdAt.lte = endOfDay(new Date(filters.endDate + "T12:00:00"))
+    }
+    if (filters.branchId && filters.branchId !== 'ALL') where.branchId = filters.branchId
+    if (filters.obraSocialId && filters.obraSocialId !== 'ALL') where.obraSocialId = filters.obraSocialId
+    if (filters.status && filters.status !== 'ALL') where.status = filters.status
+    if (filters.procedureId && filters.procedureId !== 'ALL') {
+      where.items = { some: { procedureId: filters.procedureId } }
+    }
+    if (filters.search?.trim()) {
+      const s = filters.search.trim()
+      where.OR = [
+        { code: { contains: s, mode: 'insensitive' } },
+        { patient: { dni: { contains: s } } },
+        { patient: { lastName: { contains: s, mode: 'insensitive' } } },
+        { patient: { firstName: { contains: s, mode: 'insensitive' } } },
+      ]
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        patient: true,
+        dentist: true,
+        branch: true,
+        obraSocial: true,
+        items: { include: { procedure: true } },
+        payments: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    })
+
+    return { success: true, orders: JSON.parse(JSON.stringify(orders, (_k, v) =>
+      v?.constructor?.name === 'Decimal' ? Number(v) : v
+    )) }
+  } catch (error) {
+    console.error(error)
+    return { success: false, orders: [] }
+  }
+}
+
+export async function adminUpdateOrder(orderId: string, data: {
+  code?: string
+  createdAt?: string
+  status?: string
+  notes?: string
+  dentistId?: string | null
+  obraSocialId?: string | null
+  branchId?: string
+  patient?: {
+    firstName?: string
+    lastName?: string
+    phone?: string
+    email?: string
+    birthDate?: string | null
+    affiliateNumber?: string
+    plan?: string
+  }
+  items?: Array<{
+    procedureId: string
+    price: number
+    insuranceCoverage: number
+    patientCopay: number
+    teeth?: string[]
+    locations?: string[]
+  }>
+}) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      const orderUpdate: any = {}
+      if (data.code !== undefined) orderUpdate.code = data.code
+      if (data.createdAt) orderUpdate.createdAt = new Date(data.createdAt + "T12:00:00")
+      if (data.status) orderUpdate.status = data.status
+      if (data.notes !== undefined) orderUpdate.notes = data.notes
+      if (data.dentistId !== undefined) orderUpdate.dentistId = data.dentistId
+      if (data.obraSocialId !== undefined) orderUpdate.obraSocialId = data.obraSocialId
+      if (data.branchId) orderUpdate.branchId = data.branchId
+
+      if (Object.keys(orderUpdate).length > 0) {
+        await tx.order.update({ where: { id: orderId }, data: orderUpdate })
+      }
+
+      if (data.patient) {
+        const order = await tx.order.findUnique({ where: { id: orderId }, select: { patientId: true } })
+        if (order) {
+          const patUpdate: any = {}
+          if (data.patient.firstName !== undefined) patUpdate.firstName = data.patient.firstName
+          if (data.patient.lastName !== undefined) patUpdate.lastName = data.patient.lastName
+          if (data.patient.phone !== undefined) patUpdate.phone = data.patient.phone
+          if (data.patient.email !== undefined) patUpdate.email = data.patient.email
+          if (data.patient.birthDate !== undefined) patUpdate.birthDate = data.patient.birthDate ? new Date(data.patient.birthDate) : null
+          if (data.patient.affiliateNumber !== undefined) patUpdate.affiliateNumber = data.patient.affiliateNumber
+          if (data.patient.plan !== undefined) patUpdate.plan = data.patient.plan
+          if (Object.keys(patUpdate).length > 0) {
+            await tx.patient.update({ where: { id: order.patientId }, data: patUpdate })
+          }
+        }
+      }
+
+      if (data.items) {
+        await tx.orderItem.deleteMany({ where: { orderId } })
+        const total = data.items.reduce((acc, i) => acc + i.price, 0)
+        const totalOS = data.items.reduce((acc, i) => acc + i.insuranceCoverage, 0)
+        const totalPac = data.items.reduce((acc, i) => acc + i.patientCopay, 0)
+        await tx.orderItem.createMany({
+          data: data.items.map(i => ({
+            orderId,
+            procedureId: i.procedureId,
+            price: i.price,
+            insuranceCoverage: i.insuranceCoverage,
+            patientCopay: i.patientCopay,
+            status: 'CREADA',
+            metadata: { teeth: i.teeth || [], locations: i.locations || [] }
+          }))
+        })
+        await tx.order.update({
+          where: { id: orderId },
+          data: { totalAmount: total, insuranceAmount: totalOS, patientAmount: totalPac }
+        })
+      }
+    })
+
+    revalidatePath('/admin/ordenes')
+    revalidatePath('/recepcion')
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { success: false, error: 'No se pudo actualizar la orden' }
   }
 }

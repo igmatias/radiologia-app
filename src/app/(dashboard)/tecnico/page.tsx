@@ -7,7 +7,7 @@ import TecnicoClient from "./tecnico-client"
 export default async function TecnicoPage() {
   const session = await getCurrentSession()
   
-  if (!session || (session.role !== 'TECHNICIAN' && session.role !== 'ADMIN')) {
+  if (!session || (session.role !== 'TECHNICIAN' && session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
     redirect('/login')
   }
 

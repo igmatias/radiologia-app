@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay } from "@/actions/reports"
-import {
-  BarChart3, Receipt, FileSpreadsheet, Printer, Search,
-  Activity, User, X, ArrowUpDown, EyeOff, Eye
+import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay, updateOrderDate } from "@/actions/reports"
+import { 
+  BarChart3, Receipt, FileSpreadsheet, Printer, Search, 
+  Stethoscope, Activity, User, X, ArrowUpDown, EyeOff, Eye
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 
@@ -75,6 +75,18 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
       setBillingItems(newItems);
     } else {
       toast.error(res.error);
+    }
+  }
+
+  const handleUpdateDate = async (orderId: string, newDate: string, index: number) => {
+    const res = await updateOrderDate(orderId, newDate)
+    if (res.success) {
+      toast.success("Fecha actualizada ✓")
+      const newItems = [...billingItems]
+      newItems[index].order.createdAt = new Date(newDate + "T12:00:00").toISOString()
+      setBillingItems(newItems)
+    } else {
+      toast.error(res.error)
     }
   }
 
@@ -455,7 +467,15 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                         <td className="p-3 print:p-1.5 font-black uppercase text-slate-800 break-words">{item.order.patient.lastName}, {item.order.patient.firstName}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-600 uppercase break-words">{item.order.patient.affiliateNumber || '---'}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-600 uppercase break-words">{item.order.patient.plan || '---'}</td>
-                        <td className="p-3 print:p-1.5 font-bold text-slate-600">{new Date(item.order.createdAt).toLocaleDateString('es-AR')}</td>
+                        <td className="p-3 print:p-1.5 font-bold text-slate-600">
+                          <Input
+                            type="date"
+                            defaultValue={new Date(item.order.createdAt).toISOString().split('T')[0]}
+                            onBlur={(e) => { if (e.target.value) handleUpdateDate(item.order.id, e.target.value, index) }}
+                            className="h-8 w-32 font-bold text-slate-700 border-2 bg-slate-50 focus:bg-white focus:border-red-700 transition-colors print:hidden"
+                          />
+                          <span className="hidden print:inline">{new Date(item.order.createdAt).toLocaleDateString('es-AR')}</span>
+                        </td>
                         <td className="p-3 print:p-1.5 font-black text-slate-900 break-words">{(item as any).displayCode}</td>
                         <td className="p-3 print:p-1.5 font-bold text-slate-700 uppercase break-words">{item.procedure?.name}</td>
                         
