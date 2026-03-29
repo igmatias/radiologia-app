@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import {
   Clock, Play, CheckCircle, RefreshCw, LogOut,
   Phone, Cake, Send, Hash, Calendar, MapPin, Mail,
-  MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer, Bell, X
+  MessageCircle, AlertCircle, Copy, UploadCloud, Image as ImageIcon, Loader2, Search, Trash2, AlertTriangle, Timer, Printer, Bell, X, UserCog, Plus, Pencil
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import RadiationIcon from "@/components/icons/radiation-icon"
@@ -16,8 +16,10 @@ import { updateOrderStatusAction } from "@/actions/orders"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getPresignedUrl, saveImageToOrder, deleteImageFromOrder, saveExternalLinkToOrder } from "@/actions/storage"
 import { getTickets, replyTicket } from "@/actions/tickets"
+import { assignTechnicianToOrder, saveTechnicianProfile, deleteTechnicianProfile } from "@/actions/technicians"
+import { Input } from "@/components/ui/input"
 
-export default function TecnicoClient({ initialOrders, branches = [] }: any) {
+export default function TecnicoClient({ initialOrders, branches = [], technicianProfiles = [] }: any) {
   const [orders, setOrders] = useState(initialOrders)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [session, setSession] = useState<{ userName: string, branchId: string } | null>(null)
@@ -41,6 +43,12 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   const [replyingId, setReplyingId] = useState<string | null>(null)
   const [openTicketCount, setOpenTicketCount] = useState(0)
   const [externalLinks, setExternalLinks] = useState<Record<string, string>>({})
+
+  // Técnicos
+  const [technicians, setTechnicians] = useState<any[]>(technicianProfiles)
+  const [showTechModal, setShowTechModal] = useState(false)
+  const [newTechName, setNewTechName] = useState("")
+  const [savingTech, setSavingTech] = useState(false)
 
   useEffect(() => {
     async function initSession() {
@@ -83,6 +91,30 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
     setPrevOrderIds(currentIds);
     setOrders(initialOrders);
   }, [initialOrders, session?.branchId]);
+
+  const handleAssignTechnician = async (orderId: string, techId: string) => {
+    const val = techId === "NONE" ? null : techId
+    await assignTechnicianToOrder(orderId, val)
+    setOrders((prev: any[]) => prev.map(o => o.id === orderId ? { ...o, technicianId: val, technician: technicians.find(t => t.id === val) || null } : o))
+  }
+
+  const handleSaveTech = async () => {
+    if (!newTechName.trim()) return
+    setSavingTech(true)
+    const res = await saveTechnicianProfile({ name: newTechName.trim(), branchId: session?.branchId || "" })
+    if (res.success) {
+      setNewTechName("")
+      router.refresh()
+      toast.success("Técnico agregado ✓")
+    } else toast.error("Error al guardar")
+    setSavingTech(false)
+  }
+
+  const handleDeleteTech = async (id: string) => {
+    await deleteTechnicianProfile(id)
+    setTechnicians(prev => prev.filter(t => t.id !== id))
+    toast.success("Técnico eliminado")
+  }
 
   const handleSelectBranch = (branchId: string) => {
     localStorage.setItem("radiologia-branch", branchId);
@@ -217,6 +249,46 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
   return (
     <div className="min-h-screen bg-slate-50 p-6 space-y-6">
       
+      {/* MODAL TÉCNICOS */}
+      <Dialog open={showTechModal} onOpenChange={setShowTechModal}>
+        <DialogContent className="sm:max-w-[400px] bg-white rounded-2xl border-t-8 border-slate-900 p-0 outline-none overflow-hidden">
+          <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-100">
+            <DialogTitle className="text-lg font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2">
+              <UserCog className="text-slate-700" size={20}/> Técnicos — {branches.find((b: any) => b.id === session?.branchId)?.name || "Sede"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-5 space-y-4">
+            {/* Lista */}
+            <div className="space-y-2 max-h-52 overflow-y-auto">
+              {technicians.filter((t: any) => t.branchId === session?.branchId).length === 0 ? (
+                <p className="text-center text-xs font-bold text-slate-400 uppercase py-4">No hay técnicos cargados para esta sede</p>
+              ) : technicians.filter((t: any) => t.branchId === session?.branchId).map((t: any) => (
+                <div key={t.id} className="flex items-center justify-between bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200">
+                  <span className="text-sm font-bold uppercase text-slate-800">{t.name}</span>
+                  <button onClick={() => handleDeleteTech(t.id)} className="text-slate-300 hover:text-red-500 transition-colors ml-3">
+                    <Trash2 size={15}/>
+                  </button>
+                </div>
+              ))}
+            </div>
+            {/* Agregar */}
+            <div className="flex gap-2 pt-1 border-t border-slate-100">
+              <Input
+                placeholder="Nombre del técnico..."
+                value={newTechName}
+                onChange={e => setNewTechName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSaveTech()}
+                className="h-10 flex-1 font-bold border-2 uppercase"
+              />
+              <button onClick={handleSaveTech} disabled={savingTech || !newTechName.trim()}
+                className="h-10 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black text-xs uppercase disabled:opacity-40 transition-all flex items-center gap-1.5">
+                <Plus size={14}/> Agregar
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showBranchModal} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-[450px] bg-white rounded-[2.5rem] border-t-8 border-brand-700 p-8 outline-none">
           <DialogHeader>
@@ -335,6 +407,13 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
           <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-10 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
             <MapPin size={16} className="mr-2 text-brand-700"/> Sede
           </Button>
+          <button
+            onClick={() => setShowTechModal(true)}
+            className="relative flex-none h-10 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-800 hover:text-white hover:border-slate-800 transition-all"
+            title="Gestionar técnicos"
+          >
+            <UserCog size={18}/>
+          </button>
           <button
             onClick={() => setShowTicketsModal(true)}
             className="relative flex-none h-10 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-brand-700 hover:text-white hover:border-brand-700 transition-all"
@@ -544,6 +623,22 @@ export default function TecnicoClient({ initialOrders, branches = [] }: any) {
                      </div>
                    </div>
                 </div>
+
+                {/* SELECTOR DE TÉCNICO */}
+                {technicians.filter((t: any) => t.branchId === session?.branchId).length > 0 && (
+                  <div className="flex items-center gap-2 pt-1 pb-1">
+                    <select
+                      value={order.technicianId || "NONE"}
+                      onChange={e => handleAssignTechnician(order.id, e.target.value)}
+                      className="flex-1 h-9 px-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 uppercase focus:border-brand-400 focus:outline-none"
+                    >
+                      <option value="NONE">— Técnico —</option>
+                      {technicians.filter((t: any) => t.branchId === session?.branchId).map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-1 mt-auto">
                   {order.status === 'EN_ATENCION' ? (

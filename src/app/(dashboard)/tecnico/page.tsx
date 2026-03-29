@@ -15,27 +15,24 @@ export default async function TecnicoPage() {
   today.setHours(0, 0, 0, 0)
 
   // 1. Traemos las órdenes e incluimos a qué sucursal pertenecen
-  const orders = await prisma.order.findMany({
-    where: {
-      createdAt: { gte: today },
-      status: { in: ['CREADA', 'EN_ESPERA', 'EN_ATENCION', 'PROCESANDO'] }
-    },
-    include: {
-      patient: true,
-      dentist: true,
-      branch: true, // <-- Esto es clave para el filtro
-      items: {
-        include: { procedure: true }
-      }
-    },
-    orderBy: { createdAt: 'asc' } 
-  })
+  const [orders, branches, technicianProfiles] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: today },
+        status: { in: ['CREADA', 'EN_ESPERA', 'EN_ATENCION', 'PROCESANDO'] }
+      },
+      include: {
+        patient: true,
+        dentist: true,
+        branch: true,
+        technician: true,
+        items: { include: { procedure: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    }),
+    prisma.branch.findMany({ where: { isActive: true } }),
+    prisma.technicianProfile.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+  ])
 
-  // 2. Traemos las sedes reales de la base de datos
-  const branches = await prisma.branch.findMany({
-    where: { isActive: true }
-  })
-
-  // Le pasamos todo al cliente
-  return <TecnicoClient initialOrders={orders} branches={branches} />
+  return <TecnicoClient initialOrders={orders} branches={branches} technicianProfiles={technicianProfiles} />
 }
