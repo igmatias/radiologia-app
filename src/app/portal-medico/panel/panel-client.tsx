@@ -697,6 +697,16 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
           <div className="px-6 py-4 border-t border-neutral-100 shrink-0 space-y-2">
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDerivacion({ pacienteApellido: "", pacienteNombre: "", dni: "", fechaNacimiento: "", cobertura: "particular", obraSocial: "", nroAfiliado: "", procedimientosSeleccionados: [], otro: "", indicacion: "", fecha: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) })
+                  setDerivacionConfig({})
+                }}
+                className="h-11 px-4 text-xs font-black uppercase text-neutral-500 border-neutral-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl flex items-center gap-2"
+              >
+                <Trash2 size={14}/> Limpiar
+              </Button>
               <Button onClick={handlePrintDerivacion} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center justify-center gap-2">
                 <Printer size={15}/> Imprimir / Guardar PDF
               </Button>

@@ -553,6 +553,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           >
                             {alreadyAdded ? "✓ " : "+ "}{sp.procName}
                             {sp.teeth?.length ? ` — Pzas: ${sp.teeth.join(", ")}` : ""}
+                            {sp.options?.length ? ` — ${sp.options.join(" / ")}` : ""}
                           </button>
                         )
                       })}
