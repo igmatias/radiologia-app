@@ -115,7 +115,7 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
         bovedas,
         entregaStats,
         metodosEntrega,
-        totalEntregadas
+        totalEntregadas: 0
       }
     };
   } catch (error) {
