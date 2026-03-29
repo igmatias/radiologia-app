@@ -484,37 +484,52 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
             </div>
             <Button onClick={() => {
               if (!ticketOrder?.accessCode) return;
-              const url = `${window.location.origin}/resultados/${ticketOrder.accessCode}`;
+              const origin = window.location.origin;
+              const url = `${origin}/resultados/${ticketOrder.accessCode}`;
               const svgEl = document.querySelector('[data-qr-ticket] svg');
               const svgHTML = svgEl ? svgEl.outerHTML : '';
               const paciente = `${ticketOrder?.patient?.lastName ?? ''}, ${ticketOrder?.patient?.firstName ?? ''}`;
               const dni = ticketOrder?.patient?.dni ?? '';
               const orderId = ticketOrder?.code || ticketOrder?.dailyId || 'S/N';
-              const html = `<html><head><style>
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+              <style>
                 @page { size: 80mm auto; margin: 0; }
-                body { margin: 0; padding: 4mm; width: 80mm; box-sizing: border-box; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-                h1 { font-size: 18px; font-weight: 900; font-style: italic; text-transform: uppercase; margin: 0; text-align: center; }
-                svg { width: 55mm; height: 55mm; margin-top: 5px; }
-                .hint { font-size: 8px; font-weight: 700; text-transform: uppercase; color: #888; text-align: center; margin-top: 2px; }
-                .patient { font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; margin-top: 5px; margin-bottom: 2px; }
-                .dni { font-size: 9px; font-weight: 700; color: #555; text-transform: uppercase; margin: 0; }
-                hr { width: 100%; border: 1px solid black; margin: 5px 0; }
-              </style></head><body>
-                <h1>i-R Dental</h1>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { width: 80mm; padding: 4mm 4mm 6mm; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #fff; }
+                .logo-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 5px; margin-top: 3px; }
+                .logo { height: 30px; width: auto; }
+                .sep { width: 1px; height: 22px; background: #ccc; }
+                .irdental { height: 18px; width: auto; }
+                hr { width: 100%; border: none; border-top: 1.5px solid #111; margin: 4px 0; }
+                .qr-box { background: #fff; padding: 3px; margin: 4px 0 2px; }
+                .qr-box svg { width: 56mm; height: 56mm; display: block; }
+                .hint { font-size: 7.5px; font-weight: 700; text-transform: uppercase; color: #777; text-align: center; letter-spacing: 0.8px; margin-bottom: 4px; }
+                .patient { font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; margin: 3px 0 1px; letter-spacing: 0.3px; }
+                .info { font-size: 9px; font-weight: 700; color: #444; text-transform: uppercase; text-align: center; line-height: 1.6; }
+                .footer { font-size: 7px; color: #bbb; text-align: center; margin-top: 5px; letter-spacing: 0.5px; }
+              </style></head>
+              <body>
+                <div class="logo-row">
+                  <img src="${origin}/logo.png" class="logo" crossorigin="anonymous" />
+                  <div class="sep"></div>
+                  <img src="${origin}/irdental.svg" class="irdental" crossorigin="anonymous" />
+                </div>
                 <hr/>
-                ${svgHTML}
+                <div class="qr-box">${svgHTML}</div>
                 <p class="hint">Escaneá para ver tus placas digitales</p>
                 <hr/>
                 <p class="patient">${paciente}</p>
-                <p class="dni">DNI: ${dni}</p>
-                <p class="dni">ORDEN: #${orderId}</p>
+                <p class="info">DNI: ${dni}</p>
+                <p class="info">ORDEN: ${orderId}</p>
+                <p class="footer">i-R Dental · Radiología Digital</p>
               </body></html>`;
-              const win = window.open('', '_blank', 'width=400,height=500');
+              const win = window.open('', '_blank', 'width=320,height=520');
               if (!win) return;
               win.document.write(html);
               win.document.close();
-              win.focus();
-              setTimeout(() => { win.print(); win.close(); }, 300);
+              // Esperar a que carguen las imágenes antes de imprimir
+              win.onload = () => { win.focus(); setTimeout(() => { win.print(); win.close(); }, 200); };
+              setTimeout(() => { if (!win.closed) { win.focus(); win.print(); win.close(); } }, 1500);
             }} className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase italic rounded-xl shadow-md text-lg">Imprimir Ticket</Button>
           </div>
         </DialogContent>
