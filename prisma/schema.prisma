@@ -53,8 +53,14 @@ enum MovementType {
   GASTO
   RETIRO
   INGRESO_EXTRA
-  A_CAJA_FUERTE  
-  RETIRO_DUENO   
+  A_CAJA_FUERTE
+  RETIRO_DUENO
+}
+
+enum DerivacionStatus {
+  PENDIENTE
+  CARGADA
+  ANULADA
 }
 
 model Branch {
@@ -175,13 +181,42 @@ model Dentist {
   deliveryMethod     String? 
   
   orders             Order[]
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
 
   password           String?
-  mustChangePassword Boolean  @default(true)
+  mustChangePassword Boolean     @default(true)
 
   tickets            Ticket[]
+  derivaciones       Derivacion[]
+}
+
+model Derivacion {
+  id               String           @id @default(cuid())
+  prescriptionCode String           @unique
+
+  dentistId        String
+  dentist          Dentist          @relation(fields: [dentistId], references: [id])
+
+  patientApellido  String
+  patientNombre    String
+  patientDni       String?
+  patientBirthDate String?
+  cobertura        String           @default("particular")
+  obraSocial       String?
+  nroAfiliado      String?
+
+  procedures       Json
+  indicaciones     String?
+
+  status           DerivacionStatus @default(PENDIENTE)
+  usedAt           DateTime?
+
+  createdAt        DateTime         @default(now())
+
+  @@index([prescriptionCode])
+  @@index([dentistId])
+  @@index([createdAt])
 }
 
 model Ticket {

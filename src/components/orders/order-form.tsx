@@ -25,7 +25,7 @@ import { StepStudies } from "./step-studies"
 import { StepPayment } from "./step-payment"
 import { OrderListView } from "./order-list-view"
 
-export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger, onOrderCountChange }: any) {
+export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger, onOrderCountChange, prefillData, onPrefillUsed }: any) {
   const [session, setSession] = useState<{ branchId: string, userName: string } | null>(null)
   const [showSessionModal, setShowSessionModal] = useState(false)
 
@@ -95,6 +95,21 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   useEffect(() => {
     if (resetTrigger > 0 && !editingOrderId) resetFormToNew();
   }, [resetTrigger]);
+
+  // Aplicar datos precargados desde derivación médica
+  useEffect(() => {
+    if (!prefillData || !session) return
+    form.setValue("patient.dni", prefillData.patientDni || "")
+    form.setValue("patient.firstName", (prefillData.patientNombre || "").toUpperCase())
+    form.setValue("patient.lastName", (prefillData.patientApellido || "").toUpperCase())
+    if (prefillData.dentistId) form.setValue("dentistId", prefillData.dentistId)
+    setStep(1)
+    // Si hay DNI, dispara búsqueda del paciente en la DB
+    if (prefillData.patientDni && prefillData.patientDni.length >= 7) {
+      handleDniChange(prefillData.patientDni)
+    }
+    onPrefillUsed?.()
+  }, [prefillData]);
 
   useEffect(() => {
     async function initSession() {

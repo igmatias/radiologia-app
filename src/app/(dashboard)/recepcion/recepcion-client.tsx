@@ -23,15 +23,23 @@ import { useRouter } from "next/navigation"
 import {
   UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
-  Send, RefreshCw, Plus, ChevronRight, ChevronDown, MessageSquare, CheckCircle, X
+  Send, RefreshCw, Plus, ChevronRight, ChevronDown, MessageSquare, CheckCircle, X,
+  Search, FileInput, Stethoscope
 } from "lucide-react"
 import { getTickets, replyTicket, closeTicket } from "@/actions/tickets"
+import { findDerivacion, markDerivacionCargada } from "@/actions/derivaciones"
 
 export default function RecepcionClient({ branches, dentists, obrasSociales, procedures, saldos }: any) {
   const router = useRouter()
 
   const [activeTab, setActiveTab] = useState<"NUEVA_ORDEN" | "ORDENES" | "CAJA" | "SALDOS" | "MENSAJES">("NUEVA_ORDEN")
   const [resetTrigger, setResetTrigger] = useState(0)
+
+  // Búsqueda de derivaciones médicas
+  const [derivSearch, setDerivSearch] = useState("")
+  const [derivResult, setDerivResult] = useState<any>(null)
+  const [loadingDeriv, setLoadingDeriv] = useState(false)
+  const [prefillData, setPrefillData] = useState<any>(null)
 
   // Tickets
   const [tickets, setTickets] = useState<any[]>([])
@@ -131,6 +139,28 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const handleCloseTicket = async (ticketId: string) => {
     await closeTicket(ticketId)
     cargarTickets(ticketFilter)
+  }
+
+  const handleBuscarDerivacion = async () => {
+    if (!derivSearch || derivSearch.length !== 6) return toast.error("El código de derivación tiene 6 dígitos")
+    setLoadingDeriv(true)
+    setDerivResult(null)
+    const res = await findDerivacion(derivSearch)
+    if (res.success) {
+      setDerivResult(res.data)
+    } else {
+      toast.error(res.error)
+    }
+    setLoadingDeriv(false)
+  }
+
+  const handleUsarDerivacion = async () => {
+    if (!derivResult) return
+    setPrefillData(derivResult)
+    await markDerivacionCargada(derivResult.prescriptionCode)
+    setDerivResult(null)
+    setDerivSearch("")
+    toast.success(`Derivación #${derivResult.prescriptionCode} cargada en el formulario`)
   }
 
   const saldosFiltrados = branchId ? saldos.filter((s: any) => s.order?.branchId === branchId) : []
@@ -357,8 +387,79 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       )}
 
       {(activeTab === "NUEVA_ORDEN" || activeTab === "ORDENES") && (
-        <div className="animate-in fade-in duration-500">
-          <OrderForm branches={branches} dentists={dentists} obrasSociales={obrasSociales} procedures={procedures} activeTab={activeTab} setActiveTab={setActiveTab} resetTrigger={resetTrigger} onOrderCountChange={setDailyOrderCount} />
+        <div className="animate-in fade-in duration-500 space-y-4">
+
+          {/* Banner búsqueda de derivación */}
+          {activeTab === "NUEVA_ORDEN" && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FileInput size={16} className="text-indigo-600 shrink-0" />
+                <p className="text-xs font-black uppercase tracking-widest text-indigo-700">Derivación Médica</p>
+                <span className="text-[10px] text-indigo-400 font-semibold">— ¿El paciente trae un número de derivación?</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Código de 6 dígitos (ej: 482931)"
+                  value={derivSearch}
+                  onChange={e => { setDerivSearch(e.target.value.replace(/\D/g, "")); setDerivResult(null) }}
+                  onKeyDown={e => e.key === "Enter" && handleBuscarDerivacion()}
+                  className="h-9 text-sm max-w-xs font-mono tracking-widest"
+                  maxLength={6}
+                />
+                <Button onClick={handleBuscarDerivacion} disabled={loadingDeriv} size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
+                  {loadingDeriv ? <RefreshCw size={14} className="animate-spin" /> : <Search size={14} />}
+                  <span className="ml-1.5">Buscar</span>
+                </Button>
+              </div>
+
+              {derivResult && (
+                <div className="mt-3 bg-white rounded-xl border border-indigo-200 p-3 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">N° {derivResult.prescriptionCode}</span>
+                        <span className="text-[10px] text-slate-400">{new Date(derivResult.createdAt).toLocaleDateString('es-AR')}</span>
+                      </div>
+                      <p className="font-black text-slate-800 text-sm mt-1">{derivResult.patientApellido}, {derivResult.patientNombre}</p>
+                      {derivResult.patientDni && <p className="text-xs text-slate-500">DNI: {derivResult.patientDni}</p>}
+                      <p className="text-xs text-slate-500 flex items-center gap-1">
+                        <Stethoscope size={11} /> Dr/a. {derivResult.dentist.lastName}, {derivResult.dentist.firstName}
+                        {derivResult.dentist.matriculaProv && ` — MP: ${derivResult.dentist.matriculaProv}`}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {(derivResult.procedures as any[]).map((p: any, i: number) => (
+                          <span key={i} className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold uppercase">
+                            {p.procName}{p.teeth?.length ? ` (${p.teeth.join(', ')})` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <Button onClick={handleUsarDerivacion} size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">
+                        <CheckCircle size={13} className="mr-1" /> Usar datos
+                      </Button>
+                      <Button onClick={() => { setDerivResult(null); setDerivSearch("") }} size="sm" variant="ghost" className="text-slate-400 text-xs">
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <OrderForm
+            branches={branches}
+            dentists={dentists}
+            obrasSociales={obrasSociales}
+            procedures={procedures}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            resetTrigger={resetTrigger}
+            onOrderCountChange={setDailyOrderCount}
+            prefillData={prefillData}
+            onPrefillUsed={() => setPrefillData(null)}
+          />
         </div>
       )}
 

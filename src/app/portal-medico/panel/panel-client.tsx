@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
+import { saveDerivacion } from "@/actions/derivaciones"
 import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import {
@@ -106,7 +107,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     }
   }
 
-  const buildDerivacionHTML = () => {
+  const buildDerivacionHTML = (prescriptionCode?: string) => {
     const d = derivacion
     const esParticular = d.cobertura === 'particular'
 
@@ -191,6 +192,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         </div>
         <div class="header-right">
           <h2>Orden de Derivación</h2>
+          ${prescriptionCode ? `<div style="font-size:17px;font-weight:900;color:#fff;letter-spacing:3px;margin:3px 0 2px;font-family:monospace">#${prescriptionCode}</div>` : ''}
           <div class="fecha">${d.fecha}</div>
         </div>
       </div>
@@ -257,8 +259,31 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     return html
   }
 
-  const handlePrintDerivacion = () => {
-    const html = buildDerivacionHTML().replace(
+  const handlePrintDerivacion = async () => {
+    // Guardar en DB para generar número de prescripción
+    const res = await saveDerivacion({
+      dentistId: dentist.id,
+      patientApellido: derivacion.pacienteApellido,
+      patientNombre: derivacion.pacienteNombre,
+      patientDni: derivacion.dni,
+      patientBirthDate: derivacion.fechaNacimiento,
+      cobertura: derivacion.cobertura,
+      obraSocial: derivacion.obraSocial,
+      nroAfiliado: derivacion.nroAfiliado,
+      procedures: derivacion.procedimientosSeleccionados.map(procId => {
+        const proc = procedures.find((p: any) => p.id === procId)
+        const cfg = derivacionConfig[procId] || {}
+        return { procId, procName: proc?.name || procId, teeth: cfg.teeth || [], options: cfg.options || [] }
+      }),
+      indicaciones: derivacion.indicacion,
+    })
+
+    const code = res.success ? res.prescriptionCode : undefined
+    if (code) {
+      toast.success(`Derivación guardada — N° ${code}`, { duration: 8000, description: "El paciente puede presentar este número en recepción." })
+    }
+
+    const html = buildDerivacionHTML(code).replace(
       '<body>',
       `<body><script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script>`
     )
