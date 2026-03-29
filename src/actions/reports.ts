@@ -119,3 +119,13 @@ export async function updateItemPatientCopay(itemId: string, amount: number) {
     return { success: false, error: "Error al actualizar el copago" };
   }
 }
+
+export async function updateOrderDate(orderId: string, newDate: string) {
+  try {
+    const date = new Date(newDate + "T12:00:00")
+    await prisma.order.update({ where: { id: orderId }, data: { createdAt: date } })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "Error al actualizar la fecha" }
+  }
+}

@@ -20,10 +20,13 @@ export async function middleware(request: NextRequest) {
 
   // 2. Si ya está logueado e intenta entrar al login -> redirigir a su área
   if (path === '/login') {
-    if (role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
+    if (role === 'SUPERADMIN' || role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
     if (role === 'TECHNICIAN') return NextResponse.redirect(new URL('/tecnico', request.url))
     return NextResponse.redirect(new URL('/recepcion', request.url))
   }
+
+  // 3b. SUPERADMIN: acceso total, sin restricciones
+  if (role === 'SUPERADMIN') return response
 
   // 3. Regla para RECEPTIONIST: Solo puede estar en /recepcion
   if (role === 'RECEPTIONIST') {
