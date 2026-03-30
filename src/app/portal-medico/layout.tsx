@@ -26,6 +26,13 @@ export default function PortalMedicoLayout({
 }) {
   return (
     <>
+      {/* Captura beforeinstallprompt antes de que React hidrate */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        window.addEventListener('beforeinstallprompt', function(e) {
+          e.preventDefault();
+          window._pwaInstallEvent = e;
+        });
+      `}} />
       {children}
       <SwRegister />
     </>

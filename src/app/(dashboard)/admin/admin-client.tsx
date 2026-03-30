@@ -5,27 +5,22 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { getAdminDashboardData, retirarDeBoveda } from "@/actions/admin-stats"
-import { getDashboardMetrics } from "@/actions/finances"
-import { getComparativeStats } from "@/actions/stats"
+import { getAdminDashboardData, retirarDeBoveda, getTechnicianStats } from "@/actions/admin-stats"
+import { getDashboardMetrics } from "@/actions/finances" 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
   Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
-  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, LogOut,
-  Send, Printer, Smartphone, Mail, PackageCheck, ArrowUp, ArrowDown
+  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, UserCog, Timer, Layers
 } from "lucide-react"
-import { logoutUser } from "@/actions/auth"
-import { useRouter } from "next/navigation"
 
 export default function AdminClient({ branches }: { branches: any[] }) {
-  const router = useRouter()
   // 🔥 ESCUDO ANTI-ERRORES DE HIDRATACIÓN
   const [isMounted, setIsMounted] = useState(false)
 
   // PESTAÑAS
-  const [activeTab, setActiveTab] = useState<"TESORERIA" | "CLINICA" | "ESTADISTICAS">("TESORERIA")
+  const [activeTab, setActiveTab] = useState<"TESORERIA" | "CLINICA" | "PERSONAL">("TESORERIA")
 
   // Filtros (Inicialmente vacíos para que el servidor no se confunda)
   const [fechaInicio, setFechaInicio] = useState("")
@@ -35,7 +30,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
   // Datos y Estados
   const [data, setData] = useState<any>(null)
   const [metricsData, setMetricsData] = useState<any>(null)
-  const [statsData, setStatsData] = useState<any>(null)
+  const [techStats, setTechStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [retiroModal, setRetiroModal] = useState(false)
   const [datosRetiro, setDatosRetiro] = useState({ branchId: "", amount: "", description: "" })
@@ -53,14 +48,18 @@ export default function AdminClient({ branches }: { branches: any[] }) {
 
   const cargarDatos = async () => {
     setLoading(true)
-    const [resAdmin, resMetrics, resStats] = await Promise.all([
+    const [resAdmin, resMetrics, resTech] = await Promise.all([
       getAdminDashboardData({
         fechaInicio: new Date(fechaInicio + "T00:00:00"),
         fechaFin: new Date(fechaFin + "T23:59:59"),
         branchId: sedeFiltrada
       }),
       getDashboardMetrics(fechaInicio, fechaFin, sedeFiltrada),
-      getComparativeStats(sedeFiltrada)
+      getTechnicianStats({
+        fechaInicio: new Date(fechaInicio + "T00:00:00"),
+        fechaFin: new Date(fechaFin + "T23:59:59"),
+        branchId: sedeFiltrada
+      })
     ])
 
     if (resAdmin.success) setData(resAdmin.data)
@@ -69,7 +68,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
     if (resMetrics.success) setMetricsData(resMetrics.data)
     else toast.error("Error al cargar métricas clínicas")
 
-    if (resStats.success) setStatsData(resStats.data)
+    if (resTech.success) setTechStats(resTech.stats)
 
     setLoading(false)
   }
@@ -86,7 +85,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
     setLoading(true)
     const res = await retirarDeBoveda(datosRetiro.branchId, parseFloat(datosRetiro.amount), datosRetiro.description)
     if (res.success) {
-      toast.success("¡Retiro de Caja Fuerte registrado con éxito! 💸")
+      toast.success("¡Retiro registrado al bolsillo con éxito! 💸")
       setRetiroModal(false)
       setDatosRetiro({ branchId: "", amount: "", description: "" })
       cargarDatos()
@@ -100,63 +99,49 @@ export default function AdminClient({ branches }: { branches: any[] }) {
   if (!isMounted) return null; 
 
   return (
-    <div className="p-3 sm:p-6 md:p-8 space-y-6 md:space-y-8 bg-slate-50 min-h-screen">
-
+    <div className="p-6 md:p-8 space-y-8 bg-slate-50 min-h-screen">
+      
       {/* 1. HEADER Y FILTROS GLOBALES */}
-      <div className="bg-white p-4 sm:p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-200">
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 md:gap-6">
+      <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
             <p className="text-xs font-black uppercase text-emerald-600 tracking-[0.3em] mb-1">Torre de Control</p>
-            <h1 className="text-xl sm:text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2">
-              <BarChart3 className="text-slate-900 shrink-0" size={22}/> Dashboard Manager
+            <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-3">
+              <BarChart3 className="text-slate-900" size={32}/> Dashboard Manager
             </h1>
           </div>
-          <button
-            onClick={async () => { await logoutUser(); router.push("/login") }}
-            className="md:hidden flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all"
-          >
-            <LogOut size={15}/> Salir
-          </button>
           
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full xl:w-auto">
-            <button
-              onClick={async () => { await logoutUser(); router.push("/login") }}
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase text-xs text-slate-500 hover:bg-brand-50 hover:text-brand-600 border border-slate-200 transition-all h-10 md:h-12"
-            >
-              <LogOut size={15}/> Cerrar Sesión
-            </button>
-            <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-1 sm:gap-2 border border-slate-200 flex-1 xl:flex-none">
-              <CalendarIcon size={14} className="text-slate-500 ml-1 sm:ml-2 shrink-0"/>
-              <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-10 md:h-12 border-none bg-white font-bold rounded-xl shadow-sm text-xs sm:text-sm min-w-0 w-[130px] sm:w-auto"/>
-              <span className="text-xs font-bold text-slate-400 shrink-0">al</span>
-              <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-10 md:h-12 border-none bg-white font-bold rounded-xl shadow-sm text-xs sm:text-sm min-w-0 w-[130px] sm:w-auto"/>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-2 border border-slate-200">
+              <span className="text-[10px] font-black uppercase text-slate-500 ml-3 mr-1"><CalendarIcon size={14}/></span>
+              <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-12 border-none bg-white font-bold rounded-xl shadow-sm"/>
+              <span className="text-xs font-bold text-slate-400">al</span>
+              <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-12 border-none bg-white font-bold rounded-xl shadow-sm"/>
             </div>
-
-            <div className="relative w-full sm:w-[220px]">
-              <Filter size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"/>
-              <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
-                <SelectTrigger className="h-10 md:h-12 w-full bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg pl-8">
-                  <SelectValue placeholder="Todas las sedes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL" className="font-black text-xs uppercase">🌎 Todas las sedes</SelectItem>
-                  {branches.map(b => <SelectItem key={b.id} value={b.id} className="font-black text-xs uppercase">{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            
+            <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
+              <SelectTrigger className="h-14 w-[200px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg">
+                {/* 🔥 SOLUCIÓN 2: Cambiamos <div> por <span> para no romper el HTML */}
+                <span className="flex items-center gap-2"><Filter size={14}/> <SelectValue placeholder="Todas las sedes" /></span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL" className="font-black text-xs uppercase">🌎 Todas las sedes</SelectItem>
+                {branches.map(b => <SelectItem key={b.id} value={b.id} className="font-black text-xs uppercase">{b.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* PESTAÑAS (TABS) */}
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full max-w-xl mt-8 shadow-inner border border-slate-200">
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full max-w-2xl mt-8 shadow-inner border border-slate-200">
           <button onClick={() => setActiveTab("TESORERIA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "TESORERIA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
             💰 Tesorería y Cajas
           </button>
           <button onClick={() => setActiveTab("CLINICA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "CLINICA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
             🩺 Rendimiento Clínico
           </button>
-          <button onClick={() => setActiveTab("ESTADISTICAS")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "ESTADISTICAS" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
-            📊 Estadísticas
+          <button onClick={() => setActiveTab("PERSONAL")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "PERSONAL" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+            👩‍⚕️ Personal
           </button>
         </div>
       </div>
@@ -175,12 +160,10 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           {activeTab === "TESORERIA" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4">
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <h2 className="text-lg sm:text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2 min-w-0"><Vault className="text-amber-500 shrink-0" size={22}/> <span className="truncate">Cajas Fuertes por Sede</span></h2>
-                  <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-10 sm:h-12 shadow-lg shrink-0 text-xs sm:text-sm px-3 sm:px-4">
-                    <Briefcase size={14} className="mr-1 sm:mr-2 shrink-0"/>
-                    <span className="hidden sm:block">Retirar de Caja Fuerte</span>
-                    <span className="sm:hidden">Retirar</span>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Cajas Fuertes por Sede</h2>
+                  <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-12 shadow-lg">
+                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar al Bolsillo
                   </Button>
                 </div>
                 
@@ -193,7 +176,8 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                         <div className="absolute -right-6 -top-6 text-slate-800 opacity-50"><Vault size={120}/></div>
                         <CardContent className="p-6 relative z-10">
                           <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1 flex items-center gap-1.5"><MapPin size={12}/> Sede {boveda.branch.name}</p>
-                          <p className="text-4xl font-black italic mt-2">${Number(boveda.balance).toLocaleString('es-AR')}</p>
+                          <p className="text-4xl font-black italic mt-2">${boveda.balance.toLocaleString('es-AR')}</p>
+                          <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase">Fondos acumulados intocables por el personal</p>
                         </CardContent>
                       </Card>
                     ))
@@ -211,7 +195,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                       
                       <div className="mt-8 pt-6 border-t border-white/20">
                         <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 mb-1">Gastos Operativos Registrados</p>
-                        <p className="text-2xl font-black text-brand-200">-${data.totalGastos.toLocaleString('es-AR')}</p>
+                        <p className="text-2xl font-black text-red-200">-${data.totalGastos.toLocaleString('es-AR')}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -252,69 +236,60 @@ export default function AdminClient({ branches }: { branches: any[] }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-slate-900">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Clock className="text-slate-900"/> Tiempos de Gestión</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Promedios del período seleccionado</p>
-                    {(() => {
-                      const fmt = (h: number | null) => {
-                        if (h === null) return '—';
-                        if (h < 1) return `${Math.round(h * 60)} min`;
-                        if (h < 24) return `${h.toFixed(1).replace('.', ',')} hs`;
-                        const d = Math.floor(h / 24); const r = Math.round(h % 24);
-                        return r > 0 ? `${d}d ${r}hs` : `${d} día${d !== 1 ? 's' : ''}`;
-                      };
-                      const { creacionALlamado, llamadoAEntrega, creacionAEntrega } = data.entregaStats;
-                      const pasos = [
-                        { label: 'Orden → Llamado al paciente', sub: `${creacionALlamado.n} órdenes`, value: creacionALlamado.avg, color: 'bg-blue-500', dot: 'bg-blue-500' },
-                        { label: 'Llamado → Entrega del estudio', sub: `${llamadoAEntrega.n} órdenes`, value: llamadoAEntrega.avg, color: 'bg-amber-500', dot: 'bg-amber-500' },
-                        { label: 'Orden → Entrega total', sub: `${creacionAEntrega.n} órdenes`, value: creacionAEntrega.avg, color: 'bg-slate-800', dot: 'bg-slate-800' },
-                      ];
-                      const maxVal = Math.max(...pasos.map(p => p.value ?? 0), 1);
-                      return (
-                        <div className="space-y-5">
-                          {pasos.map(({ label, sub, value, color, dot }) => (
-                            <div key={label} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                              <div className="flex justify-between items-start mb-3">
-                                <div className="flex items-center gap-2">
-                                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dot}`}/>
-                                  <div>
-                                    <p className="text-xs font-black uppercase text-slate-700 leading-tight">{label}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{sub}</p>
-                                  </div>
-                                </div>
-                                <span className="text-xl font-black italic text-slate-900 shrink-0 pl-2">{fmt(value)}</span>
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><Activity className="text-slate-900"/> Cajas de Mostrador</h3>
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      {data.cajasDiarias.length === 0 ? (
+                        <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay cajas registradas en este período</p>
+                      ) : (
+                        data.cajasDiarias.map((caja: any) => (
+                          <div key={caja.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <p className="font-black uppercase text-slate-900">{caja.branch.name}</p>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">{new Date(caja.date).toLocaleDateString('es-AR')} • Abierta por {caja.openedBy}</p>
                               </div>
-                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                                <div className={`${color} h-2 rounded-full transition-all duration-700`} style={{ width: value ? `${Math.max(4, (value / maxVal) * 100)}%` : '0%' }}/>
+                              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1 ${caja.status === 'ABIERTA' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                {caja.status === 'ABIERTA' ? <Unlock size={10}/> : <Lock size={10}/>} {caja.status}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-100 mt-2">
+                              <div>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Arrancó con</p>
+                                <p className="font-bold text-slate-700">${caja.startBalance.toLocaleString('es-AR')}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{caja.status === 'ABIERTA' ? 'Dinero Esperado' : 'Cierre Declarado'}</p>
+                                <p className="font-black text-lg text-slate-900">${(caja.endBalance || 0).toLocaleString('es-AR')}</p>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-brand-600">
+                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-red-600">
                   <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><MinusCircle className="text-brand-600"/> Gastos y Retiros</h3>
+                    <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2"><MinusCircle className="text-red-600"/> Gastos y Retiros</h3>
                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                       {data.movimientos.length === 0 ? (
                         <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">No hay gastos en este período</p>
                       ) : (
                         data.movimientos.map((m: any) => (
-                          <div key={m.id} className="flex justify-between items-center bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-100 gap-2">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
-                                {m.type === 'RETIRO_DUENO' ? <Briefcase size={14}/> : m.type === 'A_CAJA_FUERTE' ? <Vault size={14}/> : <MinusCircle size={14}/>}
+                          <div key={m.id} className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.type === 'RETIRO_DUENO' ? 'bg-slate-900 text-white' : m.type === 'A_CAJA_FUERTE' ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+                                {m.type === 'RETIRO_DUENO' ? <Briefcase size={16}/> : m.type === 'A_CAJA_FUERTE' ? <Vault size={16}/> : <MinusCircle size={16}/>}
                               </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-black uppercase text-slate-900 truncate">{m.description}</p>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">
-                                  {new Date(m.createdAt).toLocaleDateString('es-AR')} · {m.branch.name} · <span className="text-slate-700">{m.type.replace(/_/g, ' ')}</span>
+                              <div>
+                                <p className="text-xs font-black uppercase text-slate-900">{m.description}</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5 flex items-center gap-1">
+                                  {new Date(m.createdAt).toLocaleDateString('es-AR')} • {m.branch.name} • <span className="text-slate-800 font-black">{m.type.replace('_', ' ')}</span>
                                 </p>
                               </div>
                             </div>
-                            <p className="text-sm sm:text-base font-black text-brand-600 italic shrink-0">-${Number(m.amount).toLocaleString('es-AR')}</p>
+                            <p className="text-base font-black text-red-600 italic">-${m.amount.toLocaleString('es-AR')}</p>
                           </div>
                         ))
                       )}
@@ -322,143 +297,12 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* MÉTODOS DE ENTREGA */}
-              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-emerald-600">
-                <CardContent className="p-6 md:p-8">
-                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-2 flex items-center gap-2"><Send className="text-emerald-600"/> Métodos de Entrega</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">
-                    {data.totalEntregadas > 0 ? `${data.totalEntregadas} estudios entregados en el período` : 'No hay entregas en este período'}
-                  </p>
-                  {data.metodosEntrega.length === 0 ? (
-                    <p className="text-xs font-bold text-slate-400 uppercase text-center py-10">Sin datos</p>
-                  ) : (() => {
-                    const iconMap: Record<string, any> = {
-                      WHATSAPP:  { icon: <Smartphone size={16}/>, color: 'bg-emerald-100 text-emerald-700', bar: 'bg-emerald-500', label: 'WhatsApp' },
-                      EMAIL:     { icon: <Mail size={16}/>,       color: 'bg-blue-100 text-blue-700',    bar: 'bg-blue-500',    label: 'Email' },
-                      'FÍSICO':  { icon: <PackageCheck size={16}/>, color: 'bg-slate-100 text-slate-700', bar: 'bg-slate-700',  label: 'Físico / En mano' },
-                      QR:        { icon: <Printer size={16}/>,    color: 'bg-amber-100 text-amber-700',  bar: 'bg-amber-500',   label: 'Ticket / QR' },
-                    };
-                    return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {data.metodosEntrega.map((m: any) => {
-                          const cfg = iconMap[m.metodo] || { icon: <Send size={16}/>, color: 'bg-slate-100 text-slate-700', bar: 'bg-slate-400', label: m.metodo };
-                          return (
-                            <div key={m.metodo} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center ${cfg.color}`}>{cfg.icon}</span>
-                                  <span className="text-sm font-black uppercase text-slate-700">{cfg.label}</span>
-                                </div>
-                                <span className="text-2xl font-black italic text-slate-900">{m.cantidad}</span>
-                              </div>
-                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                                <div className={`${cfg.bar} h-2 rounded-full transition-all duration-700`} style={{ width: `${m.porcentaje}%` }}/>
-                              </div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5 text-right">{m.porcentaje}% del total</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
             </div>
           )}
 
           {/* =========================================================================
               PANTALLA 2: RENDIMIENTO CLÍNICO
               ========================================================================= */}
-          {activeTab === "ESTADISTICAS" && statsData && (
-            <div className="space-y-8 animate-in slide-in-from-bottom-4">
-              {/* COMPARATIVO SEMANA/MES */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[
-                  { label: "Esta Semana", actual: statsData.semana.actual, anterior: statsData.semana.anterior, sub: "vs semana anterior" },
-                  { label: "Este Mes", actual: statsData.mes.actual, anterior: statsData.mes.anterior, sub: "vs mes anterior" }
-                ].map(({ label, actual, anterior, sub }) => {
-                  const diff = anterior.monto > 0 ? ((actual.monto - anterior.monto) / anterior.monto * 100).toFixed(1) : null
-                  const up = actual.monto >= anterior.monto
-                  return (
-                    <Card key={label} className="border-none shadow-lg rounded-[2.5rem] bg-white overflow-hidden">
-                      <CardContent className="p-8">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-                        <h3 className="text-4xl font-black italic tracking-tighter text-slate-900">${actual.monto.toLocaleString('es-AR')}</h3>
-                        <p className="text-xs font-bold text-slate-400 mt-1">{actual.ordenes} órdenes</p>
-                        <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">{sub}</p>
-                            <p className="text-sm font-black text-slate-500">${anterior.monto.toLocaleString('es-AR')} · {anterior.ordenes} órd.</p>
-                          </div>
-                          {diff !== null && (
-                            <span className={`flex items-center gap-1 text-sm font-black px-3 py-1.5 rounded-xl ${up ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-100 text-brand-700'}`}>
-                              {up ? <ArrowUp size={14}/> : <ArrowDown size={14}/>} {Math.abs(Number(diff))}%
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-
-              {/* TOP PRÁCTICAS */}
-              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white">
-                <CardContent className="p-6 md:p-8">
-                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2">
-                    <Trophy className="text-amber-500"/> Top Prácticas del Mes
-                  </h3>
-                  <div className="space-y-4">
-                    {statsData.topPracticas.length === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase text-center py-8">Sin datos en este período</p>
-                    ) : statsData.topPracticas.map((p: any, idx: number) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <span className={`w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-[10px] font-black ${idx === 0 ? 'bg-amber-500 text-amber-950' : idx === 1 ? 'bg-slate-300 text-slate-800' : idx === 2 ? 'bg-orange-400 text-orange-950' : 'bg-slate-100 text-slate-500'}`}>{idx + 1}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <p className="text-xs font-black uppercase text-slate-800 truncate pr-2">{p.nombre}</p>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-[10px] font-bold text-slate-400">{p.cantidad}x</span>
-                              <span className="text-xs font-black text-emerald-600">${p.monto.toLocaleString('es-AR')}</span>
-                            </div>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                            <div className="bg-brand-600 h-2 rounded-full transition-all duration-700" style={{ width: `${p.porcentaje}%` }}/>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* POR SEDE */}
-              <Card className="border-none shadow-lg rounded-[2.5rem] bg-white">
-                <CardContent className="p-6 md:p-8">
-                  <h3 className="text-xl font-black uppercase italic tracking-tight text-slate-900 mb-6 flex items-center gap-2">
-                    <MapPin className="text-brand-600"/> Facturación por Sede (Mes)
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {statsData.porSede.map((s: any) => {
-                      const maxMonto = Math.max(...statsData.porSede.map((x: any) => x.monto), 1)
-                      return (
-                        <div key={s.nombre} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{s.nombre}</p>
-                          <p className="text-2xl font-black italic text-slate-900">${s.monto.toLocaleString('es-AR')}</p>
-                          <p className="text-xs font-bold text-slate-400 mt-0.5">{s.ordenes} órdenes</p>
-                          <div className="w-full bg-slate-200 rounded-full h-2 mt-3 overflow-hidden">
-                            <div className="bg-brand-600 h-2 rounded-full transition-all" style={{ width: `${Math.max(4, (s.monto / maxMonto) * 100)}%` }}/>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {activeTab === "CLINICA" && (
             <div className="space-y-8 animate-in slide-in-from-bottom-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -483,14 +327,14 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </CardContent>
                 </Card>
 
-                <Card className="border-none shadow-md bg-white rounded-[2.5rem] border-l-8 border-brand-700 relative overflow-hidden hover:shadow-lg transition-all">
+                <Card className="border-none shadow-md bg-white rounded-[2.5rem] border-l-8 border-red-700 relative overflow-hidden hover:shadow-lg transition-all">
                   <CardContent className="p-8 h-full flex flex-col justify-center">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Estudios Realizados</p>
                         <h3 className="text-5xl font-black italic tracking-tighter text-slate-900">{metricsData.totalEstudios}</h3>
                       </div>
-                      <div className="bg-brand-50 p-4 rounded-2xl text-brand-700"><Activity size={28}/></div>
+                      <div className="bg-red-50 p-4 rounded-2xl text-red-700"><Activity size={28}/></div>
                     </div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-2">Distribuidos en {metricsData.totalOrdenes} órdenes creadas</p>
                   </CardContent>
@@ -524,7 +368,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                               <p className="text-xs font-bold uppercase truncate pr-2">{doc.name}</p>
                             </div>
                             <span className="text-sm font-black italic bg-slate-950 px-3 py-1.5 rounded-xl text-emerald-400 shrink-0 border border-emerald-900/50">
-                              {doc.count} pac.
+                              {doc.count} pts
                             </span>
                           </div>
                         ))}
@@ -533,6 +377,77 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                   </div>
                 </Card>
               </div>
+            </div>
+          )}
+
+          {/* =========================================================================
+              PANTALLA 3: ESTADÍSTICAS DEL PERSONAL
+              ========================================================================= */}
+          {activeTab === "PERSONAL" && (
+            <div className="space-y-6 animate-in slide-in-from-bottom-4">
+              <div className="flex items-center gap-3 mb-2">
+                <UserCog className="text-slate-900" size={28}/>
+                <h2 className="text-2xl font-black uppercase italic text-slate-900">Estadísticas del Personal Técnico</h2>
+              </div>
+
+              {techStats.length === 0 ? (
+                <Card className="border-none shadow-lg rounded-[2.5rem] bg-white">
+                  <CardContent className="p-12 text-center">
+                    <UserCog size={48} className="text-slate-200 mx-auto mb-4"/>
+                    <p className="font-black uppercase text-slate-400">No hay órdenes asignadas a técnicos en este período</p>
+                    <p className="text-xs text-slate-400 mt-2">Asigná técnicos a las órdenes desde el panel de técnico</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {techStats.map((tech: any, idx: number) => (
+                    <Card key={idx} className="border-none shadow-md rounded-[2rem] bg-white overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col md:flex-row">
+                          {/* Nombre y sede */}
+                          <div className={`p-6 md:w-64 shrink-0 flex flex-col justify-center ${idx === 0 ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg mb-3 ${idx === 0 ? 'bg-amber-500 text-amber-950' : 'bg-slate-200 text-slate-700'}`}>
+                              {idx + 1}
+                            </div>
+                            <p className={`font-black uppercase text-lg leading-tight ${idx === 0 ? 'text-white' : 'text-slate-900'}`}>{tech.name}</p>
+                            <p className={`text-xs font-bold uppercase mt-1 flex items-center gap-1 ${idx === 0 ? 'text-slate-400' : 'text-slate-500'}`}>
+                              <MapPin size={10}/> {tech.branchName}
+                            </p>
+                          </div>
+
+                          {/* Métricas */}
+                          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-slate-100">
+                            <div className="p-5 flex flex-col justify-center">
+                              <div className="flex items-center gap-2 mb-1"><Layers size={14} className="text-slate-400"/><span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Órdenes</span></div>
+                              <p className="text-3xl font-black italic text-slate-900">{tech.totalOrdenes}</p>
+                            </div>
+                            <div className="p-5 flex flex-col justify-center">
+                              <div className="flex items-center gap-2 mb-1"><Activity size={14} className="text-slate-400"/><span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Estudios</span></div>
+                              <p className="text-3xl font-black italic text-slate-900">{tech.totalEstudios}</p>
+                            </div>
+                            <div className="p-5 flex flex-col justify-center">
+                              <div className="flex items-center gap-2 mb-1"><Clock size={14} className="text-blue-400"/><span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Espera hasta atención</span></div>
+                              {tech.avgTiempoAtencion !== null ? (
+                                <p className="text-3xl font-black italic text-blue-600">{tech.avgTiempoAtencion}<span className="text-sm font-bold ml-1">min</span></p>
+                              ) : (
+                                <p className="text-sm font-bold text-slate-300 uppercase">Sin dato</p>
+                              )}
+                            </div>
+                            <div className="p-5 flex flex-col justify-center">
+                              <div className="flex items-center gap-2 mb-1"><Timer size={14} className="text-emerald-400"/><span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Tiempo de realización</span></div>
+                              {tech.avgTiempoProceso !== null ? (
+                                <p className="text-3xl font-black italic text-emerald-600">{tech.avgTiempoProceso}<span className="text-sm font-bold ml-1">min</span></p>
+                              ) : (
+                                <p className="text-sm font-bold text-slate-300 uppercase">Sin dato</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -548,7 +463,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           </DialogHeader>
           <div className="py-2 space-y-6">
             <p className="text-sm font-bold text-slate-500 uppercase leading-relaxed">
-              Registrá un retiro físico de una de las Cajas Fuertes.
+              Estás por retirar plata física de una de las Cajas Fuertes.
             </p>
             
             <Select value={datosRetiro.branchId} onValueChange={v => setDatosRetiro({...datosRetiro, branchId: v})}>

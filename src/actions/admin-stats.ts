@@ -66,43 +66,6 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       include: { branch: true }
     });
 
-    // E. TIEMPOS PROMEDIO DE GESTIÓN
-    const ordenesConTiempos = await prisma.order.findMany({
-      where: {
-        createdAt: { gte: inicio, lte: fin },
-        status: { not: 'ANULADA' },
-        ...branchQuery
-      },
-      select: { createdAt: true, attendedAt: true, deliveredAt: true }
-    });
-
-    const avg = (nums: number[]) => nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
-    const hs = (a: Date, b: Date) => (b.getTime() - a.getTime()) / (1000 * 60 * 60);
-
-    // 1. Creación → Llamado (attendedAt)
-    const t1 = ordenesConTiempos
-      .filter(o => o.attendedAt)
-      .map(o => hs(o.createdAt, o.attendedAt!));
-
-    // 2. Llamado → Entrega (attendedAt → deliveredAt)
-    const t2 = ordenesConTiempos
-      .filter(o => o.attendedAt && o.deliveredAt)
-      .map(o => hs(o.attendedAt!, o.deliveredAt!));
-
-    // 3. Creación → Entrega (total)
-    const t3 = ordenesConTiempos
-      .filter(o => o.deliveredAt)
-      .map(o => hs(o.createdAt, o.deliveredAt!));
-
-    const entregaStats = {
-      creacionALlamado:  { avg: avg(t1), n: t1.length },
-      llamadoAEntrega:   { avg: avg(t2), n: t2.length },
-      creacionAEntrega:  { avg: avg(t3), n: t3.length },
-    };
-
-    // F. MÉTODOS DE ENTREGA (campo removido del schema)
-    const metodosEntrega: { metodo: string; cantidad: number; porcentaje: number }[] = [];
-
     return {
       success: true,
       data: {
@@ -112,10 +75,7 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
         totalGastos,
         movimientos,
         cajasDiarias,
-        bovedas,
-        entregaStats,
-        metodosEntrega,
-        totalEntregadas: 0
+        bovedas
       }
     };
   } catch (error) {
@@ -165,5 +125,80 @@ export async function cobrarSaldoPendiente(paymentId: string, nuevoMetodo: any) 
     return { success: true };
   } catch (error) {
     return { success: false };
+  }
+}
+// ESTADÍSTICAS DEL PERSONAL TÉCNICO
+export async function getTechnicianStats(filtros: { fechaInicio: Date, fechaFin: Date, branchId: string }) {
+  const inicio = startOfDay(new Date(filtros.fechaInicio))
+  const fin = endOfDay(new Date(filtros.fechaFin))
+  const branchQuery = filtros.branchId !== "ALL" ? { branchId: filtros.branchId } : {}
+
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        createdAt: { gte: inicio, lte: fin },
+        technicianId: { not: null },
+        ...branchQuery,
+      },
+      include: {
+        technician: true,
+        items: true,
+        branch: { select: { name: true } },
+      },
+    })
+
+    // Agrupar por técnico
+    const byTech: Record<string, {
+      name: string
+      branchName: string
+      totalOrdenes: number
+      totalEstudios: number
+      tiemposAtencion: number[]   // minutos createdAt -> attendedAt
+      tiemposProceso: number[]    // minutos attendedAt -> completedAt
+    }> = {}
+
+    for (const order of orders) {
+      if (!order.technician) continue
+      const id = order.technicianId!
+      if (!byTech[id]) {
+        byTech[id] = {
+          name: order.technician.name,
+          branchName: order.branch.name,
+          totalOrdenes: 0,
+          totalEstudios: 0,
+          tiemposAtencion: [],
+          tiemposProceso: [],
+        }
+      }
+      byTech[id].totalOrdenes++
+      byTech[id].totalEstudios += order.items.length
+
+      if (order.attendedAt) {
+        const mins = (new Date(order.attendedAt).getTime() - new Date(order.createdAt).getTime()) / 60000
+        if (mins >= 0 && mins < 480) byTech[id].tiemposAtencion.push(Math.round(mins))
+      }
+      if (order.attendedAt && order.completedAt) {
+        const mins = (new Date(order.completedAt).getTime() - new Date(order.attendedAt).getTime()) / 60000
+        if (mins >= 0 && mins < 480) byTech[id].tiemposProceso.push(Math.round(mins))
+      }
+    }
+
+    const avg = (arr: number[]) => arr.length === 0 ? null : Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
+
+    const stats = Object.values(byTech)
+      .map(t => ({
+        name: t.name,
+        branchName: t.branchName,
+        totalOrdenes: t.totalOrdenes,
+        totalEstudios: t.totalEstudios,
+        avgTiempoAtencion: avg(t.tiemposAtencion),
+        avgTiempoProceso: avg(t.tiemposProceso),
+      }))
+      .sort((a, b) => b.totalEstudios - a.totalEstudios)
+
+    return { success: true, stats }
+  } catch (error) {
+    console.error("Error en getTechnicianStats:", error)
+    return { success: false, stats: [] }
   }
 }

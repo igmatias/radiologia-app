@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 
 export default function SwRegister() {
-  const [installPrompt, setInstallPrompt] = useState<any>(null)
   const [showBanner, setShowBanner] = useState(false)
 
   useEffect(() => {
@@ -11,9 +10,18 @@ export default function SwRegister() {
       navigator.serviceWorker.register("/sw.js").catch(() => {})
     }
 
+    // Leer el evento capturado por el script inline del layout
+    const checkPrompt = () => {
+      if ((window as any)._pwaInstallEvent) {
+        setShowBanner(true)
+      }
+    }
+
+    // Verificar inmediatamente y también escuchar si llega después
+    checkPrompt()
     const handler = (e: any) => {
       e.preventDefault()
-      setInstallPrompt(e)
+      ;(window as any)._pwaInstallEvent = e
       setShowBanner(true)
     }
     window.addEventListener("beforeinstallprompt", handler)
@@ -21,11 +29,14 @@ export default function SwRegister() {
   }, [])
 
   const handleInstall = async () => {
-    if (!installPrompt) return
-    installPrompt.prompt()
-    const { outcome } = await installPrompt.userChoice
-    if (outcome === "accepted") setShowBanner(false)
-    setInstallPrompt(null)
+    const prompt = (window as any)._pwaInstallEvent
+    if (!prompt) return
+    prompt.prompt()
+    const { outcome } = await prompt.userChoice
+    if (outcome === "accepted") {
+      setShowBanner(false)
+      ;(window as any)._pwaInstallEvent = null
+    }
   }
 
   if (!showBanner) return null
