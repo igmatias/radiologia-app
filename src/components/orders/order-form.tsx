@@ -1,34 +1,31 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import {
-  createOrder, getProcedurePrice, getPatientByDni, getNextOrderNumber,
-  getPatientHistory, getDailyOrders, updateOrder
+import { 
+  createOrder, getProcedurePrice, getPatientByDni, getNextOrderNumber, 
+  getPatientHistory, getDailyOrders, updateOrder, toggleOrderActivation 
 } from "@/actions/orders"
+import { importDentistsAction } from "@/actions/dentists"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 import {
-  AlertTriangle, History, Calendar, Stethoscope, X as XIcon
+  Search, Monitor, Send, Plus, Check, Settings2, X, Phone, User as UserIcon, Stethoscope,
+  CreditCard, LogOut, Building2, FileText, History, Calendar, LayoutGrid, MessageCircle, Mail, Wallet, Trash2,
+  Banknote, Printer, Edit, AlertTriangle, RefreshCw, ScanLine, MapPin
 } from "lucide-react"
-import ToothIcon from "@/components/icons/tooth-icon"
 
-import { OrderHeader } from "./order-header"
-import { Step, Line } from "./step-indicator"
-import { StepPatient } from "./step-patient"
-import { StepStudies } from "./step-studies"
-import { StepPayment } from "./step-payment"
-import { OrderListView } from "./order-list-view"
-
-export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger, onOrderCountChange, prefillData, onPrefillUsed }: any) {
+export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger }: any) {
   const [session, setSession] = useState<{ branchId: string, userName: string } | null>(null)
-  const [showSessionModal, setShowSessionModal] = useState(false)
-
+  const [showSessionModal, setShowSessionModal] = useState(false) 
+  
   const [step, setStep] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
   const [procedureSearch, setProcedureSearch] = useState("")
@@ -40,12 +37,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const dniDebounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
   const [orderSearch, setOrderSearch] = useState("")
-  const [suggestedProcedures, setSuggestedProcedures] = useState<any[]>([])
 
   const form = useForm({
     defaultValues: {
@@ -61,7 +56,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     }
   })
 
-  // LÓGICA DE SALDO A FAVOR (SÓLO PARA EDICIÓN)
+  // 👉 LÓGICA DE SALDO A FAVOR (SÓLO PARA EDICIÓN)
   const yaPagado = useMemo(() => {
     if (!editingOrderId || !dailyOrders) return 0;
     const ordenOriginal = dailyOrders.find(o => o.id === editingOrderId);
@@ -97,37 +92,6 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     if (resetTrigger > 0 && !editingOrderId) resetFormToNew();
   }, [resetTrigger]);
 
-  // Aplicar datos precargados desde derivación médica
-  useEffect(() => {
-    if (!prefillData || !session) return
-
-    form.setValue("patient.dni", prefillData.patientDni || "")
-    form.setValue("patient.firstName", (prefillData.patientNombre || "").toUpperCase())
-    form.setValue("patient.lastName", (prefillData.patientApellido || "").toUpperCase())
-
-    // Convertir fecha DD-MM-AAAA → YYYY-MM-DD para el input date
-    if (prefillData.patientBirthDate) {
-      const parts = prefillData.patientBirthDate.split("-")
-      if (parts.length === 3 && parts[2].length === 4) {
-        form.setValue("patient.birthDate", `${parts[2]}-${parts[1]}-${parts[0]}`)
-      }
-    }
-
-    if (prefillData.dentistId) form.setValue("dentistId", prefillData.dentistId)
-
-    // Guardar prestaciones sugeridas para mostrar en paso 2
-    if (prefillData.procedures?.length) {
-      setSuggestedProcedures(prefillData.procedures)
-    }
-
-    setStep(1)
-    // Si hay DNI, dispara búsqueda del paciente en la DB (sobrescribe nombre/fecha si existe)
-    if (prefillData.patientDni && prefillData.patientDni.length >= 7) {
-      handleDniChange(prefillData.patientDni)
-    }
-    onPrefillUsed?.()
-  }, [prefillData]);
-
   useEffect(() => {
     async function initSession() {
       const userSession = await getCurrentSession();
@@ -135,17 +99,17 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         const savedBranch = localStorage.getItem("radiologia-branch");
         setSession({ userName: userSession.name || userSession.username || "OPERADOR", branchId: savedBranch || "" });
         if (savedBranch) form.setValue("branchId", savedBranch);
-        else setShowSessionModal(true);
+        else setShowSessionModal(true); 
       }
     }
     initSession();
   }, [form]);
 
-  // FUNCIÓN DE REFRESCO DE LISTA
+  // 👉 FUNCIÓN DE REFRESCO DE LISTA
   const refreshOrders = async () => {
     if (session?.branchId) {
       const res = await getDailyOrders(session.branchId);
-      if (res.success) { setDailyOrders(res.data || []); onOrderCountChange?.(res.data?.length || 0); }
+      if (res.success) setDailyOrders(res.data || []);
     }
   }
 
@@ -189,71 +153,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       document.body.appendChild(iframe);
 
       const itemsHtml = printData.items.map((item: any) => `
-        <div style="display:flex; align-items:baseline; gap:3px; margin-bottom:1.5px; line-height:1.2;">
-          <span style="color:#c00; font-weight:900; font-size:9px; flex-shrink:0;">▶</span>
-          <span style="font-weight:800; font-size:11px; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</span>
-          ${item.info ? `<span style="font-weight:600; font-size:9px; color:#555; flex-shrink:0;">${item.info}</span>` : ''}
+        <div style="font-weight: 900; font-size: 12px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          • ${item.name} ${item.info ? `<span style="font-weight: 700; font-size: 10px;">(${item.info})</span>` : ''}
         </div>
       `).join('');
 
-      const htmlContent = `
-        <html>
-        <head>
-        <style>
-          @page { size: 90mm 50mm; margin: 0; }
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          html, body {
-            width: 90mm; height: 50mm;
-            overflow: hidden;
-            font-family: 'Arial Narrow', Arial, sans-serif;
-            background: white;
-          }
-          .label {
-            width: 90mm; height: 50mm;
-            padding: 3mm 3.5mm 2.5mm 3.5mm;
-            display: flex; flex-direction: column; gap: 0;
-          }
-          .header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1.5px solid #111;
-            padding-bottom: 1.5mm; margin-bottom: 1.5mm;
-          }
-          .order-num { font-weight: 900; font-size: 13px; letter-spacing: -0.3px; }
-          .date { font-size: 10px; font-weight: 700; color: #333; }
-          .patient-name {
-            font-weight: 900; font-size: 16px; text-transform: uppercase;
-            letter-spacing: -0.5px; line-height: 1.1;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          }
-          .patient-dob { font-size: 9.5px; font-weight: 600; color: #444; margin-top: 0.5mm; margin-bottom: 1.5mm; }
-          .studies { flex: 1; overflow: hidden; }
-          .footer {
-            border-top: 1.5px solid #111;
-            padding-top: 1.5mm; margin-top: 1mm;
-            display: flex; justify-content: space-between; align-items: baseline;
-          }
-          .dentist-label { font-size: 7px; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
-          .dentist-name { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.3px; }
-        </style>
-        </head>
-        <body>
-          <div class="label">
-            <div class="header">
-              <span class="order-num">Nº ${printData.code}</span>
-              <span class="date">${printData.date}</span>
-            </div>
-            <div class="patient-name">${printData.patient}</div>
-            <div class="patient-dob">F. Nac: ${printData.dob}</div>
-            <div class="studies">${itemsHtml}</div>
-            <div class="footer">
-              <div>
-                <div class="dentist-label">Prof. Solicitante</div>
-                <div class="dentist-name">${printData.dentist}</div>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>`;
+      const htmlContent = `<html><head><style>@page { size: 90mm 50mm; margin: 0; } body { margin: 0; padding: 2mm; width: 90mm; height: 50mm; box-sizing: border-box; font-family: sans-serif; display: flex; flex-direction: column; }</style></head><body><div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 2px; margin-bottom: 3px;"><span style="font-weight: 900; font-size: 13px;">Nº ${printData.code}</span><span style="font-weight: 700; font-size: 11px;">${printData.date}</span></div><div style="margin-bottom: 3px;"><div style="font-weight: 900; font-size: 17px; text-transform: uppercase;">${printData.patient}</div><div style="font-weight: 700; font-size: 11px; margin-top: 2px;">F. Nac: ${printData.dob}</div></div><div style="flex: 1; border-top: 2px solid black; padding-top: 4px;">${itemsHtml}</div><div style="border-top: 2px solid black; padding-top: 2px; margin-top: auto;"><div style="font-weight: 900; font-size: 9px;">Prof. Solicitante</div><div style="font-weight: 900; font-size: 14px; text-transform: uppercase;">${printData.dentist}</div></div></body></html>`;
 
       const doc = iframe.contentWindow?.document;
       if (doc) {
@@ -280,9 +185,9 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const filteredDentists = useMemo(() => {
     const search = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     if (!search || search.length < 2) return [];
-    return dentists.filter((d: any) =>
-      d.lastName?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) ||
-      d.firstName?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) ||
+    return dentists.filter((d:any) => 
+      d.lastName?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) || 
+      d.firstName?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) || 
       d.matriculaProv?.toString().includes(search)
     ).slice(0, 10);
   }, [searchTerm, dentists]);
@@ -290,7 +195,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const filteredProcedures = useMemo(() => {
     const search = procedureSearch.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     if (!search) return procedures;
-    return procedures.filter((p: any) =>
+    return procedures.filter((p: any) => 
       p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) || p.code.toLowerCase().includes(search)
     );
   }, [procedureSearch, procedures]);
@@ -313,16 +218,6 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     } else { setPatientHistory([]); }
   }
 
-  const handleDniChange = (value: string) => {
-    form.setValue("patient.dni", value)
-    if (dniDebounceRef.current) clearTimeout(dniDebounceRef.current)
-    if (value.length >= 7) {
-      dniDebounceRef.current = setTimeout(() => {
-        handleDniBlur(value)
-      }, 600)
-    }
-  }
-
   const recalculateTotal = () => {
     const items = form.getValues("items");
     const totalInsurance = items.reduce((acc, curr) => acc + (Number(curr.insuranceCoverage) || 0), 0);
@@ -330,7 +225,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     form.setValue("total", totalInsurance + totalPatient);
     form.setValue("insuranceAmount", totalInsurance);
     form.setValue("patientAmount", totalPatient);
-
+    
     const valorACobrar = editingOrderId ? Math.max(0, totalPatient - yaPagado) : totalPatient;
     const currentPayments = form.getValues("paymentsList") || [];
     if (currentPayments.length === 1) form.setValue("paymentsList", [{ method: currentPayments[0].method, amount: valorACobrar }]);
@@ -354,14 +249,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     } else {
       const priceData = await getProcedurePrice(pId, osId)
       const procedure = procedures.find((p: any) => p.id === pId);
-      form.setValue("items", [...currentItems, {
+      form.setValue("items", [...currentItems, { 
         procedureId: pId, price: priceData.amount, basePrice: priceData.amount,
         insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
         patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
-        teeth: [], locations: [], quantity: 1,
-        metadata: isPhotos(procedure?.name) ? { photos: ['FRENTE', 'PERFIL', 'OCLUSION FRENTE', 'OCLUSION IZQUIERDA', 'OCLUSION DERECHA'], basePhotoCount: 5, extraPricePerPhoto: procedure?.extraPhotoPrice || 0 } : {}
+        teeth: [], locations: [], quantity: 1
       }])
-      if (isPhotos(procedure?.name) || procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
+      if (procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
     }
     recalculateTotal()
   }
@@ -376,36 +270,29 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
   const onSubmit = async (data: any) => {
     if (!orderNumber) return toast.error("Falta Número de Orden")
-    if (!data.dentistId) return toast.error("Falta Odontólogo")
+    if (data.items.length === 0) return toast.error("Agregá al menos una práctica")
     if (data.patientAmount > 0 && remainingBalance !== 0) return toast.error(`Pagos no coinciden. Faltan cobrar: $${remainingBalance}`);
 
     setLoading(true)
     try {
-      let res;
-      if (editingOrderId) {
-        res = await updateOrder(editingOrderId, { ...data, branchId: session?.branchId });
-      } else {
-        res = await createOrder({ ...data, orderNumber, branchId: session?.branchId });
-      }
+        let res;
+        if (editingOrderId) {
+          res = await updateOrder(editingOrderId, { ...data, branchId: session?.branchId });
+        } else {
+          res = await createOrder({ ...data, orderNumber, branchId: session?.branchId });
+        }
 
-      if (res.success) {
-        const dentist = dentists.find((d: any) => d.id === data.dentistId);
-        const itemsFormatted = data.items.map((it: any) => {
-          const proc = procedures.find((p: any) => p.id === it.procedureId);
-          const photos: string[] = it.metadata?.photos || []
-          const info = photos.length > 0
-            ? `${photos.length} foto${photos.length !== 1 ? 's' : ''}`
-            : it.teeth?.length > 0
-              ? `P: ${it.teeth.join(', ')}`
-              : it.locations?.length > 0
-                ? `POS: ${it.locations.join(', ')}`
-                : ''
-          return { name: proc?.name, info }
-        });
-        setPrintData({ code: orderNumber, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
-        toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
-        refreshOrders();
-      }
+        if (res.success) {
+          const dentist = dentists.find((d: any) => d.id === data.dentistId);
+          const itemsFormatted = data.items.map((it: any) => {
+            const proc = procedures.find((p: any) => p.id === it.procedureId);
+            return { name: proc?.name, info: it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '') }
+          });
+          setPrintData({ code: orderNumber, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
+          toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
+        } else {
+          toast.error(res.error || "Error al procesar la orden");
+        }
     } catch (e) { toast.error("Error al procesar orden"); }
     setLoading(false)
   }
@@ -415,26 +302,23 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     setOrderNumber(orden.code || orden.dailyId?.toString());
     form.reset({
       branchId: orden.branchId,
-      patient: {
-        dni: orden.patient.dni, firstName: orden.patient.firstName, lastName: orden.patient.lastName,
-        birthDate: orden.patient.birthDate ? new Date(orden.patient.birthDate).toISOString().split('T')[0] : "",
-        phone: orden.patient.phone || "", email: orden.patient.email || "",
-        affiliateNumber: orden.patient.affiliateNumber || "", obrasocialId: orden.patient.defaultObraSocialId || "", plan: orden.patient.plan || ""
+      patient: { 
+        dni: orden.patient.dni, firstName: orden.patient.firstName, lastName: orden.patient.lastName, 
+        birthDate: orden.patient.birthDate ? new Date(orden.patient.birthDate).toISOString().split('T')[0] : "", 
+        phone: orden.patient.phone || "", email: orden.patient.email || "", 
+        affiliateNumber: orden.patient.affiliateNumber || "", obrasocialId: orden.patient.defaultObraSocialId || "", plan: orden.patient.plan || "" 
       },
       dentistId: orden.dentistId || "",
-      items: orden.items.map((i: any) => ({
+      items: orden.items.map((i:any) => ({
         procedureId: i.procedureId, price: i.price, basePrice: i.price,
         insuranceCoverage: i.insuranceCoverage, baseInsurance: i.insuranceCoverage,
         patientCopay: i.patientCopay, basePatient: i.patientCopay,
-        teeth: i.metadata?.teeth || i.teeth || [],
-        locations: i.metadata?.locations || i.locations || [],
-        quantity: i.quantity || 1,
-        metadata: i.metadata || {}
+        teeth: i.teeth || [], locations: i.locations || [], quantity: i.quantity || 1
       })),
       total: orden.totalAmount,
       patientAmount: orden.patientAmount,
       insuranceAmount: orden.insuranceAmount,
-      paymentsList: [{ method: "EFECTIVO", amount: 0 }],
+      paymentsList: [{ method: "EFECTIVO", amount: 0 }], 
       notes: orden.notes || ""
     });
     setStep(2);
@@ -442,14 +326,15 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     toast.info(`Editando Orden Nº ${orden.code || orden.dailyId}`);
   }
 
+  // 👉 NUEVA FUNCIÓN DE REIMPRESIÓN CORREGIDA
   const handleReimprimir = (orden: any) => {
     const dentistName = orden.dentist ? `${orden.dentist.lastName}, ${orden.dentist.firstName}` : "PARTICULAR";
     const itemsFormatted = orden.items.map((it: any) => {
-      const procName = it.procedure?.name || procedures.find((p: any) => p.id === it.procedureId)?.name || "ESTUDIO";
+      const procName = it.procedure?.name || procedures.find((p:any) => p.id === it.procedureId)?.name || "ESTUDIO";
       const info = it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '');
       return { name: procName, info };
     });
-
+    
     setPrintData({
       code: orden.code || orden.dailyId?.toString(),
       patient: `${orden.patient?.lastName}, ${orden.patient?.firstName}`,
@@ -458,7 +343,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       items: itemsFormatted,
       date: new Date(orden.createdAt).toLocaleDateString('es-AR')
     });
-
+    
     toast.success("Enviando a la impresora...");
   };
 
@@ -468,19 +353,36 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     <div className={`space-y-6 mx-auto hide-on-print`}>
 
       {/* HEADER STATS */}
-      <OrderHeader
-        orderNumber={orderNumber}
-        editingOrderId={editingOrderId}
-        saldoDiferencia={saldoDiferencia}
-        patientAmount={form.watch("patientAmount")}
-        session={session}
-        branches={branches}
-        onLogout={handleLogout}
-        onChangeBranch={() => setShowSessionModal(true)}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in">
+        <StatCard title="N° ORDEN" value={orderNumber || "---"} />
+        <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-red-700 relative">
+          <CardContent className="p-6 flex justify-between items-center">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">
+                {editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR EN CAJA"}
+              </p>
+              <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-red-700'}`}>
+                ${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
+          <CardContent className="p-6 flex justify-between items-start">
+            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
+            <button onClick={handleLogout} className="bg-red-100 text-red-700 p-2 rounded-xl hover:bg-red-200 shrink-0"><LogOut size={16} /></button>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
+          <CardContent className="p-6 flex justify-between items-start">
+            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b:any) => b.id === session?.branchId)?.name || "---"}</p></div>
+            <button onClick={() => setShowSessionModal(true)} className="bg-slate-200 text-slate-700 p-2 rounded-xl hover:bg-slate-300 transition-colors shrink-0"><Building2 size={16} /></button>
+          </CardContent>
+        </Card>
+      </div>
 
       <Dialog open={showSessionModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-brand-700 rounded-3xl p-8 outline-none">
+        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-red-700 rounded-3xl p-8 outline-none">
           <DialogHeader><DialogTitle className="text-2xl font-black italic uppercase text-center">Elegir Sede</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4 font-black uppercase italic">
             <Select value={session?.branchId} onValueChange={(v) => setSession(prev => ({ ...prev!, branchId: v }))}>
@@ -489,7 +391,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 {branches.map((b: any) => <SelectItem key={b.id} value={b.id} className="py-3">{b.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button className="w-full bg-brand-700 hover:bg-brand-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
+            <Button className="w-full bg-red-700 hover:bg-red-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -497,9 +399,9 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       {/* ================= VISTA: NUEVA ORDEN / EDICIÓN ================= */}
       {activeTab === "NUEVA_ORDEN" && (
         <div className="animate-in fade-in duration-500 space-y-6">
-          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-brand-700'} bg-white rounded-3xl`}>
+          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-red-700'} bg-white rounded-3xl`}>
             <CardContent className="p-8" onKeyDown={handleKeyDown}>
-
+              
               {editingOrderId && (
                 <div className="bg-slate-900 text-white p-5 rounded-2xl mb-8 flex flex-col md:flex-row justify-between items-center gap-4 border border-slate-800 shadow-md">
                   <div className="flex items-center gap-3">
@@ -522,87 +424,189 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
               </div>
 
               {step === 1 && (
-                <StepPatient
-                  form={form}
-                  patientHistory={patientHistory}
-                  onShowHistory={() => setShowHistoryModal(true)}
-                  obrasSociales={obrasSociales}
-                  onDniChange={handleDniChange}
-                  onDniBlur={handleDniBlur}
-                />
-              )}
-
-              {step === 2 && suggestedProcedures.length > 0 && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-5 flex items-start gap-2">
-                  <Stethoscope size={15} className="text-indigo-600 mt-0.5 shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-xs font-black uppercase tracking-widest text-indigo-700 mb-2">Prácticas solicitadas por el médico</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {suggestedProcedures.map((sp: any) => {
-                        const alreadyAdded = form.getValues("items").find((i: any) => i.procedureId === sp.procId)
-                        return (
-                          <button
-                            key={sp.procId}
-                            type="button"
-                            onClick={() => { if (!alreadyAdded) toggleProcedure(sp.procId) }}
-                            className={`text-xs px-2.5 py-1 rounded-lg font-bold border transition-all ${
-                              alreadyAdded
-                                ? "bg-emerald-100 text-emerald-700 border-emerald-200 cursor-default"
-                                : "bg-white text-indigo-700 border-indigo-300 hover:bg-indigo-100 active:scale-95"
-                            }`}
-                          >
-                            {alreadyAdded ? "✓ " : "+ "}{sp.procName}
-                            {sp.teeth?.length ? ` — Pzas: ${sp.teeth.join(", ")}` : ""}
-                            {sp.options?.length ? ` — ${sp.options.join(" / ")}` : ""}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => setSuggestedProcedures([])} className="text-indigo-300 hover:text-indigo-600 transition-colors shrink-0 mt-0.5">
-                    <XIcon size={14} />
-                  </button>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
+                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Apellido</Label><Input {...form.register("patient.lastName")} className="h-11 uppercase font-bold border-2" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</Label><Input {...form.register("patient.firstName")} className="h-11 uppercase font-bold border-2" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input {...form.register("patient.birthDate")} type="date" className="h-11 border-2 font-bold" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Teléfono</Label><Input {...form.register("patient.phone")} className="h-11 font-bold border-2" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">E-mail</Label><Input {...form.register("patient.email")} type="email" className="h-11 font-bold border-2 lowercase" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Obra Social</Label><Select value={form.watch("patient.obrasocialId")} onValueChange={(v) => form.setValue("patient.obrasocialId", v)}><SelectTrigger className="h-11 font-bold border-2"><SelectValue placeholder="MUTUAL..." /></SelectTrigger><SelectContent className="font-black italic uppercase">{obrasSociales.map((os: any) => <SelectItem key={os.id} value={os.id}>{os.name}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">N° Afiliado</Label><Input {...form.register("patient.affiliateNumber")} className="h-11 uppercase font-bold border-2" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Plan OS</Label><Input {...form.register("patient.plan")} placeholder="Ej: 210, PMO..." className="h-11 uppercase font-bold border-2 bg-blue-50 focus-visible:ring-blue-500" /></div>
+                  <div className="space-y-2 md:col-span-3 mt-2"><Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label><textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-red-700 resize-none h-20 shadow-inner"/></div>
                 </div>
               )}
 
               {step === 2 && (
-                <StepStudies
-                  form={form}
-                  dentists={dentists}
-                  procedures={procedures}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  procedureSearch={procedureSearch}
-                  setProcedureSearch={setProcedureSearch}
-                  filteredDentists={filteredDentists}
-                  filteredProcedures={filteredProcedures}
-                  isDentistModalOpen={isDentistModalOpen}
-                  setIsDentistModalOpen={setIsDentistModalOpen}
-                  activeConfigId={activeConfigId}
-                  setActiveConfigId={setActiveConfigId}
-                  onToggleProcedure={toggleProcedure}
-                />
+                <div className="space-y-8 animate-in slide-in-from-right">
+                  <div className="bg-white p-6 rounded-2xl border-2 border-red-500 relative shadow-md">
+                    <div className="flex justify-between items-center mb-4 text-red-700 font-black uppercase italic">
+                      <Label className="text-sm">Odontólogo Solicitante</Label>
+                      <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700">+ Nuevo Profesional</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
+                          <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
+                          <QuickDentistForm onSuccess={() => setIsDentistModalOpen(false)} />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    {!form.watch("dentistId") ? (
+                      <div className="relative shadow-sm rounded-xl">
+                        <Search className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
+                        <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50" />
+                        {searchTerm && (
+                          <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold">
+                            {filteredDentists.map((d: any) => (
+                              <div key={d.id} className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm" onClick={() => { form.setValue("dentistId", d.id); setSearchTerm(""); }}>
+                                {d.lastName}, {d.firstName} {d.matriculaProv ? `(MP: ${d.matriculaProv})` : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (() => {
+                      const d = dentists.find((doc: any) => doc.id === form.watch("dentistId"));
+                      return d && (
+                        <div className="flex flex-col gap-2">
+                          <div className="px-5 py-3 bg-red-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
+                            <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> {d.lastName}, {d.firstName}</div>
+                            <button type="button" onClick={() => form.setValue("dentistId", "")} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
+                          </div>
+                          {/* 👉 NUEVO: CHIPS DE PREFERENCIAS DEL MEDICO */}
+                          <div className="flex gap-2 ml-1">
+                            {(d.deliveryMethod === 'IMPRESA' || d.deliveryMethod === 'AMBAS') && (
+                              <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200 shadow-sm flex items-center gap-1">📦 FÍSICO</span>
+                            )}
+                            {(d.deliveryMethod === 'DIGITAL' || d.deliveryMethod === 'AMBAS' || !d.deliveryMethod) && (
+                              <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md bg-blue-100 text-blue-800 border border-blue-200 shadow-sm flex items-center gap-1">📱 DIGITAL ({d.resultPreference || 'WHATSAPP'})</span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center mb-2">
+                       <Label className="text-xs font-black uppercase italic text-slate-900 flex items-center gap-2"><LayoutGrid size={16}/> Prácticas</Label>
+                       <div className="relative w-64"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><Input placeholder="FILTRAR ESTUDIO..." value={procedureSearch} onChange={(e) => setProcedureSearch(e.target.value)} className="pl-9 h-9 text-xs uppercase font-bold border-2 border-slate-200 bg-slate-50 rounded-lg" /></div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2 pb-2">
+                      {filteredProcedures.map((p: any) => {
+                        const selectedItem = form.watch("items").find(i => i.procedureId === p.id);
+                        const isSelected = !!selectedItem;
+                        const hasConfig = p.requiresTooth || (p.options && p.options.length > 0);
+                        
+                        return (
+                          <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isSelected ? 'bg-red-50 border-red-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
+                             <button type="button" onClick={() => toggleProcedure(p.id)} className="flex-1 flex items-start gap-3 p-1.5 text-left">
+                               <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-red-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                 {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                               </div>
+                               <div className="overflow-hidden flex-1">
+                                 <p className="text-[9px] font-black uppercase text-red-700 mb-0.5 leading-none">{p.code}</p>
+                                 <p className="text-xs font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
+                                 {isSelected && selectedItem && (
+                                   <div className="mt-1.5 flex flex-wrap gap-1">
+                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-red-200 text-red-800 px-1.5 py-0.5 rounded-md uppercase border border-red-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
+                                     {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
+                                   </div>
+                                 )}
+                               </div>
+                             </button>
+                             {isSelected && hasConfig && (
+                               <button onClick={() => setActiveConfigId(p.id)} className="mr-2 shrink-0 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+                                 <Settings2 className="h-4 w-4" />
+                               </button>
+                             )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
               )}
 
               {step === 3 && (
-                <StepPayment
-                  form={form}
-                  procedures={procedures}
-                  editingOrderId={editingOrderId}
-                  yaPagado={yaPagado}
-                  saldoDiferencia={saldoDiferencia}
-                  remainingBalance={remainingBalance}
-                  targetAmount={targetAmount}
-                  onUpdateItemPrice={updateItemPrice}
-                  onAddPayment={addPaymentMethod}
-                  onRemovePayment={removePaymentMethod}
-                  onUpdatePayment={updatePaymentList}
-                />
+                <div className="space-y-8 animate-in slide-in-from-right">
+                  <div className="bg-white rounded-2xl shadow-md border-2 border-slate-200 overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="bg-slate-100 text-[10px] font-black uppercase text-slate-500 italic">
+                        <tr><th className="p-4 border-b-2 border-slate-200">Estudio</th><th className="p-4 w-36 text-center border-b-2 border-slate-200">Mutual</th><th className="p-4 w-36 text-center border-b-2 bg-red-50 text-red-800">Paciente</th><th className="p-4 w-28 text-right border-b-2 border-slate-200">Total</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-bold">
+                        {form.watch("items").map((item, index) => {
+                          const proc = procedures.find((p:any) => p.id === item.procedureId);
+                          return (
+                            <tr key={index} className="hover:bg-slate-50 transition-colors">
+                              <td className="p-4">
+                                <p className="text-sm font-black uppercase text-slate-800">{proc?.name}</p>
+                                {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-red-600 uppercase italic">Piezas: {item.teeth.join(' - ')}</p>}
+                                {(item.locations?.length > 0) && <p className="text-[10px] font-bold text-blue-600 uppercase italic">Pos: {item.locations.join(' - ')}</p>}
+                              </td>
+                              <td className="p-4"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-slate-400 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-bold text-slate-600 border-2" value={item.insuranceCoverage || 0} onChange={(e) => updateItemPrice(index, 'insuranceCoverage', Number(e.target.value))}/></div></td>
+                              <td className="p-4 bg-red-50/30"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-red-700 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-black text-red-700 border-2 border-red-200 focus-visible:ring-red-700 bg-white" value={item.patientCopay || 0} onChange={(e) => updateItemPrice(index, 'patientCopay', Number(e.target.value))}/></div></td>
+                              <td className="p-4 text-right text-lg font-black italic text-slate-900">${(Number(item.insuranceCoverage) || 0) + (Number(item.patientCopay) || 0)}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex flex-col gap-4">
+                      <div className="bg-slate-100 p-5 rounded-2xl border-2 border-slate-200 text-center flex flex-col justify-center shadow-inner"><p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">A Facturar O.S.</p><p className="text-3xl font-black italic text-slate-700">${form.watch("insuranceAmount")}</p></div>
+                      
+                      {editingOrderId && yaPagado > 0 && (
+                        <div className="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-200 text-center shadow-md animate-in zoom-in-95 duration-300">
+                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Ya abonado anteriormente</p>
+                          <p className="text-3xl font-black italic text-emerald-700">-${yaPagado.toLocaleString('es-AR')}</p>
+                        </div>
+                      )}
+
+                      <div className="bg-slate-900 p-5 rounded-2xl border-t-8 border-red-700 flex flex-col justify-center shadow-xl text-center"><p className="text-[11px] font-black text-red-400 uppercase tracking-widest mb-1">{editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR AL PACIENTE"}</p><h3 className="text-5xl tracking-tighter text-white uppercase italic leading-none">${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}</h3></div>
+                    </div>
+
+                    <div className="md:col-span-2 bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
+                      <div className="flex justify-between items-center mb-4 border-b pb-3"><h4 className="font-black italic uppercase text-slate-800 flex items-center gap-2"><CreditCard size={18} className="text-red-700"/> Medios de Pago</h4>{(editingOrderId ? saldoDiferencia : form.watch("patientAmount")) > 0 && (<Button onClick={addPaymentMethod} variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase text-blue-600 border-blue-200 hover:bg-blue-50">+ Agregar Pago</Button>)}</div>
+                      
+                      {(editingOrderId ? saldoDiferencia : form.watch("patientAmount")) <= 0 ? (
+                        <div className="text-center py-8 text-emerald-600 font-black uppercase italic bg-emerald-50 rounded-xl border border-emerald-100">La orden ya está cubierta o posee saldo a favor.</div>
+                      ) : (
+                        <div className="space-y-3">
+                          {form.watch("paymentsList").map((payment: any, index: number) => (
+                            <div key={index} className="flex items-center gap-3">
+                              <Select value={payment.method} onValueChange={(v) => updatePaymentList(index, 'method', v)}>
+                                <SelectTrigger className="h-12 w-full font-black uppercase italic bg-slate-50 border-2"><SelectValue /></SelectTrigger>
+                                <SelectContent className="font-black uppercase italic">
+                                  <SelectItem value="EFECTIVO">💵 EFECTIVO</SelectItem>
+                                  <SelectItem value="MERCADOPAGO">📱 MERCADOPAGO</SelectItem>
+                                  <SelectItem value="TARJETA_DEBITO">💳 DÉBITO</SelectItem>
+                                  <SelectItem value="TARJETA_CREDITO">💳 CRÉDITO</SelectItem>
+                                  <SelectItem value="TRANSFERENCIA">🏛️ TRANSFERENCIA</SelectItem>
+                                  <SelectItem value="SALDO" className="font-black text-red-600 uppercase">⏳ Deuda / Saldo Pendiente</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <div className="relative w-48 shrink-0"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span><Input type="number" className="pl-8 h-12 font-black text-lg border-2" value={payment.amount} onChange={(e) => updatePaymentList(index, 'amount', Number(e.target.value))} /></div>
+                              {form.watch("paymentsList").length > 1 && (<Button variant="ghost" onClick={() => removePaymentMethod(index)} className="text-slate-400 hover:text-red-600 shrink-0"><Trash2 size={18}/></Button>)}
+                            </div>
+                          ))}
+                          <div className={`mt-4 p-3 rounded-xl flex justify-between items-center font-black uppercase italic transition-colors ${remainingBalance === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}><span className="text-xs">{remainingBalance === 0 ? '✓ Pagos cuadrados' : '⚠️ Saldo pendiente'}</span><span className="text-xl">${Math.abs(remainingBalance)}</span></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
 
               <div className="flex justify-between mt-16 border-t-2 border-slate-100 pt-8">
                 <Button variant="ghost" className="font-black uppercase italic h-14 px-8 text-slate-500 hover:text-slate-900" onClick={() => step > 1 ? setStep(step - 1) : router.back()}>{step === 1 ? "CANCELAR" : "← VOLVER"}</Button>
-                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-brand-700 hover:bg-brand-800 border-brand-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
+                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-red-700 hover:bg-red-800 border-red-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
               </div>
             </CardContent>
           </Card>
@@ -611,347 +615,251 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
       {/* ================= VISTA: ÓRDENES DEL DÍA ================= */}
       {activeTab === "ORDENES" && (
-        <OrderListView
-          dailyOrders={dailyOrders}
-          orderSearch={orderSearch}
-          setOrderSearch={setOrderSearch}
-          onRefresh={refreshOrders}
-          onEdit={handleEditarOrden}
-          onReprint={handleReimprimir}
-        />
+        <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-4">
+          <Card className="border-none shadow-xl rounded-[2.5rem] bg-white border-t-8 border-slate-900 p-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-100 pb-6 gap-4">
+               <div>
+                 <h3 className="text-3xl font-black uppercase italic text-slate-900 flex items-center gap-3">
+                   <LayoutGrid className="text-red-700" size={32}/> Órdenes de Hoy
+                 </h3>
+               </div>
+               <div className="flex items-center gap-3 w-full md:w-auto">
+                 <div className="relative flex-1 md:w-64"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><Input placeholder="BUSCAR..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="pl-10 h-12 text-xs font-bold border-2 rounded-xl uppercase" /></div>
+                 <Button onClick={refreshOrders} variant="outline" className="border-2 rounded-xl font-black text-[10px] h-12">Actualizar</Button>
+               </div>
+            </div>
+            
+            <div className="space-y-4">
+              {dailyOrders
+                .filter((o: any) => {
+                  const term = orderSearch.toLowerCase();
+                  if (!term) return true;
+                  return o.patient?.lastName?.toLowerCase().includes(term) || 
+                         o.patient?.dni?.includes(term) ||
+                         (o.code && o.code.toLowerCase().includes(term));
+                })
+                .map((orden: any) => {
+                  const isAnulada = orden.status === 'ANULADA';
+
+                  return (
+                    <div 
+                      key={orden.id} 
+                      className={`p-5 rounded-2xl border transition-all flex flex-col md:flex-row justify-between md:items-center gap-6 group 
+                        ${isAnulada 
+                          ? 'bg-slate-50 border-slate-200 opacity-70 grayscale' 
+                          : 'bg-slate-50 border-slate-200 hover:border-slate-400 shadow-sm'
+                        }`}
+                    >
+                        <div>
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <span className={`${isAnulada ? 'bg-slate-400' : 'bg-red-700'} text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest`}>
+                              Nº {orden.code || orden.dailyId}
+                            </span>
+                            
+                            {/* 👉 CHIP ROJO VIVO PARA ANULADA (CORREGIDO) */}
+                            {isAnulada && (
+                              <span className="bg-red-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm italic flex items-center gap-1 animate-pulse">
+                                <AlertTriangle size={10} /> ANULADA
+                              </span>
+                            )}
+
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{new Date(orden.createdAt).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'})}hs</span>
+                          </div>
+                          <p className={`text-xl font-black uppercase leading-tight mb-1 ${isAnulada ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                            {orden.patient?.lastName}, {orden.patient?.firstName}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase">{orden.items.length} Estudio(s) • {orden.dentist ? `Dr. ${orden.dentist.lastName}` : "Particular"}</p>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-3 items-center">
+                          {!isAnulada && (
+                            <div className="text-right mr-4 hidden md:block">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Abonado</p>
+                              <p className="text-2xl font-black italic text-emerald-600 leading-none">${(orden.patientAmount || 0).toLocaleString()}</p>
+                            </div>
+                          )}
+
+                          {!isAnulada ? (
+                            <>
+                              <Button onClick={() => handleReimprimir(orden)} variant="outline" className="h-12 border-2 border-slate-200 text-slate-700 font-black uppercase text-xs rounded-xl shadow-sm hover:bg-white"><Printer size={16} className="mr-2"/> Etiqueta</Button>
+                              <Button onClick={() => handleEditarOrden(orden)} className="h-12 bg-slate-900 text-white font-black uppercase text-xs rounded-xl shadow-md"><Edit size={16} className="mr-2"/> Editar</Button>
+                              <Button 
+                                variant="ghost" 
+                                className="h-12 text-red-500 hover:bg-red-50 font-black uppercase text-[10px]" 
+                                onClick={async () => { 
+                                  if(confirm("¿Estás seguro de ANULAR esta orden?")) { 
+                                    const res = await toggleOrderActivation(orden.id, orden.status); 
+                                    if(res.success) { 
+                                      toast.success("Orden Anulada ✓"); 
+                                      await refreshOrders(); // Refresca la lista local
+                                    } 
+                                  } 
+                                }}
+                              >
+                                <Trash2 size={16} className="mr-2"/> Anular
+                              </Button>
+                            </>
+                          ) : (
+                            // 👉 BOTÓN DE REACTIVACIÓN (LOGICA REAL)
+                            <Button 
+                              variant="outline" 
+                              className="h-12 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-black uppercase text-xs rounded-xl shadow-sm"
+                              onClick={async () => {
+                                if(confirm("¿Deseas REACTIVAR esta orden? El dinero volverá a figurar en caja.")) {
+                                  const res = await toggleOrderActivation(orden.id, orden.status);
+                                  if(res.success) { 
+                                    toast.success("Orden Reactivada ✓"); 
+                                    await refreshOrders(); // Refresca la lista local
+                                  } else {
+                                    toast.error("Error al reactivar");
+                                  }
+                                }
+                              }}
+                            >
+                              <RefreshCw size={16} className="mr-2"/> Reactivar Orden
+                            </Button>
+                          )}
+                        </div>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* ODONTOGRAMA DINÁMICO */}
       {activeConfigId && (() => {
-        const p = procedures.find((proc: any) => proc.id === activeConfigId);
-        const itemIndex = form.watch("items").findIndex((i: any) => i.procedureId === activeConfigId);
-        return (
-          <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-brand-700 p-10">
-              <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
-              {isPhotos(p?.name) ? (() => {
-                const meta = form.watch(`items.${itemIndex}.metadata`) || {}
-                const photos: string[] = meta.photos || []
-                const baseCount: number = meta.basePhotoCount ?? 5
-                const extraPrice: number = meta.extraPricePerPhoto ?? 0
-                const extraCount = Math.max(0, photos.length - baseCount)
-
-                const setMeta = (newMeta: any) => {
-                  form.setValue(`items.${itemIndex}.metadata`, newMeta)
-                  const newExtras = Math.max(0, (newMeta.photos?.length || 0) - (newMeta.basePhotoCount ?? 5))
-                  const basePat = form.getValues(`items.${itemIndex}.basePatient`)
-                  const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`)
-                  form.setValue(`items.${itemIndex}.patientCopay`, basePat + newExtras * (newMeta.extraPricePerPhoto ?? 0))
-                  form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns)
-                  recalculateTotal()
-                }
-
-                return (
-                  <div className="space-y-6 py-4">
-                    {/* Config row */}
-                    <div className="flex flex-wrap gap-6 items-end">
-                      <div>
-                        <label className="text-xs font-black uppercase text-slate-400 block mb-2">Fotos incluidas (base)</label>
-                        <input
-                          type="number" min="1"
-                          value={baseCount}
-                          onChange={e => setMeta({ ...meta, basePhotoCount: parseInt(e.target.value) || 1 })}
-                          className="w-24 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-black uppercase text-slate-400 block mb-2">Precio foto adicional ($)</label>
-                        <input
-                          type="number" min="0"
-                          value={extraPrice}
-                          onChange={e => setMeta({ ...meta, extraPricePerPhoto: parseFloat(e.target.value) || 0 })}
-                          className="w-40 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none"
-                        />
-                      </div>
-                      {extraCount > 0 && (
-                        <div className="ml-auto bg-brand-900/40 border border-brand-700/60 rounded-xl px-5 py-2 text-right">
-                          <p className="text-brand-300 text-xs font-black uppercase">{extraCount} foto{extraCount > 1 ? 's' : ''} adicional{extraCount > 1 ? 'es' : ''}</p>
-                          <p className="text-white text-xl font-black">+ ${(extraCount * extraPrice).toLocaleString('es-AR')}</p>
+          const p = procedures.find((proc: any) => proc.id === activeConfigId);
+          const itemIndex = form.watch("items").findIndex(i => i.procedureId === activeConfigId);
+          return (
+            <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+               <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-red-700 p-10">
+                  <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-red-700 hover:bg-red-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
+                  {p?.requiresTooth ? (
+                    <div className="py-6 flex flex-col items-center">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
+                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                          <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Photo list */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-black uppercase text-slate-300">
-                          {photos.length} foto{photos.length !== 1 ? 's' : ''}
-                          {' '}
-                          <span className="text-slate-500 font-bold text-xs">
-                            ({Math.min(photos.length, baseCount)} base{extraCount > 0 ? ` + ${extraCount} extra` : ''})
-                          </span>
-                        </p>
-                        <Button
-                          type="button"
-                          onClick={() => setMeta({ ...meta, photos: [...photos, `Foto ${photos.length + 1}`] })}
-                          className="bg-brand-700 hover:bg-brand-600 text-white font-black text-sm rounded-xl h-9 px-4"
-                        >+ Agregar Foto</Button>
-                      </div>
-
-                      {photos.length === 0 && (
-                        <div className="text-center py-8 text-slate-600 border-2 border-dashed border-slate-700 rounded-2xl">
-                          <p className="text-sm font-bold">Sin fotos cargadas</p>
-                          <p className="text-xs mt-1 text-slate-700">Presioná "+ Agregar Foto" para comenzar</p>
+                        <div className="flex gap-4 pt-2">
+                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                          <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
                         </div>
-                      )}
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
-                        {photos.map((photo: string, i: number) => (
-                          <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-900/20 border-brand-700/40' : 'bg-slate-800 border-slate-700'}`}>
-                            <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-400' : 'text-slate-500'}`}>{i + 1}</span>
-                            {i >= baseCount && (
-                              <span className="text-[9px] font-black uppercase text-brand-400 bg-brand-900/60 px-1.5 py-0.5 rounded shrink-0">+$</span>
-                            )}
-                            <input
-                              type="text"
-                              value={photo}
-                              onChange={e => {
-                                const newPhotos = [...photos]
-                                newPhotos[i] = e.target.value
-                                setMeta({ ...meta, photos: newPhotos })
-                              }}
-                              placeholder={`Descripción foto ${i + 1}`}
-                              className="flex-1 bg-transparent text-white text-sm font-bold placeholder-slate-600 outline-none min-w-0"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setMeta({ ...meta, photos: photos.filter((_: string, j: number) => j !== i) })}
-                              className="text-slate-600 hover:text-red-400 font-black text-xl leading-none shrink-0 transition-colors"
-                            >×</button>
-                          </div>
-                        ))}
                       </div>
                     </div>
-                  </div>
-                )
-              })() : p?.requiresTooth ? (
-                <div className="py-6 flex flex-col items-center">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
-                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
-                      <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                  ) : (
+                    <div className="flex flex-wrap justify-center gap-4 py-10">
+                      {p?.options?.map((opt: string) => {
+                        const selectedLocs = form.watch(`items.${itemIndex}.locations`) || [];
+                        const isSelected = selectedLocs.includes(opt);
+                        return (
+                          <Button key={opt} type="button" onClick={() => {
+                              const next = isSelected ? selectedLocs.filter((l: string) => l !== opt) : [...selectedLocs, opt];
+                              const count = next.length || 1;
+                              const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
+                              const basePat = form.getValues(`items.${itemIndex}.basePatient`);
+                              form.setValue(`items.${itemIndex}.locations`, next);
+                              form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
+                              form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
+                              recalculateTotal();
+                            }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-red-700 text-white border-red-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
+                        )
+                      })}
                     </div>
-                    <div className="flex gap-4 pt-2">
-                      <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
-                      <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-wrap justify-center gap-4 py-10">
-                  {p?.options?.map((opt: string) => {
-                    const selectedLocs = form.watch(`items.${itemIndex}.locations`) || [];
-                    const isSelected = selectedLocs.includes(opt);
-                    return (
-                      <Button key={opt} type="button" onClick={() => {
-                        const next = isSelected ? selectedLocs.filter((l: string) => l !== opt) : [...selectedLocs, opt];
-                        const count = next.length || 1;
-                        const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
-                        const basePat = form.getValues(`items.${itemIndex}.basePatient`);
-                        form.setValue(`items.${itemIndex}.locations`, next);
-                        form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
-                        form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
-                        recalculateTotal();
-                      }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-brand-700 text-white border-brand-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
-                    )
-                  })}
-                </div>
-              )}
+                  )}
+               </div>
             </div>
-          </div>
-        )
+          )
       })()}
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
-        <DialogContent className="sm:max-w-[780px] bg-neutral-50 rounded-[2rem] border-t-8 border-brand-700 p-0 max-h-[90vh] overflow-hidden flex flex-col [&>button]:text-white [&>button]:top-5 [&>button]:right-6 [&>button]:opacity-100 [&>button:hover]:opacity-80">
-
-          {/* CABECERA FIJA */}
-          <div className="bg-brand-700 text-white px-8 py-6 shrink-0">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-200 mb-1">Historia Clínica</p>
-                <h2 className="text-2xl font-black italic uppercase tracking-tight">
-                  {form.watch("patient.lastName")}, {form.watch("patient.firstName")}
-                </h2>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
-                    <span className="text-brand-300">DNI</span> {form.watch("patient.dni")}
-                  </span>
-                  {form.watch("patient.birthDate") && (
-                    <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
-                      <span className="text-brand-300">Edad</span>{" "}
-                      {(() => { const b = new Date(form.watch("patient.birthDate")); const hoy = new Date(); let age = hoy.getFullYear() - b.getFullYear(); if (hoy < new Date(hoy.getFullYear(), b.getMonth(), b.getDate())) age--; return `${age} años`; })()}
-                    </span>
-                  )}
-                  {form.watch("patient.phone") && (
-                    <span className="text-xs font-bold text-brand-100 flex items-center gap-1">
-                      <span className="text-brand-300">Tel</span> {form.watch("patient.phone")}
-                    </span>
-                  )}
+        <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-red-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">{patientHistory.map((order: any) => (
+              <div key={order.id} className="bg-slate-50 p-5 rounded-[1.5rem] border-2 border-slate-100 flex flex-col gap-3">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                  <div className="flex items-center gap-2"><Calendar size={16} className="text-slate-400" /><span className="text-lg font-black italic uppercase leading-none mt-1">{new Date(order.createdAt).toLocaleDateString('es-AR')}</span></div>
+                  <span className="text-[10px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-2"><Stethoscope size={14} className="text-red-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                  <div className="text-right"><span className="font-bold text-slate-400 uppercase text-[9px]">Abonado</span><p className="font-black text-emerald-700 uppercase text-xs">${order.patientAmount || order.totalAmount}</p></div>
                 </div>
               </div>
-              {/* Resumen rápido */}
-              <div className="text-right shrink-0 pr-8">
-                <p className="text-3xl font-black italic text-white">{patientHistory.length}</p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-brand-200">Visitas totales</p>
-                {patientHistory.length > 0 && (
-                  <>
-                    <p className="text-sm font-black text-white mt-1">
-                      ${patientHistory.reduce((acc: number, o: any) => acc + (Number(o.patientAmount) || 0), 0).toLocaleString('es-AR')}
-                    </p>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-brand-200">Total abonado</p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* LISTADO SCROLLEABLE */}
-          <div className="overflow-y-auto flex-1 p-6 space-y-4">
-            {patientHistory.length === 0 ? (
-              <div className="text-center py-16 text-neutral-400">
-                <History size={40} className="mx-auto mb-3 opacity-30" />
-                <p className="font-black uppercase text-sm">Sin visitas anteriores</p>
-              </div>
-            ) : patientHistory.map((order: any, idx: number) => {
-              const paymentMethods: Record<string, string> = { EFECTIVO: 'Efectivo', DEBITO: 'Débito', TARJETA_DEBITO: 'Débito', TARJETA_CREDITO: 'Crédito', MERCADOPAGO: 'MercadoPago', TRANSFERENCIA: 'Transferencia', OBRA_SOCIAL: 'O.S.' }
-              const statusColors: Record<string, string> = { PENDIENTE: 'bg-amber-100 text-amber-700', PROCESANDO: 'bg-blue-100 text-blue-700', LISTO_PARA_ENTREGA: 'bg-emerald-100 text-emerald-700', ENTREGADO: 'bg-brand-50 text-brand-700', CANCELADO: 'bg-neutral-100 text-neutral-500' }
-              const statusLabels: Record<string, string> = { PENDIENTE: 'Pendiente', PROCESANDO: 'En proceso', LISTO_PARA_ENTREGA: 'Listo', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' }
-              return (
-                <div key={order.id} className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm">
-
-                  {/* Fila superior: código, fecha, sede, estado */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 bg-brand-600 text-white">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-brand-200">#{idx + 1}</span>
-                      <span className="text-sm font-black">{order.code || 'S/C'}</span>
-                      <span className="text-brand-300 text-xs">·</span>
-                      <span className="text-xs text-brand-100 font-bold">{new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase bg-brand-800 px-2 py-0.5 rounded text-brand-100">{order.branch?.name}</span>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${statusColors[order.status] || 'bg-neutral-100 text-neutral-600'}`}>{statusLabels[order.status] || order.status}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-5 space-y-4">
-
-                    {/* Odontólogo derivante */}
-                    <div className="flex items-center gap-2">
-                      <ToothIcon size={14} className="text-brand-400 shrink-0" />
-                      <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Derivó:</span>
-                      <span className="text-sm font-bold text-neutral-700 uppercase">{order.dentist ? `${order.dentist.lastName}, ${order.dentist.firstName}` : 'Particular / Sin derivación'}</span>
-                    </div>
-
-                    {/* Prestaciones realizadas */}
-                    {order.items?.length > 0 && (
-                      <div>
-                        <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider mb-2">Prestaciones realizadas</p>
-                        <div className="space-y-1.5">
-                          {order.items.map((item: any, i: number) => {
-                            const teeth = item.metadata?.teeth || item.teeth || []
-                            const locs = item.metadata?.locations || item.locations || []
-                            return (
-                              <div key={i} className="flex flex-wrap items-center gap-2 bg-neutral-50 px-3 py-2 rounded-lg border border-neutral-100">
-                                <span className="text-xs font-bold text-neutral-800 uppercase flex-1">{item.procedure?.name}</span>
-                                {teeth.length > 0 && (
-                                  <div className="flex gap-1 flex-wrap">
-                                    {teeth.map((t: any) => <span key={t} className="bg-brand-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded">{t}</span>)}
-                                  </div>
-                                )}
-                                {locs.length > 0 && (
-                                  <div className="flex gap-1 flex-wrap">
-                                    {locs.map((l: string) => <span key={l} className="bg-brand-50 text-brand-700 text-[10px] font-black px-1.5 py-0.5 rounded uppercase border border-brand-200">{l}</span>)}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Pagos */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-neutral-100">
-                      <div className="flex flex-wrap gap-2">
-                        {order.payments?.map((p: any, i: number) => (
-                          <span key={i} className="text-[10px] font-black uppercase bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-1 rounded-lg">
-                            {paymentMethods[p.method] || p.method} · ${Number(p.amount).toLocaleString('es-AR')}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[9px] font-black uppercase text-neutral-400">Total abonado</p>
-                        <p className="text-lg font-black text-emerald-600">${Number(order.patientAmount || order.totalAmount || 0).toLocaleString('es-AR')}</p>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+            ))}</div>
         </DialogContent>
       </Dialog>
     </div>
   )
 }
 
-// Grupos de piezas que comparten una misma película periapical (serie de 14 películas)
-const PERIAPICAL_GROUPS: number[][] = [
-  [18, 17],
-  [16, 15],
-  [14, 13],
-  [12, 11, 21, 22],  // Incisivos superiores — 4 piezas en 1 película
-  [23, 24],
-  [25, 26],
-  [27, 28],
-  [48, 47],
-  [46, 45],
-  [44, 43],
-  [42, 41, 31, 32],  // Incisivos inferiores — 4 piezas en 1 película
-  [33, 34],
-  [35, 36],
-  [37, 38],
-]
-
-// Cuenta cuántas películas distintas se necesitan según las piezas seleccionadas
-function countPeriapicalFilms(teeth: number[]): number {
-  if (teeth.length === 0) return 1
-  const films = PERIAPICAL_GROUPS.filter(group => group.some(t => teeth.includes(t)))
-  // Piezas que no pertenecen a ningún grupo conocido cuentan como 1 film cada una
-  const ungrouped = teeth.filter(t => !PERIAPICAL_GROUPS.flat().includes(t))
-  return Math.max(1, films.length + ungrouped.length)
-}
-
-function isPeriapical(procedureName: string): boolean {
-  return procedureName?.toLowerCase().includes('periapical')
-}
-
-function isPhotos(procedureName: string): boolean {
-  return procedureName?.toLowerCase().includes('fotograf')
-}
-
-function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any) {
+function ToothBtn({ t, itemIndex, form, recalculate }: any) {
   const selected = form.watch(`items.${itemIndex}.teeth`) || [];
   const isSelected = selected.includes(t);
   return (
     <button type="button" onClick={() => {
-      const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
-      const count = isPeriapical(procedureName)
-        ? countPeriapicalFilms(next)
-        : (next.length || 1);
-      const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
-      const basePat = form.getValues(`items.${itemIndex}.basePatient`);
-      form.setValue(`items.${itemIndex}.teeth`, next);
-      form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
-      form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
-      recalculate();
-    }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-brand-600 text-white border-brand-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
+        const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
+        const count = next.length || 1;
+        const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
+        const basePat = form.getValues(`items.${itemIndex}.basePatient`);
+        form.setValue(`items.${itemIndex}.teeth`, next);
+        form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
+        form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
+        recalculate();
+      }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-red-600 text-white border-red-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
   );
+}
+
+function StatCard({ title, value }: any) {
+  return (
+    <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full">
+      <CardContent className="p-6"><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">{title}</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate">{value}</p></CardContent>
+    </Card>
+  )
+}
+
+function Step({ num, label, active, current }: any) {
+  return (
+    <div className={`flex items-center gap-3 transition-all ${active ? 'opacity-100' : 'opacity-30 grayscale'}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black border-2 transition-all ${current ? 'bg-red-700 text-white border-red-700 shadow-lg scale-110' : active ? 'bg-white text-red-700 border-red-700' : 'bg-slate-100 text-slate-400 border-transparent'}`}>{num}</div>
+      <div className="flex flex-col uppercase italic"><span className={`text-[8px] font-black tracking-widest ${current ? 'text-red-700' : 'text-slate-400'}`}>PASO {num}</span><span className={`text-base font-black ${current ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span></div>
+    </div>
+  )
+}
+
+function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-red-700 shadow-sm' : 'bg-slate-200'}`} /> }
+
+function QuickDentistForm({ onSuccess }: { onSuccess: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState({ Nombre: "", Apellido: "", MatriculaProvincial: "", MatriculaNacional: "", Telefono: "", Email: "", deliveryMethod: "DIGITAL", digitalChannel: "WHATSAPP" });
+  
+  const handleSubmit = async () => {
+    if (!data.Apellido || !data.Nombre) return toast.error("Completá nombre y apellido");
+    setLoading(true);
+    const res = await importDentistsAction([{ 
+      firstName: data.Nombre, 
+      lastName: data.Apellido, 
+      matriculaProv: data.MatriculaProvincial, 
+      email: data.Email, 
+      deliveryMethod: data.deliveryMethod, 
+      resultPreference: data.digitalChannel,
+      isActive: true 
+    }]);
+    if (res.success) { toast.success("Profesional guardado"); onSuccess(); }
+    setLoading(false);
+  };
+  
+  return (
+    <div className="bg-white p-8 font-black uppercase italic rounded-3xl flex flex-col gap-6">
+      <h3 className="text-2xl border-b-2 border-red-700 pb-2">Nuevo Profesional</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <Input placeholder="APELLIDO" value={data.Apellido} onChange={e => setData({...data, Apellido: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="NOMBRE" value={data.Nombre} onChange={e => setData({...data, Nombre: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+      </div>
+      <Button className="bg-red-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
+    </div>
+  )
 }
