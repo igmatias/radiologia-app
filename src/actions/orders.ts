@@ -101,7 +101,7 @@ export async function createOrder(data: any) {
               patientCopay: item.patientCopay || 0,
               insuranceCoverage: item.insuranceCoverage || 0,
               status: "CREADA",
-              metadata: { teeth: item.teeth || [], locations: item.locations || [], ...(item.metadata || {}) }
+              metadata: { teeth: item.teeth || [], locations: item.locations || [] }
             }))
           },
           payments: {
@@ -117,9 +117,10 @@ export async function createOrder(data: any) {
     revalidatePath("/recepcion")
     revalidatePath("/tecnico") 
     return { success: true, orderId: newOrder.id }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creando orden:", error)
-    return { success: false, error: "Error interno al procesar la orden" }
+    const msg = error?.message || String(error)
+    return { success: false, error: msg.length > 200 ? msg.slice(0, 200) : msg }
   }
 }
 
@@ -151,7 +152,7 @@ export async function updateOrder(orderId: string, data: any) {
           patientCopay: item.patientCopay || 0,
           insuranceCoverage: item.insuranceCoverage || 0,
           status: "CREADA",
-          metadata: { teeth: item.teeth || [], locations: item.locations || [], ...(item.metadata || {}) }
+          metadata: { teeth: item.teeth || [], locations: item.locations || [] }
         }))
       })
 
@@ -270,12 +271,7 @@ export async function getPatientHistory(dni: string) {
   try {
     return await prisma.order.findMany({
       where: { patient: { dni } },
-      include: {
-        branch: true,
-        dentist: true,
-        items: { include: { procedure: true } },
-        payments: true
-      },
+      include: { branch: true, dentist: true, items: { include: { procedure: true } } },
       orderBy: { createdAt: 'desc' }
     })
   } catch (error) { return [] }
@@ -301,19 +297,17 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
     // Si el estado es PARA_REPETIR lo guardamos, sino usamos el normal
     await prisma.order.update({
       where: { id: orderId },
-      data: {
+      data: { 
         status: newStatus as OrderStatus,
-        attendedAt:  newStatus === 'PROCESANDO'          ? new Date() : undefined,
-        completedAt: newStatus === 'LISTO_PARA_ENTREGA'  ? new Date() : undefined,
+        completedAt: newStatus === 'LISTO_PARA_ENTREGA' ? new Date() : undefined
       }
     });
-
     revalidatePath("/tecnico");
     revalidatePath("/recepcion");
     return { success: true };
-  } catch (error) {
+  } catch (error) { 
     console.error("Error al actualizar estado:", error);
-    return { success: false }
+    return { success: false } 
   }
 }
 
@@ -324,20 +318,6 @@ export async function getOrders() {
       orderBy: { createdAt: 'desc' }
     })
   } catch (error) { return [] }
-}
-
-export async function updateOrderItemStatusAction(itemId: string, status: 'CREADA' | 'EN_ATENCION' | 'LISTO_PARA_ENTREGA') {
-  try {
-    await prisma.orderItem.update({
-      where: { id: itemId },
-      data: { status }
-    })
-    revalidatePath("/tecnico")
-    return { success: true }
-  } catch (e) {
-    console.error(e)
-    return { success: false, error: "Error al actualizar el estado del ítem" }
-  }
 }
 
 export async function searchOrdersAdmin(filters: {
