@@ -1,0 +1,41 @@
+const CACHE_NAME = 'ir-dental-portal-v1'
+const PRECACHE_URLS = [
+  '/portal-medico',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/logo.png',
+]
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+  )
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  )
+  self.clients.claim()
+})
+
+self.addEventListener('fetch', (event) => {
+  // Network-first strategy: try network, fall back to cache
+  if (event.request.method !== 'GET') return
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses for portal-medico routes
+        if (response.ok && event.request.url.includes('/portal-medico')) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(event.request))
+  )
+})
