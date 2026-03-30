@@ -44,6 +44,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [sinOdontologo, setSinOdontologo] = useState(false)
   const [derivacionSugerida, setDerivacionSugerida] = useState<{ procId: string, procName: string, teeth: number[], options: string[] }[]>([])
   const [derivacionIndicacion, setDerivacionIndicacion] = useState("")
+  const [comprobanteOrden, setComprobanteOrden] = useState<any>(null)
 
   const form = useForm({
     defaultValues: {
@@ -395,72 +396,156 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     toast.info(`Editando Orden Nº ${orden.code || orden.dailyId}`);
   }
 
-  // 👉 COMPROBANTE A4 — recibo de pago completo
-  const handleImprimirComprobante = (orden: any) => {
+  // 👉 COMPROBANTE — abre modal de selección de formato
+  const handleImprimirComprobante = (orden: any) => setComprobanteOrden(orden);
+
+  const printComprobante = (orden: any, formato: 'A4' | 'ROLLO') => {
+    setComprobanteOrden(null);
+    const base = window.location.origin;
+    // SVG irdental inline con fill oscuro (el original es blanco, acá lo pintamos del brand)
+    const svgInline = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192.08 32.18" style="height:28px;display:block">
+      <path fill="#BA2C66" d="M67.54,6.16c-2.99-2.23-6.27-2.63-10.04-2.63h-5.67v26.99h5.58c3.76,0,6.72-.36,9.87-2.59,3.56-2.51,5.42-6.39,5.42-10.89s-1.9-8.42-5.18-10.89ZM64.91,24.74c-2.35,1.74-5.14,1.9-7.16,1.9h-1.78V7.42h1.78c1.98,0,4.86.16,7.2,1.86,1.94,1.42,3.64,4.21,3.64,7.77s-1.82,6.27-3.68,7.69Z"/>
+      <polygon fill="#BA2C66" points="79.52 30.52 94.41 30.52 94.41 26.64 83.65 26.64 83.65 18.14 94.09 18.14 94.09 14.25 83.65 14.25 83.65 7.42 94.41 7.42 94.41 3.53 79.52 3.53 79.52 30.52"/>
+      <polygon fill="#BA2C66" points="120.96 22.23 101.37 1.71 101.37 30.52 105.5 30.52 105.5 11.66 125.09 32.18 125.09 3.53 120.96 3.53 120.96 22.23"/>
+      <polygon fill="#BA2C66" points="130.35 7.42 136.54 7.42 136.54 30.52 140.67 30.52 140.67 7.42 146.86 7.42 146.86 3.53 130.35 3.53 130.35 7.42"/>
+      <path fill="#BA2C66" d="M147.43,30.52h4.45l2.95-6.52h11.53l2.83,6.52h4.45l-12.79-28.57-13.43,28.57ZM156.53,20.12l4.17-9.15,4.01,9.15h-8.17Z"/>
+      <polygon fill="#BA2C66" points="182.8 26.64 182.8 3.53 178.67 3.53 178.67 30.52 190.73 30.52 190.73 26.64 182.8 26.64"/>
+      <path fill="#111" d="M36.19,10.98c0-1.17-.24-4.37-3.2-6.35-1.74-1.17-3.84-1.58-7.12-1.58h-4.82v12.13h-4.77v3.93h4.77v10.93h4.13v-11.05h.73l7.73,11.05h4.98l-8.42-11.53c3.6-.81,5.99-3.64,5.99-7.53ZM25.18,15.43V6.85h1.42c2.02,0,5.62.36,5.62,4.17,0,4.29-4.61,4.41-5.75,4.41h-1.29Z"/>
+      <rect fill="#111" x="9.17" y="15.17" width="3.93" height="3.93"/>
+      <rect fill="#111" x="1.62" y="15.17" width="3.93" height="14.86"/>
+      <rect fill="#111" x="1.62" y="3.92" width="3.93" height="4.24"/>
+    </svg>`;
+
     const dentistName = orden.dentist ? `Dr. ${orden.dentist.lastName}, ${orden.dentist.firstName}` : "Paciente Particular";
     const fechaOrden = new Date(orden.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const horaOrden = new Date(orden.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
     const dob = orden.patient?.birthDate ? new Date(orden.patient.birthDate).toLocaleDateString('es-AR') : "—";
+    const metodos: any = { EFECTIVO: 'Efectivo', MERCADOPAGO: 'MercadoPago', TARJETA_DEBITO: 'Débito', TARJETA_CREDITO: 'Crédito', TRANSFERENCIA: 'Transferencia', SALDO: 'Saldo Pendiente' };
+
+    const isRollo = formato === 'ROLLO';
+
     const itemsRows = orden.items.map((it: any) => {
       const proc = it.procedure || procedures.find((p:any) => p.id === it.procedureId);
-      const piezas = it.teeth?.length > 0 ? ` <span style="font-size:10px;color:#666">(P: ${it.teeth.join(', ')})</span>` : it.locations?.length > 0 ? ` <span style="font-size:10px;color:#666">(${it.locations.join(', ')})</span>` : '';
+      const extra = it.teeth?.length > 0 ? ` (P: ${it.teeth.join(', ')})` : it.locations?.length > 0 ? ` (${it.locations.join(', ')})` : '';
+      if (isRollo) {
+        return `<div style="padding:4px 0;border-bottom:1px dashed #ccc;font-size:11px">
+          <div style="font-weight:700">${proc?.name || 'ESTUDIO'}${extra}</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#555;margin-top:2px">
+            <span>OS: $${(Number(it.insuranceCoverage)||0).toLocaleString('es-AR')}</span>
+            <span style="font-weight:900;color:#BA2C66">Pac: $${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</span>
+          </div>
+        </div>`;
+      }
       return `<tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px">${proc?.name || 'ESTUDIO'}${piezas}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px">${proc?.name || 'ESTUDIO'}<span style="font-size:10px;color:#666">${extra}</span></td>
         <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px">$${(Number(it.insuranceCoverage)||0).toLocaleString('es-AR')}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px;font-weight:900">$${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</td>
       </tr>`;
     }).join('');
+
     const pagosRows = (orden.payments || []).map((pago: any) => {
-      const metodos: any = { EFECTIVO: '💵 Efectivo', MERCADOPAGO: '📱 MercadoPago', TARJETA_DEBITO: '💳 Débito', TARJETA_CREDITO: '💳 Crédito', TRANSFERENCIA: '🏛 Transferencia', SALDO: '⏳ Saldo Pendiente' };
-      return `<tr><td style="padding:6px 12px;font-size:13px">${metodos[pago.method] || pago.method}</td><td style="padding:6px 12px;text-align:right;font-size:13px;font-weight:900">$${Number(pago.amount).toLocaleString('es-AR')}</td></tr>`;
+      if (isRollo) return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px"><span>${metodos[pago.method]||pago.method}</span><span style="font-weight:900">$${Number(pago.amount).toLocaleString('es-AR')}</span></div>`;
+      return `<tr><td style="padding:6px 12px;font-size:13px">${metodos[pago.method]||pago.method}</td><td style="padding:6px 12px;text-align:right;font-size:13px;font-weight:900">$${Number(pago.amount).toLocaleString('es-AR')}</td></tr>`;
     }).join('');
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante ${orden.code}</title>
-    <style>@page{size:A4;margin:15mm}body{font-family:Arial,sans-serif;color:#111;margin:0}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #BA2C66;padding-bottom:12px;margin-bottom:20px}
-    .logo{font-size:22px;font-weight:900;color:#BA2C66;letter-spacing:-1px}
-    .logo span{color:#111}
-    .badge{background:#BA2C66;color:white;padding:6px 16px;border-radius:8px;font-size:20px;font-weight:900}
-    .section-title{font-size:10px;font-weight:900;text-transform:uppercase;color:#BA2C66;letter-spacing:2px;margin-bottom:6px}
-    .patient-block{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:14px;margin-bottom:16px}
-    table{width:100%;border-collapse:collapse}
-    thead th{background:#111;color:white;padding:8px 12px;font-size:11px;text-transform:uppercase;text-align:left}
-    thead th:not(:first-child){text-align:right}
-    .totals-row td{padding:10px 12px;font-size:14px;font-weight:900}
-    .footer{margin-top:30px;border-top:1px solid #eee;padding-top:10px;font-size:10px;color:#999;text-align:center}
-    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+    const logoImg = `<img src="${base}/logo.png" style="height:${isRollo?'32px':'40px'};object-fit:contain;display:block" />`;
+
+    const htmlA4 = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante ${orden.code}</title>
+    <style>
+      @page{size:A4;margin:15mm}
+      body{font-family:Arial,sans-serif;color:#111;margin:0}
+      .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #BA2C66;padding-bottom:14px;margin-bottom:22px}
+      .header-logos{display:flex;align-items:center;gap:14px}
+      .badge{background:#BA2C66;color:white;padding:8px 18px;border-radius:10px;font-size:22px;font-weight:900;white-space:nowrap}
+      .section-title{font-size:10px;font-weight:900;text-transform:uppercase;color:#BA2C66;letter-spacing:2px;margin-bottom:6px}
+      .patient-block{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:14px;margin-bottom:18px}
+      table{width:100%;border-collapse:collapse}
+      thead th{background:#111;color:white;padding:8px 12px;font-size:11px;text-transform:uppercase;text-align:left}
+      thead th:not(:first-child){text-align:right}
+      .totals-row td{padding:10px 12px;font-size:14px;font-weight:900}
+      .footer{margin-top:30px;border-top:1px solid #eee;padding-top:10px;font-size:10px;color:#aaa;text-align:center}
+      @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
     <div class="header">
-      <div><div class="logo">I-R<span> Dental</span></div><div style="font-size:11px;color:#666;margin-top:4px">${fechaOrden} — ${horaOrden}hs</div></div>
-      <div class="badge">Nº ${orden.code || orden.dailyId}</div>
+      <div class="header-logos">
+        ${logoImg}
+        <div style="width:1px;height:36px;background:#eee"></div>
+        ${svgInline}
+      </div>
+      <div style="text-align:right">
+        <div class="badge">Nº ${orden.code || orden.dailyId}</div>
+        <div style="font-size:11px;color:#888;margin-top:6px">${fechaOrden} — ${horaOrden}hs</div>
+      </div>
     </div>
     <div class="patient-block">
       <div class="section-title">Paciente</div>
-      <div style="font-size:18px;font-weight:900;text-transform:uppercase">${orden.patient?.lastName}, ${orden.patient?.firstName}</div>
-      <div style="font-size:12px;color:#555;margin-top:4px">DNI: ${orden.patient?.dni || '—'} &nbsp;|&nbsp; F.Nac: ${dob} &nbsp;|&nbsp; Tel: ${orden.patient?.phone || '—'}</div>
-      <div style="font-size:12px;color:#555;margin-top:2px">Solicitante: <strong>${dentistName}</strong></div>
+      <div style="font-size:19px;font-weight:900;text-transform:uppercase">${orden.patient?.lastName}, ${orden.patient?.firstName}</div>
+      <div style="font-size:12px;color:#555;margin-top:5px">DNI: ${orden.patient?.dni||'—'} &nbsp;|&nbsp; F.Nac: ${dob} &nbsp;|&nbsp; Tel: ${orden.patient?.phone||'—'}</div>
+      <div style="font-size:12px;color:#555;margin-top:3px">Solicitante: <strong>${dentistName}</strong></div>
     </div>
     <div class="section-title" style="margin-bottom:8px">Estudios</div>
     <table style="margin-bottom:20px">
-      <thead><tr><th>Estudio</th><th>O.S.</th><th>Paciente</th></tr></thead>
+      <thead><tr><th>Estudio</th><th style="text-align:right">O.S.</th><th style="text-align:right">Paciente</th></tr></thead>
       <tbody>${itemsRows}</tbody>
       <tfoot>
-        <tr class="totals-row" style="background:#f9f9f9"><td>Subtotal O.S.</td><td colspan="2" style="text-align:right">$${(orden.insuranceAmount||0).toLocaleString('es-AR')}</td></tr>
+        ${orden.insuranceAmount > 0 ? `<tr class="totals-row" style="background:#f5f5f5"><td>Subtotal O.S.</td><td colspan="2" style="text-align:right">$${(orden.insuranceAmount||0).toLocaleString('es-AR')}</td></tr>` : ''}
         <tr class="totals-row" style="background:#BA2C66;color:white"><td>TOTAL PACIENTE</td><td colspan="2" style="text-align:right">$${(orden.patientAmount||0).toLocaleString('es-AR')}</td></tr>
       </tfoot>
     </table>
     ${pagosRows ? `<div class="section-title" style="margin-bottom:8px">Forma de Pago</div><table><tbody>${pagosRows}</tbody></table>` : ''}
-    <div class="footer">I-R Dental · Comprobante Nº ${orden.code || orden.dailyId} · ${fechaOrden}</div>
+    <div class="footer">I-R Dental &nbsp;·&nbsp; Comprobante Nº ${orden.code||orden.dailyId} &nbsp;·&nbsp; ${fechaOrden}</div>
     </body></html>`;
+
+    const htmlRollo = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante ${orden.code}</title>
+    <style>
+      @page{size:80mm auto;margin:4mm 3mm}
+      body{font-family:Arial,sans-serif;color:#111;margin:0;width:74mm;font-size:11px}
+      .divider{border:none;border-top:1px dashed #ccc;margin:6px 0}
+      .badge{background:#BA2C66;color:white;padding:3px 10px;border-radius:6px;font-size:14px;font-weight:900;display:inline-block}
+      .label{font-size:9px;font-weight:900;text-transform:uppercase;color:#BA2C66;letter-spacing:1px}
+      @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      ${logoImg}
+      ${svgInline.replace('height:28px', 'height:18px')}
+    </div>
+    <hr class="divider">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span class="badge">Nº ${orden.code||orden.dailyId}</span>
+      <span style="font-size:10px;color:#666">${fechaOrden} ${horaOrden}hs</span>
+    </div>
+    <hr class="divider">
+    <div class="label">Paciente</div>
+    <div style="font-size:13px;font-weight:900;text-transform:uppercase;margin:2px 0">${orden.patient?.lastName}, ${orden.patient?.firstName}</div>
+    <div style="font-size:10px;color:#555">DNI: ${orden.patient?.dni||'—'} | F.Nac: ${dob}</div>
+    <div style="font-size:10px;color:#555">Tel: ${orden.patient?.phone||'—'}</div>
+    <div style="font-size:10px;margin-top:2px">Solic.: <strong>${dentistName}</strong></div>
+    <hr class="divider">
+    <div class="label" style="margin-bottom:4px">Estudios</div>
+    ${itemsRows}
+    <hr class="divider">
+    <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;background:#BA2C66;color:white;padding:5px 4px;border-radius:4px;margin:4px 0">
+      <span>TOTAL PACIENTE</span><span>$${(orden.patientAmount||0).toLocaleString('es-AR')}</span>
+    </div>
+    ${pagosRows ? `<hr class="divider"><div class="label" style="margin-bottom:3px">Forma de Pago</div>${pagosRows}` : ''}
+    <hr class="divider">
+    <div style="text-align:center;font-size:9px;color:#aaa">I-R Dental · Comp. Nº ${orden.code||orden.dailyId}</div>
+    </body></html>`;
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.top = '-9999px';
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow?.document;
     if (doc) {
-      doc.open(); doc.write(html); doc.close();
-      iframe.onload = () => setTimeout(() => { iframe.contentWindow?.focus(); iframe.contentWindow?.print(); setTimeout(() => document.body.removeChild(iframe), 1000); }, 300);
+      doc.open(); doc.write(isRollo ? htmlRollo : htmlA4); doc.close();
+      iframe.onload = () => setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1500);
+      }, 400);
     }
-    toast.success("Imprimiendo comprobante...");
+    toast.success(`Imprimiendo comprobante (${isRollo ? 'Rollo 80mm' : 'A4'})...`);
   };
 
   // 👉 NUEVA FUNCIÓN DE REIMPRESIÓN CORREGIDA
@@ -967,6 +1052,43 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
             </div>
           )
       })()}
+
+      {/* MODAL SELECCIÓN FORMATO COMPROBANTE */}
+      {comprobanteOrden && (
+        <div className="fixed inset-0 z-[600] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border-t-8 border-brand-700 p-8 w-full max-w-sm">
+            <h3 className="text-xl font-black uppercase italic text-slate-900 mb-2 text-center">Imprimir Comprobante</h3>
+            <p className="text-xs text-slate-400 font-bold uppercase text-center mb-8">Elegí el formato de impresión</p>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <button
+                onClick={() => printComprobante(comprobanteOrden, 'A4')}
+                className="flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-200 hover:border-brand-500 hover:bg-brand-50 transition-all group"
+              >
+                <div className="w-12 h-16 bg-slate-100 group-hover:bg-brand-100 rounded-lg border-2 border-slate-300 group-hover:border-brand-400 flex items-center justify-center transition-all">
+                  <FileText size={22} className="text-slate-400 group-hover:text-brand-700" />
+                </div>
+                <div className="text-center">
+                  <p className="font-black uppercase text-sm text-slate-800">A4</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Hoja completa</p>
+                </div>
+              </button>
+              <button
+                onClick={() => printComprobante(comprobanteOrden, 'ROLLO')}
+                className="flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-slate-200 hover:border-brand-500 hover:bg-brand-50 transition-all group"
+              >
+                <div className="w-8 h-16 bg-slate-100 group-hover:bg-brand-100 rounded-lg border-2 border-slate-300 group-hover:border-brand-400 flex items-center justify-center transition-all">
+                  <Printer size={18} className="text-slate-400 group-hover:text-brand-700" />
+                </div>
+                <div className="text-center">
+                  <p className="font-black uppercase text-sm text-slate-800">Rollo 80mm</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Impresora térmica</p>
+                </div>
+              </button>
+            </div>
+            <button onClick={() => setComprobanteOrden(null)} className="w-full text-center text-xs text-slate-400 font-bold uppercase hover:text-slate-700 py-2">Cancelar</button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
         <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
