@@ -270,7 +270,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
   const onSubmit = async (data: any) => {
     if (!orderNumber) return toast.error("Falta Número de Orden")
-    if (!data.dentistId) return toast.error("Falta Odontólogo")
+    if (data.items.length === 0) return toast.error("Agregá al menos una práctica")
     if (data.patientAmount > 0 && remainingBalance !== 0) return toast.error(`Pagos no coinciden. Faltan cobrar: $${remainingBalance}`);
 
     setLoading(true)
@@ -279,17 +279,20 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         if (editingOrderId) {
           res = await updateOrder(editingOrderId, { ...data, branchId: session?.branchId });
         } else {
-          res = await createOrder({ ...data, orderNumber, branchId: session?.branchId });
+          res = await createOrder({ ...data, branchId: session?.branchId });
         }
-        
+
         if (res.success) {
+          const finalCode = (res as any).orderCode || orderNumber;
           const dentist = dentists.find((d: any) => d.id === data.dentistId);
           const itemsFormatted = data.items.map((it: any) => {
             const proc = procedures.find((p: any) => p.id === it.procedureId);
             return { name: proc?.name, info: it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '') }
           });
-          setPrintData({ code: orderNumber, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
+          setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
           toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
+        } else {
+          toast.error(res.error || "Error al procesar la orden");
         }
     } catch (e) { toast.error("Error al procesar orden"); }
     setLoading(false)
@@ -423,7 +426,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               {step === 1 && (
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
-                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
+                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} onChange={(e) => { form.setValue("patient.dni", e.target.value); if (e.target.value.replace(/\D/g,'').length >= 7) handleDniBlur(e.target.value); }} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Apellido</Label><Input {...form.register("patient.lastName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</Label><Input {...form.register("patient.firstName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input {...form.register("patient.birthDate")} type="date" className="h-11 border-2 font-bold" /></div>
