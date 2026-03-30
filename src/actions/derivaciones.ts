@@ -39,6 +39,43 @@ export async function createDerivacion(data: {
   }
 }
 
+// Alias usado por portal-medico panel (formato extendido con procedimientos detallados)
+export async function saveDerivacion(data: {
+  dentistId: string
+  patientApellido: string
+  patientNombre: string
+  patientDni?: string
+  patientBirthDate?: string
+  cobertura: string
+  obraSocial?: string
+  nroAfiliado?: string
+  procedures: any[]
+  indicaciones?: string
+}) {
+  try {
+    const prescriptionCode = `DER-${Date.now()}-${randomBytes(3).toString('hex').toUpperCase()}`
+    await prisma.derivacion.create({
+      data: {
+        prescriptionCode,
+        dentistId: data.dentistId,
+        patientApellido: data.patientApellido.toUpperCase(),
+        patientNombre: data.patientNombre.toUpperCase(),
+        patientDni: data.patientDni || null,
+        patientBirthDate: data.patientBirthDate || null,
+        cobertura: data.cobertura,
+        obraSocial: data.obraSocial || null,
+        nroAfiliado: data.nroAfiliado || null,
+        procedures: data.procedures,
+        indicaciones: data.indicaciones || null,
+        status: "PENDIENTE",
+      },
+    })
+    return { success: true, prescriptionCode }
+  } catch (e: any) {
+    return { success: false, error: e?.message || "Error al guardar derivación" }
+  }
+}
+
 export async function findDerivacion(prescriptionCode: string) {
   try {
     const derivacion = await prisma.derivacion.findUnique({
