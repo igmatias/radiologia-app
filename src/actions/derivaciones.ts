@@ -53,13 +53,14 @@ export async function saveDerivacion(data: {
   indicaciones?: string
 }) {
   try {
-    const lastDer = await prisma.derivacion.findFirst({ orderBy: { createdAt: 'desc' }, select: { prescriptionCode: true } })
-    let nextNum = 100001
-    if (lastDer?.prescriptionCode) {
-      const n = parseInt(lastDer.prescriptionCode)
-      if (!isNaN(n) && n >= 100000) nextNum = n + 1
-    }
-    const prescriptionCode = nextNum.toString()
+    // Generar código aleatorio de 6 dígitos que no exista
+    let prescriptionCode: string
+    let exists = true
+    do {
+      prescriptionCode = Math.floor(100000 + Math.random() * 900000).toString()
+      const found = await prisma.derivacion.findUnique({ where: { prescriptionCode }, select: { id: true } })
+      exists = !!found
+    } while (exists)
     await prisma.derivacion.create({
       data: {
         prescriptionCode,

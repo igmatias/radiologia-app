@@ -22,7 +22,7 @@ import {
   Banknote, Printer, Edit, AlertTriangle, RefreshCw, ScanLine, MapPin
 } from "lucide-react"
 
-export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger }: any) {
+export default function OrderForm({ branches, dentists, obrasSociales, procedures, activeTab, setActiveTab, resetTrigger, prefillData, onPrefillUsed }: any) {
   const [session, setSession] = useState<{ branchId: string, userName: string } | null>(null)
   const [showSessionModal, setShowSessionModal] = useState(false) 
   
@@ -91,6 +91,29 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   useEffect(() => {
     if (resetTrigger > 0 && !editingOrderId) resetFormToNew();
   }, [resetTrigger]);
+
+  // Rellenar formulario desde derivación médica
+  useEffect(() => {
+    if (!prefillData) return;
+    form.setValue("patient.lastName",  prefillData.patientApellido || "");
+    form.setValue("patient.firstName", prefillData.patientNombre   || "");
+    form.setValue("patient.dni",       prefillData.patientDni      || "");
+    if (prefillData.patientBirthDate) form.setValue("patient.birthDate", prefillData.patientBirthDate);
+    if (prefillData.nroAfiliado)      form.setValue("patient.affiliateNumber", prefillData.nroAfiliado);
+    // Buscar dentista por matrícula si viene del objeto dentist
+    if (prefillData.dentist) {
+      const match = dentists.find((d: any) =>
+        d.matriculaProv === prefillData.dentist.matriculaProv ||
+        (`${d.lastName} ${d.firstName}`.toLowerCase() === `${prefillData.dentist.lastName} ${prefillData.dentist.firstName}`.toLowerCase())
+      );
+      if (match) form.setValue("dentistId", match.id);
+    }
+    // Ir al paso 1 y marcar como usado
+    setStep(1);
+    setActiveTab("NUEVA_ORDEN");
+    if (onPrefillUsed) onPrefillUsed();
+    toast.success("Datos de la derivación cargados en el formulario");
+  }, [prefillData]);
 
   useEffect(() => {
     async function initSession() {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,9 +15,68 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
   Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock, Bell, X,
-  FilePlus, Plus, Trash2, Printer, AlertTriangle, Stamp
+  FilePlus, Plus, Trash2, Printer, AlertTriangle, Stamp, Smartphone
 } from "lucide-react"
 import Link from "next/link"
+
+// Botón de instalación PWA — captura beforeinstallprompt o muestra instrucciones manuales
+function InstallButton() {
+  const [prompt, setPrompt] = useState<any>(null)
+  const [showGuide, setShowGuide] = useState(false)
+  const [isStandalone, setIsStandalone] = useState(false)
+
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) { setIsStandalone(true); return }
+    const stored = (window as any)._pwaInstallEvent
+    if (stored) setPrompt(stored)
+    const handler = (e: any) => { e.preventDefault(); (window as any)._pwaInstallEvent = e; setPrompt(e) }
+    window.addEventListener("beforeinstallprompt", handler)
+    return () => window.removeEventListener("beforeinstallprompt", handler)
+  }, [])
+
+  if (isStandalone) return null
+
+  const handleClick = async () => {
+    if (prompt) {
+      prompt.prompt()
+      const { outcome } = await prompt.userChoice
+      if (outcome === "accepted") setPrompt(null)
+    } else {
+      setShowGuide(true)
+    }
+  }
+
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+  return (
+    <>
+      <Button onClick={handleClick} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-brand-600/20 px-2.5 py-2 h-auto text-xs uppercase font-bold transition-colors rounded-lg">
+        <Smartphone size={17} className="sm:mr-1.5" /><span className="hidden sm:block">Instalar</span>
+      </Button>
+      {showGuide && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center p-4" onClick={() => setShowGuide(false)}>
+          <div className="bg-neutral-900 rounded-2xl p-6 w-full max-w-sm border border-neutral-700 space-y-4" onClick={e => e.stopPropagation()}>
+            <p className="text-white font-black uppercase text-lg">Instalar como App</p>
+            {isIOS ? (
+              <ol className="space-y-3 text-neutral-300 text-sm">
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">1</span>Tocá el botón <strong>Compartir</strong> (cuadrado con flecha) en Safari</li>
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">2</span>Desplazá y tocá <strong>"Agregar a pantalla de inicio"</strong></li>
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">3</span>Tocá <strong>Agregar</strong> en la esquina superior</li>
+              </ol>
+            ) : (
+              <ol className="space-y-3 text-neutral-300 text-sm">
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">1</span>Tocá el menú <strong>⋮</strong> (tres puntos) en Chrome</li>
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">2</span>Tocá <strong>"Agregar a pantalla de inicio"</strong></li>
+                <li className="flex items-start gap-2"><span className="bg-brand-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">3</span>Confirmá tocando <strong>Instalar</strong></li>
+              </ol>
+            )}
+            <button onClick={() => setShowGuide(false)} className="w-full py-3 bg-neutral-800 text-neutral-300 rounded-xl text-sm font-bold uppercase">Cerrar</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 
 
 export default function PanelMedicoClient({ dentist, procedures = [] }: { dentist: any, procedures: any[] }) {
@@ -852,6 +911,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 <Settings size={17} className="sm:mr-1.5"/>
                 <span className="hidden sm:block text-xs font-bold uppercase">Ajustes</span>
               </Button>
+              <InstallButton />
               <Button onClick={handleLogout} variant="ghost" className="text-neutral-400 hover:text-white hover:bg-brand-600/20 px-2.5 py-2 h-auto text-xs uppercase font-bold transition-colors rounded-lg">
                 <LogOut size={17} className="sm:mr-1.5"/> <span className="hidden sm:block">Salir</span>
               </Button>
