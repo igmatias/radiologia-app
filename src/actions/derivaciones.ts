@@ -38,3 +38,28 @@ export async function createDerivacion(data: {
     return { success: false, error: e?.message || "Error al crear derivación" }
   }
 }
+
+export async function findDerivacion(prescriptionCode: string) {
+  try {
+    const derivacion = await prisma.derivacion.findUnique({
+      where: { prescriptionCode },
+      include: { dentist: { select: { firstName: true, lastName: true, matriculaProv: true } } },
+    })
+    if (!derivacion) return { success: false, error: "Código no encontrado" }
+    return { success: true, derivacion }
+  } catch (e: any) {
+    return { success: false, error: "Error al buscar derivación" }
+  }
+}
+
+export async function markDerivacionCargada(prescriptionCode: string) {
+  try {
+    await prisma.derivacion.update({
+      where: { prescriptionCode },
+      data: { status: "CARGADA", usedAt: new Date() },
+    })
+    return { success: true }
+  } catch (e: any) {
+    return { success: false, error: "Error al actualizar derivación" }
+  }
+}
