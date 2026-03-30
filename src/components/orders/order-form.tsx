@@ -423,13 +423,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       {/* HEADER STATS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-in fade-in">
         <StatCard title="N° ORDEN" value={orderNumber || "---"} />
-        <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-red-700 relative">
+        <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-brand-700 relative">
           <CardContent className="p-6 flex justify-between items-center">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">
                 {editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR EN CAJA"}
               </p>
-              <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-red-700'}`}>
+              <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-brand-700'}`}>
                 ${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}
               </p>
             </div>
@@ -438,7 +438,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
           <CardContent className="p-6 flex justify-between items-start">
             <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
-            <button onClick={handleLogout} className="bg-red-100 text-red-700 p-2 rounded-xl hover:bg-red-200 shrink-0"><LogOut size={16} /></button>
+            <button onClick={handleLogout} className="bg-brand-100 text-brand-700 p-2 rounded-xl hover:bg-brand-200 shrink-0"><LogOut size={16} /></button>
           </CardContent>
         </Card>
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
@@ -450,7 +450,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       </div>
 
       <Dialog open={showSessionModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-red-700 rounded-3xl p-8 outline-none">
+        <DialogContent className="sm:max-w-[400px] bg-white border-t-8 border-brand-700 rounded-3xl p-8 outline-none">
           <DialogHeader><DialogTitle className="text-2xl font-black italic uppercase text-center">Elegir Sede</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4 font-black uppercase italic">
             <Select value={session?.branchId} onValueChange={(v) => setSession(prev => ({ ...prev!, branchId: v }))}>
@@ -459,7 +459,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 {branches.map((b: any) => <SelectItem key={b.id} value={b.id} className="py-3">{b.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button className="w-full bg-red-700 hover:bg-red-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
+            <Button className="w-full bg-brand-700 hover:bg-brand-800 h-14 text-white text-lg rounded-2xl shadow-xl transition-all" onClick={handleSessionSubmit}>COMENZAR TURNO ✓</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -467,7 +467,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       {/* ================= VISTA: NUEVA ORDEN / EDICIÓN ================= */}
       {activeTab === "NUEVA_ORDEN" && (
         <div className="animate-in fade-in duration-500 space-y-6">
-          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-red-700'} bg-white rounded-3xl`}>
+          <Card className={`shadow-xl border-t-8 ${editingOrderId ? 'border-t-slate-900' : 'border-t-brand-700'} bg-white rounded-3xl`}>
             <CardContent className="p-8" onKeyDown={handleKeyDown}>
               
               {editingOrderId && (
@@ -493,24 +493,24 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               {step === 1 && (
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
-                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} onChange={(e) => { form.setValue("patient.dni", e.target.value); if (e.target.value.replace(/\D/g,'').length >= 7) handleDniBlur(e.target.value); }} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-red-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
+                  <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} onChange={(e) => { form.setValue("patient.dni", e.target.value); if (e.target.value.replace(/\D/g,'').length >= 7) handleDniBlur(e.target.value); }} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-brand-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Apellido</Label><Input {...form.register("patient.lastName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</Label><Input {...form.register("patient.firstName")} className="h-11 uppercase font-bold border-2" /></div>
-                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input {...form.register("patient.birthDate")} type="date" className="h-11 border-2 font-bold" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input type="date" value={form.watch("patient.birthDate") || ""} onChange={(e) => form.setValue("patient.birthDate", e.target.value, { shouldDirty: true })} className="h-11 border-2 font-bold" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Teléfono</Label><Input {...form.register("patient.phone")} className="h-11 font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">E-mail</Label><Input {...form.register("patient.email")} type="email" className="h-11 font-bold border-2 lowercase" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Obra Social</Label><Select value={form.watch("patient.obrasocialId")} onValueChange={(v) => form.setValue("patient.obrasocialId", v)}><SelectTrigger className="h-11 font-bold border-2"><SelectValue placeholder="MUTUAL..." /></SelectTrigger><SelectContent className="font-black italic uppercase">{obrasSociales.map((os: any) => <SelectItem key={os.id} value={os.id}>{os.name}</SelectItem>)}</SelectContent></Select></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">N° Afiliado</Label><Input {...form.register("patient.affiliateNumber")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Plan OS</Label><Input {...form.register("patient.plan")} placeholder="Ej: 210, PMO..." className="h-11 uppercase font-bold border-2 bg-blue-50 focus-visible:ring-blue-500" /></div>
-                  <div className="space-y-2 md:col-span-3 mt-2"><Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label><textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-red-700 resize-none h-20 shadow-inner"/></div>
+                  <div className="space-y-2 md:col-span-3 mt-2"><Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label><textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-brand-700 resize-none h-20 shadow-inner"/></div>
                 </div>
               )}
 
               {step === 2 && (
                 <div className="space-y-8 animate-in slide-in-from-right">
-                  <div className="bg-white p-6 rounded-2xl border-2 border-red-500 relative shadow-md">
-                    <div className="flex justify-between items-center mb-4 text-red-700 font-black uppercase italic">
-                      <Label className="text-sm flex items-center gap-1.5">Odontólogo Solicitante <span className="text-red-500">*</span></Label>
+                  <div className="bg-white p-6 rounded-2xl border-2 border-brand-500 relative shadow-md">
+                    <div className="flex justify-between items-center mb-4 text-brand-700 font-black uppercase italic">
+                      <Label className="text-sm flex items-center gap-1.5">Odontólogo Solicitante <span className="text-brand-500">*</span></Label>
                       <div className="flex gap-2">
                         <Button type="button" variant="outline" size="sm" className="h-8 text-[10px] bg-slate-50 shadow-sm hover:bg-slate-100 border-slate-300 text-slate-600"
                           onClick={() => { setSinOdontologo(true); form.setValue("dentistId", ""); setSearchTerm(""); }}>
@@ -518,7 +518,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         </Button>
                         <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700">+ Nuevo Profesional</Button>
+                            <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-brand-50 border-brand-200 text-brand-700">+ Nuevo Profesional</Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
                             <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
@@ -535,11 +535,11 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     ) : !form.watch("dentistId") ? (
                       <div className="relative shadow-sm rounded-xl">
                         <Search className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
-                        <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50 focus-visible:ring-red-500" autoFocus />
+                        <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50 focus-visible:ring-brand-500" autoFocus />
                         {searchTerm && (
                           <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold">
                             {filteredDentists.map((d: any) => (
-                              <div key={d.id} className="p-4 hover:bg-red-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm" onClick={() => { form.setValue("dentistId", d.id); setSearchTerm(""); }}>
+                              <div key={d.id} className="p-4 hover:bg-brand-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm" onClick={() => { form.setValue("dentistId", d.id); setSearchTerm(""); }}>
                                 {d.lastName}, {d.firstName} {d.matriculaProv ? `(MP: ${d.matriculaProv})` : ''}
                               </div>
                             ))}
@@ -550,9 +550,9 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       const d = dentists.find((doc: any) => doc.id === form.watch("dentistId"));
                       return d && (
                         <div className="flex flex-col gap-2">
-                          <div className="px-5 py-3 bg-red-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
+                          <div className="px-5 py-3 bg-brand-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
                             <div className="flex items-center gap-2 uppercase"><GraduationCap size={16} /> {d.lastName}, {d.firstName}</div>
-                            <button type="button" onClick={() => { form.setValue("dentistId", ""); setSinOdontologo(false); }} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
+                            <button type="button" onClick={() => { form.setValue("dentistId", ""); setSinOdontologo(false); }} className="bg-brand-900 hover:bg-brand-900 p-1.5 rounded-full transition-colors"><X size={14} /></button>
                           </div>
                           <div className="flex gap-2 ml-1">
                             {(d.deliveryMethod === 'IMPRESA' || d.deliveryMethod === 'AMBAS') && (
@@ -625,17 +625,17 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         const hasConfig = p.requiresTooth || (p.options && p.options.length > 0);
                         
                         return (
-                          <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isSelected ? 'bg-red-50 border-red-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
+                          <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isSelected ? 'bg-brand-50 border-brand-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
                              <button type="button" onClick={() => toggleProcedure(p.id)} className="flex-1 flex items-start gap-3 p-1.5 text-left">
-                               <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-red-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                               <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
                                  {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                                </div>
                                <div className="overflow-hidden flex-1">
-                                 <p className="text-[9px] font-black uppercase text-red-700 mb-0.5 leading-none">{p.code}</p>
+                                 <p className="text-[9px] font-black uppercase text-brand-700 mb-0.5 leading-none">{p.code}</p>
                                  <p className="text-xs font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
                                  {isSelected && selectedItem && (
                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-red-200 text-red-800 px-1.5 py-0.5 rounded-md uppercase border border-red-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
+                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-md uppercase border border-brand-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
                                      {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
                                    </div>
                                  )}
@@ -659,7 +659,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   <div className="bg-white rounded-2xl shadow-md border-2 border-slate-200 overflow-hidden">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-slate-100 text-[10px] font-black uppercase text-slate-500 italic">
-                        <tr><th className="p-4 border-b-2 border-slate-200">Estudio</th><th className="p-4 w-36 text-center border-b-2 border-slate-200">Mutual</th><th className="p-4 w-36 text-center border-b-2 bg-red-50 text-red-800">Paciente</th><th className="p-4 w-28 text-right border-b-2 border-slate-200">Total</th></tr>
+                        <tr><th className="p-4 border-b-2 border-slate-200">Estudio</th><th className="p-4 w-36 text-center border-b-2 border-slate-200">Mutual</th><th className="p-4 w-36 text-center border-b-2 bg-brand-50 text-brand-800">Paciente</th><th className="p-4 w-28 text-right border-b-2 border-slate-200">Total</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-bold">
                         {form.watch("items").map((item, index) => {
@@ -668,11 +668,11 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                             <tr key={index} className="hover:bg-slate-50 transition-colors">
                               <td className="p-4">
                                 <p className="text-sm font-black uppercase text-slate-800">{proc?.name}</p>
-                                {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-red-600 uppercase italic">Piezas: {item.teeth.join(' - ')}</p>}
+                                {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-brand-600 uppercase italic">Piezas: {item.teeth.join(' - ')}</p>}
                                 {(item.locations?.length > 0) && <p className="text-[10px] font-bold text-blue-600 uppercase italic">Pos: {item.locations.join(' - ')}</p>}
                               </td>
                               <td className="p-4"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-slate-400 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-bold text-slate-600 border-2" value={item.insuranceCoverage || 0} onChange={(e) => updateItemPrice(index, 'insuranceCoverage', Number(e.target.value))}/></div></td>
-                              <td className="p-4 bg-red-50/30"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-red-700 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-black text-red-700 border-2 border-red-200 focus-visible:ring-red-700 bg-white" value={item.patientCopay || 0} onChange={(e) => updateItemPrice(index, 'patientCopay', Number(e.target.value))}/></div></td>
+                              <td className="p-4 bg-brand-50/30"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-brand-700 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-black text-brand-700 border-2 border-brand-200 focus-visible:ring-brand-700 bg-white" value={item.patientCopay || 0} onChange={(e) => updateItemPrice(index, 'patientCopay', Number(e.target.value))}/></div></td>
                               <td className="p-4 text-right text-lg font-black italic text-slate-900">${(Number(item.insuranceCoverage) || 0) + (Number(item.patientCopay) || 0)}</td>
                             </tr>
                           )
@@ -692,11 +692,11 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         </div>
                       )}
 
-                      <div className="bg-slate-900 p-5 rounded-2xl border-t-8 border-red-700 flex flex-col justify-center shadow-xl text-center"><p className="text-[11px] font-black text-red-400 uppercase tracking-widest mb-1">{editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR AL PACIENTE"}</p><h3 className="text-5xl tracking-tighter text-white uppercase italic leading-none">${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}</h3></div>
+                      <div className="bg-slate-900 p-5 rounded-2xl border-t-8 border-brand-700 flex flex-col justify-center shadow-xl text-center"><p className="text-[11px] font-black text-brand-400 uppercase tracking-widest mb-1">{editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR AL PACIENTE"}</p><h3 className="text-5xl tracking-tighter text-white uppercase italic leading-none">${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}</h3></div>
                     </div>
 
                     <div className="md:col-span-2 bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
-                      <div className="flex justify-between items-center mb-4 border-b pb-3"><h4 className="font-black italic uppercase text-slate-800 flex items-center gap-2"><CreditCard size={18} className="text-red-700"/> Medios de Pago</h4>{(editingOrderId ? saldoDiferencia : form.watch("patientAmount")) > 0 && (<Button onClick={addPaymentMethod} variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase text-blue-600 border-blue-200 hover:bg-blue-50">+ Agregar Pago</Button>)}</div>
+                      <div className="flex justify-between items-center mb-4 border-b pb-3"><h4 className="font-black italic uppercase text-slate-800 flex items-center gap-2"><CreditCard size={18} className="text-brand-700"/> Medios de Pago</h4>{(editingOrderId ? saldoDiferencia : form.watch("patientAmount")) > 0 && (<Button onClick={addPaymentMethod} variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase text-blue-600 border-blue-200 hover:bg-blue-50">+ Agregar Pago</Button>)}</div>
                       
                       {(editingOrderId ? saldoDiferencia : form.watch("patientAmount")) <= 0 ? (
                         <div className="text-center py-8 text-emerald-600 font-black uppercase italic bg-emerald-50 rounded-xl border border-emerald-100">La orden ya está cubierta o posee saldo a favor.</div>
@@ -712,14 +712,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                                   <SelectItem value="TARJETA_DEBITO">💳 DÉBITO</SelectItem>
                                   <SelectItem value="TARJETA_CREDITO">💳 CRÉDITO</SelectItem>
                                   <SelectItem value="TRANSFERENCIA">🏛️ TRANSFERENCIA</SelectItem>
-                                  <SelectItem value="SALDO" className="font-black text-red-600 uppercase">⏳ Deuda / Saldo Pendiente</SelectItem>
+                                  <SelectItem value="SALDO" className="font-black text-brand-600 uppercase">⏳ Deuda / Saldo Pendiente</SelectItem>
                                 </SelectContent>
                               </Select>
                               <div className="relative w-48 shrink-0"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span><Input type="number" className="pl-8 h-12 font-black text-lg border-2" value={payment.amount} onChange={(e) => updatePaymentList(index, 'amount', Number(e.target.value))} /></div>
-                              {form.watch("paymentsList").length > 1 && (<Button variant="ghost" onClick={() => removePaymentMethod(index)} className="text-slate-400 hover:text-red-600 shrink-0"><Trash2 size={18}/></Button>)}
+                              {form.watch("paymentsList").length > 1 && (<Button variant="ghost" onClick={() => removePaymentMethod(index)} className="text-slate-400 hover:text-brand-600 shrink-0"><Trash2 size={18}/></Button>)}
                             </div>
                           ))}
-                          <div className={`mt-4 p-3 rounded-xl flex justify-between items-center font-black uppercase italic transition-colors ${remainingBalance === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}><span className="text-xs">{remainingBalance === 0 ? '✓ Pagos cuadrados' : '⚠️ Saldo pendiente'}</span><span className="text-xl">${Math.abs(remainingBalance)}</span></div>
+                          <div className={`mt-4 p-3 rounded-xl flex justify-between items-center font-black uppercase italic transition-colors ${remainingBalance === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-brand-50 text-brand-700 border border-brand-200'}`}><span className="text-xs">{remainingBalance === 0 ? '✓ Pagos cuadrados' : '⚠️ Saldo pendiente'}</span><span className="text-xl">${Math.abs(remainingBalance)}</span></div>
                         </div>
                       )}
                     </div>
@@ -729,7 +729,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               <div className="flex justify-between mt-16 border-t-2 border-slate-100 pt-8">
                 <Button variant="ghost" className="font-black uppercase italic h-14 px-8 text-slate-500 hover:text-slate-900" onClick={() => step > 1 ? setStep(step - 1) : router.back()}>{step === 1 ? "CANCELAR" : "← VOLVER"}</Button>
-                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-red-700 hover:bg-red-800 border-red-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
+                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-brand-700 hover:bg-brand-800 border-brand-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
               </div>
             </CardContent>
           </Card>
@@ -743,7 +743,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-slate-100 pb-6 gap-4">
                <div>
                  <h3 className="text-3xl font-black uppercase italic text-slate-900 flex items-center gap-3">
-                   <LayoutGrid className="text-red-700" size={32}/> Órdenes de Hoy
+                   <LayoutGrid className="text-brand-700" size={32}/> Órdenes de Hoy
                  </h3>
                </div>
                <div className="flex items-center gap-3 w-full md:w-auto">
@@ -775,13 +775,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     >
                         <div>
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <span className={`${isAnulada ? 'bg-slate-400' : 'bg-red-700'} text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest`}>
+                            <span className={`${isAnulada ? 'bg-slate-400' : 'bg-brand-700'} text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest`}>
                               Nº {orden.code || orden.dailyId}
                             </span>
                             
                             {/* 👉 CHIP ROJO VIVO PARA ANULADA (CORREGIDO) */}
                             {isAnulada && (
-                              <span className="bg-red-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm italic flex items-center gap-1 animate-pulse">
+                              <span className="bg-brand-600 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm italic flex items-center gap-1 animate-pulse">
                                 <AlertTriangle size={10} /> ANULADA
                               </span>
                             )}
@@ -808,7 +808,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                               <Button onClick={() => handleEditarOrden(orden)} className="h-12 bg-slate-900 text-white font-black uppercase text-xs rounded-xl shadow-md"><Edit size={16} className="mr-2"/> Editar</Button>
                               <Button 
                                 variant="ghost" 
-                                className="h-12 text-red-500 hover:bg-red-50 font-black uppercase text-[10px]" 
+                                className="h-12 text-brand-500 hover:bg-brand-50 font-black uppercase text-[10px]" 
                                 onClick={async () => { 
                                   if(confirm("¿Estás seguro de ANULAR esta orden?")) { 
                                     const res = await toggleOrderActivation(orden.id, orden.status); 
@@ -858,8 +858,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           const itemIndex = form.watch("items").findIndex(i => i.procedureId === activeConfigId);
           return (
             <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-               <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-red-700 p-10">
-                  <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-red-700 hover:bg-red-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
+               <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-brand-700 p-10">
+                  <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
                   {p?.requiresTooth ? (
                     <div className="py-6 flex flex-col items-center">
                       <div className="flex flex-col gap-4">
@@ -888,7 +888,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                               form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
                               form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
                               recalculateTotal();
-                            }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-red-700 text-white border-red-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
+                            }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-brand-700 text-white border-brand-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
                         )
                       })}
                     </div>
@@ -900,7 +900,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
         <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-red-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-brand-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">{patientHistory.map((order: any) => (
               <div key={order.id} className="bg-slate-50 p-5 rounded-[1.5rem] border-2 border-slate-100 flex flex-col gap-3">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-3">
@@ -908,7 +908,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   <span className="text-[10px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2"><GraduationCap size={14} className="text-red-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                  <div className="flex items-start gap-2"><GraduationCap size={14} className="text-brand-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
                   <div className="text-right"><span className="font-bold text-slate-400 uppercase text-[9px]">Abonado</span><p className="font-black text-emerald-700 uppercase text-xs">${order.patientAmount || order.totalAmount}</p></div>
                 </div>
               </div>
@@ -932,7 +932,7 @@ function ToothBtn({ t, itemIndex, form, recalculate }: any) {
         form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
         form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
         recalculate();
-      }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-red-600 text-white border-red-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
+      }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-brand-600 text-white border-brand-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
   );
 }
 
@@ -947,13 +947,13 @@ function StatCard({ title, value }: any) {
 function Step({ num, label, active, current }: any) {
   return (
     <div className={`flex items-center gap-3 transition-all ${active ? 'opacity-100' : 'opacity-30 grayscale'}`}>
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black border-2 transition-all ${current ? 'bg-red-700 text-white border-red-700 shadow-lg scale-110' : active ? 'bg-white text-red-700 border-red-700' : 'bg-slate-100 text-slate-400 border-transparent'}`}>{num}</div>
-      <div className="flex flex-col uppercase italic"><span className={`text-[8px] font-black tracking-widest ${current ? 'text-red-700' : 'text-slate-400'}`}>PASO {num}</span><span className={`text-base font-black ${current ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span></div>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black border-2 transition-all ${current ? 'bg-brand-700 text-white border-brand-700 shadow-lg scale-110' : active ? 'bg-white text-brand-700 border-brand-700' : 'bg-slate-100 text-slate-400 border-transparent'}`}>{num}</div>
+      <div className="flex flex-col uppercase italic"><span className={`text-[8px] font-black tracking-widest ${current ? 'text-brand-700' : 'text-slate-400'}`}>PASO {num}</span><span className={`text-base font-black ${current ? 'text-slate-900' : 'text-slate-500'}`}>{label}</span></div>
     </div>
   )
 }
 
-function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-red-700 shadow-sm' : 'bg-slate-200'}`} /> }
+function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-brand-700 shadow-sm' : 'bg-slate-200'}`} /> }
 
 function QuickDentistForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -977,12 +977,12 @@ function QuickDentistForm({ onSuccess }: { onSuccess: () => void }) {
   
   return (
     <div className="bg-white p-8 font-black uppercase italic rounded-3xl flex flex-col gap-6">
-      <h3 className="text-2xl border-b-2 border-red-700 pb-2">Nuevo Profesional</h3>
+      <h3 className="text-2xl border-b-2 border-brand-700 pb-2">Nuevo Profesional</h3>
       <div className="grid grid-cols-2 gap-4">
         <Input placeholder="APELLIDO" value={data.Apellido} onChange={e => setData({...data, Apellido: e.target.value.toUpperCase()})} className="h-12 border-2"/>
         <Input placeholder="NOMBRE" value={data.Nombre} onChange={e => setData({...data, Nombre: e.target.value.toUpperCase()})} className="h-12 border-2"/>
       </div>
-      <Button className="bg-red-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
+      <Button className="bg-brand-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
     </div>
   )
 }
