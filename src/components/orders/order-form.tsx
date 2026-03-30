@@ -17,7 +17,7 @@ import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 import {
-  Search, Monitor, Send, Plus, Check, Settings2, X, Phone, User as UserIcon, Stethoscope,
+  Search, Monitor, Send, Plus, Check, Settings2, X, Phone, User as UserIcon, UserCheck, GraduationCap,
   CreditCard, LogOut, Building2, FileText, History, Calendar, LayoutGrid, MessageCircle, Mail, Wallet, Trash2,
   Banknote, Printer, Edit, AlertTriangle, RefreshCw, ScanLine, MapPin
 } from "lucide-react"
@@ -117,9 +117,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       if (match) dentistId = match.id;
     }
 
-    // Usar reset para forzar actualización de todos los inputs registrados
+    // Usar reset + setValue extra para garantizar que el input de fecha se actualice
+    const currentBranch = session?.branchId || localStorage.getItem("radiologia-branch") || "";
     form.reset({
-      branchId: session?.branchId || "",
+      branchId: currentBranch,
       patient: {
         lastName:        prefillData.patientApellido || "",
         firstName:       prefillData.patientNombre   || "",
@@ -135,6 +136,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       paymentsList: [{ method: "EFECTIVO", amount: 0 }],
       notes: ""
     });
+    // Segundo pass para el campo de fecha — algunos browsers ignoran el reset en type=date
+    if (birthDate) {
+      setTimeout(() => form.setValue("patient.birthDate", birthDate), 50);
+    }
 
     // Guardar prácticas sugeridas para mostrar en step 2
     if (prefillData.procedures?.length) {
@@ -524,7 +529,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     </div>
                     {sinOdontologo ? (
                       <div className="flex items-center justify-between px-5 py-3 bg-slate-700 text-white rounded-xl text-sm font-black italic shadow-md">
-                        <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> Paciente Particular</div>
+                        <div className="flex items-center gap-2 uppercase"><GraduationCap size={16} /> Paciente Particular</div>
                         <button type="button" onClick={() => setSinOdontologo(false)} className="bg-slate-900 hover:bg-black p-1.5 rounded-full transition-colors"><X size={14} /></button>
                       </div>
                     ) : !form.watch("dentistId") ? (
@@ -546,7 +551,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       return d && (
                         <div className="flex flex-col gap-2">
                           <div className="px-5 py-3 bg-red-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
-                            <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> {d.lastName}, {d.firstName}</div>
+                            <div className="flex items-center gap-2 uppercase"><GraduationCap size={16} /> {d.lastName}, {d.firstName}</div>
                             <button type="button" onClick={() => { form.setValue("dentistId", ""); setSinOdontologo(false); }} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
                           </div>
                           <div className="flex gap-2 ml-1">
@@ -566,7 +571,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   {derivacionSugerida.length > 0 && (
                     <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 space-y-3">
                       <p className="text-[10px] font-black uppercase tracking-widest text-indigo-700 flex items-center gap-2">
-                        <Stethoscope size={13}/> Prácticas indicadas por el médico
+                        <GraduationCap size={13}/> Prácticas indicadas por el médico
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {derivacionSugerida.map((sug, i) => {
@@ -591,7 +596,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                               }`}
                             >
                               {isSelected && <Check size={11}/>}
-                              {sug.procName}
+                              <span>{sug.procName}</span>
+                              {sug.options?.length > 0 && <span className="text-[10px] opacity-80 font-bold">— {sug.options.join(' / ')}</span>}
                               {sug.teeth?.length > 0 && <span className="text-[10px] opacity-80">P:{sug.teeth.join(',')}</span>}
                             </button>
                           )
@@ -902,7 +908,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   <span className="text-[10px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2"><Stethoscope size={14} className="text-red-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                  <div className="flex items-start gap-2"><GraduationCap size={14} className="text-red-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
                   <div className="text-right"><span className="font-bold text-slate-400 uppercase text-[9px]">Abonado</span><p className="font-black text-emerald-700 uppercase text-xs">${order.patientAmount || order.totalAmount}</p></div>
                 </div>
               </div>
