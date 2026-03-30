@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import SwRegister from "./sw-register"
 
 export const metadata: Metadata = {
   title: "I-R Dental - Portal Médico",
@@ -8,7 +9,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "I-R Portal",
-    startupImage: "/icons/icon-512x512.png",
+  },
+  icons: {
+    apple: "/icons/icon-192x192.png",
   },
 }
 
@@ -23,22 +26,8 @@ export default function PortalMedicoLayout({
 }) {
   return (
     <>
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="mobile-web-app-capable" content="yes" />
-      </head>
       {children}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js', { scope: '/portal-medico' })
-              })
-            }
-          `,
-        }}
-      />
+      <SwRegister />
     </>
   )
 }
