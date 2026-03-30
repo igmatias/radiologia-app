@@ -56,22 +56,9 @@ export async function createOrder(data: any) {
   try {
     const { branchId, patient, dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList } = data
 
-    // Generar código dentro de la transacción para evitar colisiones
     const branch = await prisma.branch.findUnique({ where: { id: branchId }, select: { name: true } })
     const prefix = branch?.name?.charAt(0)?.toUpperCase() || "X"
     const currentYear = new Date().getFullYear()
-    const lastOrder = await prisma.order.findFirst({
-      where: { branchId, createdAt: { gte: new Date(`${currentYear}-01-01`), lt: new Date(`${currentYear + 1}-01-01`) } },
-      orderBy: { createdAt: 'desc' },
-      select: { code: true }
-    })
-    let nextNumber = 1
-    if (lastOrder?.code) {
-      const parts = lastOrder.code.split('-')
-      const lastCount = parseInt(parts[parts.length - 1])
-      if (!isNaN(lastCount)) nextNumber = lastCount + 1
-    }
-    const orderNumber = `${prefix}-${currentYear}-${nextNumber.toString().padStart(6, '0')}`
 
     const newOrder = await prisma.$transaction(async (tx) => {
       const dbPatient = await tx.patient.upsert({
@@ -99,9 +86,9 @@ export async function createOrder(data: any) {
         },
       })
 
-      return await tx.order.create({
+      // Crear sin code primero para obtener el dailyId autoincrement
+      const created = await tx.order.create({
         data: {
-          code: orderNumber,
           branchId,
           patientId: dbPatient.id,
           dentistId: dentistId && dentistId !== "" ? dentistId : null,
@@ -129,11 +116,18 @@ export async function createOrder(data: any) {
           }
         },
       })
+
+      // Usar dailyId para generar el código único (autoincrement = sin colisiones)
+      const orderCode = `${prefix}-${currentYear}-${created.dailyId.toString().padStart(6, '0')}`
+      return await tx.order.update({
+        where: { id: created.id },
+        data: { code: orderCode },
+      })
     })
 
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
-    return { success: true, orderId: newOrder.id, orderCode: orderNumber }
+    return { success: true, orderId: newOrder.id, orderCode: newOrder.code }
   } catch (error: any) {
     console.error("Error creando orden:", error)
     const msg = error?.message || String(error)
