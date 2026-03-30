@@ -331,11 +331,14 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
       cobertura: derivacion.cobertura,
       obraSocial: derivacion.obraSocial,
       nroAfiliado: derivacion.nroAfiliado,
-      procedures: derivacion.procedimientosSeleccionados.map(procId => {
-        const proc = procedures.find((p: any) => p.id === procId)
-        const cfg = derivacionConfig[procId] || {}
-        return { procId, procName: proc?.name || procId, teeth: cfg.teeth || [], options: cfg.options || [] }
-      }),
+      procedures: [
+        ...derivacion.procedimientosSeleccionados.map(procId => {
+          const proc = procedures.find((p: any) => p.id === procId)
+          const cfg = derivacionConfig[procId] || {}
+          return { procId, procName: proc?.name || procId, teeth: cfg.teeth || [], options: cfg.options || [] }
+        }),
+        ...(derivacion.otro.trim() ? [{ procId: 'otro', procName: derivacion.otro.trim(), teeth: [], options: [] }] : [])
+      ],
       indicaciones: derivacion.indicacion,
     })
 
@@ -790,7 +793,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                 <Trash2 size={14}/> Limpiar
               </Button>
               <Button onClick={handlePrintDerivacion} className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase text-xs rounded-xl shadow-lg flex items-center justify-center gap-2">
-                <Printer size={15}/> Imprimir / Guardar PDF
+                <Printer size={15}/>
+                <span className="hidden sm:inline">Imprimir / </span>Guardar PDF
               </Button>
             </div>
             <Button variant="ghost" onClick={() => setShowDerivacion(false)} className="w-full h-9 text-xs text-neutral-400 hover:text-neutral-600">

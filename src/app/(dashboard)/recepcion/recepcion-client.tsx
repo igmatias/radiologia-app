@@ -555,12 +555,21 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                             {derivResult.dentist.matriculaProv && ` — MP: ${derivResult.dentist.matriculaProv}`}
                           </p>
                           <div className="flex flex-wrap gap-1 mt-1.5">
-                            {(derivResult.procedures as any[]).map((p: any, i: number) => (
-                              <span key={i} className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold uppercase">
-                                {p.procName}{p.teeth?.length ? ` (${p.teeth.join(', ')})` : ''}
-                              </span>
-                            ))}
+                            {(derivResult.procedures as any[]).map((p: any, i: number) => {
+                              const label = typeof p === 'string' ? p : p.procName
+                              const teeth = typeof p === 'object' && p.teeth?.length ? ` (${p.teeth.join(', ')})` : ''
+                              return (
+                                <span key={i} className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold uppercase border border-indigo-100">
+                                  {label}{teeth}
+                                </span>
+                              )
+                            })}
                           </div>
+                          {derivResult.indicaciones && (
+                            <p className="text-xs text-slate-500 mt-1.5 italic border-t border-slate-100 pt-1">
+                              📋 {derivResult.indicaciones}
+                            </p>
+                          )}
                         </div>
                         <div className="flex flex-col gap-2 shrink-0">
                           <Button onClick={handleUsarDerivacion} size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">

@@ -96,25 +96,25 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   // Rellenar formulario desde derivación médica
   useEffect(() => {
     if (!prefillData) return;
-    form.setValue("patient.lastName",  prefillData.patientApellido || "");
-    form.setValue("patient.firstName", prefillData.patientNombre   || "");
-    form.setValue("patient.dni",       prefillData.patientDni      || "");
+    const opts = { shouldDirty: true, shouldTouch: true } as const;
+    form.setValue("patient.lastName",  prefillData.patientApellido || "", opts);
+    form.setValue("patient.firstName", prefillData.patientNombre   || "", opts);
+    form.setValue("patient.dni",       prefillData.patientDni      || "", opts);
     // Normalizar fecha a YYYY-MM-DD
     if (prefillData.patientBirthDate) {
-      const raw = prefillData.patientBirthDate;
-      // Si viene como DD/MM/YYYY convertir
+      const raw = String(prefillData.patientBirthDate);
       const ddmm = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      const normalized = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw;
-      form.setValue("patient.birthDate", normalized);
+      const normalized = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw.slice(0, 10);
+      form.setValue("patient.birthDate", normalized, opts);
     }
-    if (prefillData.nroAfiliado) form.setValue("patient.affiliateNumber", prefillData.nroAfiliado);
+    if (prefillData.nroAfiliado) form.setValue("patient.affiliateNumber", prefillData.nroAfiliado, opts);
     // Buscar dentista por matrícula
     if (prefillData.dentist) {
       const match = dentists.find((d: any) =>
         d.matriculaProv === prefillData.dentist.matriculaProv ||
         (`${d.lastName} ${d.firstName}`.toLowerCase() === `${prefillData.dentist.lastName} ${prefillData.dentist.firstName}`.toLowerCase())
       );
-      if (match) form.setValue("dentistId", match.id);
+      if (match) form.setValue("dentistId", match.id, opts);
     }
     // Generar número de orden si no está seteado
     if (!orderNumber && session?.branchId) {
