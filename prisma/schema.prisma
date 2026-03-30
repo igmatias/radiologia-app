@@ -249,6 +249,7 @@ model Price {
   amount            Decimal
   insuranceCoverage Decimal   @default(0)
   patientCopay      Decimal   @default(0)
+  customCode        String?
 
   priceListId       String
   priceList         PriceList @relation(fields: [priceListId], references: [id])
