@@ -42,6 +42,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
   const [orderSearch, setOrderSearch] = useState("")
   const [sinOdontologo, setSinOdontologo] = useState(false)
+  const [derivacionSugerida, setDerivacionSugerida] = useState<{ procId: string, procName: string, teeth: number[], options: string[] }[]>([])
+  const [derivacionIndicacion, setDerivacionIndicacion] = useState("")
 
   const form = useForm({
     defaultValues: {
@@ -96,26 +98,52 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   // Rellenar formulario desde derivación médica
   useEffect(() => {
     if (!prefillData) return;
-    const opts = { shouldDirty: true, shouldTouch: true } as const;
-    form.setValue("patient.lastName",  prefillData.patientApellido || "", opts);
-    form.setValue("patient.firstName", prefillData.patientNombre   || "", opts);
-    form.setValue("patient.dni",       prefillData.patientDni      || "", opts);
-    // Normalizar fecha a YYYY-MM-DD
+
+    // Normalizar fecha
+    let birthDate = "";
     if (prefillData.patientBirthDate) {
       const raw = String(prefillData.patientBirthDate);
       const ddmm = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      const normalized = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw.slice(0, 10);
-      form.setValue("patient.birthDate", normalized, opts);
+      birthDate = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw.slice(0, 10);
     }
-    if (prefillData.nroAfiliado) form.setValue("patient.affiliateNumber", prefillData.nroAfiliado, opts);
-    // Buscar dentista por matrícula
+
+    // Buscar dentista
+    let dentistId = "";
     if (prefillData.dentist) {
       const match = dentists.find((d: any) =>
         d.matriculaProv === prefillData.dentist.matriculaProv ||
         (`${d.lastName} ${d.firstName}`.toLowerCase() === `${prefillData.dentist.lastName} ${prefillData.dentist.firstName}`.toLowerCase())
       );
-      if (match) form.setValue("dentistId", match.id, opts);
+      if (match) dentistId = match.id;
     }
+
+    // Usar reset para forzar actualización de todos los inputs registrados
+    form.reset({
+      branchId: session?.branchId || "",
+      patient: {
+        lastName:        prefillData.patientApellido || "",
+        firstName:       prefillData.patientNombre   || "",
+        dni:             prefillData.patientDni      || "",
+        birthDate,
+        phone: "", email: "",
+        affiliateNumber: prefillData.nroAfiliado     || "",
+        obrasocialId: "", plan: ""
+      },
+      dentistId,
+      items: [],
+      total: 0, patientAmount: 0, insuranceAmount: 0,
+      paymentsList: [{ method: "EFECTIVO", amount: 0 }],
+      notes: ""
+    });
+
+    // Guardar prácticas sugeridas para mostrar en step 2
+    if (prefillData.procedures?.length) {
+      setDerivacionSugerida(prefillData.procedures)
+    }
+    if (prefillData.indicaciones) {
+      setDerivacionIndicacion(prefillData.indicaciones)
+    }
+
     // Generar número de orden si no está seteado
     if (!orderNumber && session?.branchId) {
       getNextOrderNumber(session.branchId).then(n => setOrderNumber(n));
@@ -533,6 +561,50 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       )
                     })()}
                   </div>
+
+                  {/* PRÁCTICAS SUGERIDAS POR EL MÉDICO */}
+                  {derivacionSugerida.length > 0 && (
+                    <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-indigo-700 flex items-center gap-2">
+                        <Stethoscope size={13}/> Prácticas indicadas por el médico
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {derivacionSugerida.map((sug, i) => {
+                          // Intentar matchear con una práctica real por nombre/procId
+                          const matched = procedures.find((p: any) => p.id === sug.procId || p.name.toLowerCase() === sug.procName.toLowerCase())
+                          const isSelected = matched && !!form.watch("items").find((it: any) => it.procedureId === matched.id)
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={async () => {
+                                if (matched) {
+                                  if (!isSelected) await toggleProcedure(matched.id)
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1.5 ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                  : matched
+                                    ? 'bg-white text-indigo-700 border-indigo-300 hover:bg-indigo-100'
+                                    : 'bg-white text-slate-400 border-slate-200 cursor-default'
+                              }`}
+                            >
+                              {isSelected && <Check size={11}/>}
+                              {sug.procName}
+                              {sug.teeth?.length > 0 && <span className="text-[10px] opacity-80">P:{sug.teeth.join(',')}</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {derivacionIndicacion && (
+                        <div className="bg-white rounded-xl border border-indigo-200 px-3 py-2">
+                          <p className="text-[9px] font-black uppercase text-indigo-400 tracking-wider mb-0.5">Indicación clínica</p>
+                          <p className="text-xs font-bold text-slate-700 uppercase">{derivacionIndicacion}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     <div className="flex justify-between items-center mb-2">
