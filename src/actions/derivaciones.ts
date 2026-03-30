@@ -46,7 +46,7 @@ export async function findDerivacion(prescriptionCode: string) {
       include: { dentist: { select: { firstName: true, lastName: true, matriculaProv: true } } },
     })
     if (!derivacion) return { success: false, error: "Código no encontrado" }
-    return { success: true, derivacion }
+    return { success: true, derivacion, data: derivacion }
   } catch (e: any) {
     return { success: false, error: "Error al buscar derivación" }
   }
