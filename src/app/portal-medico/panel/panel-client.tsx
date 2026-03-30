@@ -36,7 +36,7 @@ const ToothIcon = ({ size = 24, className = "" }) => (
   </svg>
 )
 
-export default function PanelMedicoClient({ dentist }: { dentist: any }) {
+export default function PanelMedicoClient({ dentist, procedures }: { dentist: any; procedures?: any[] }) {
   const router = useRouter()
   
   // Estados principales
