@@ -30,6 +30,10 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [profileData, setProfileData] = useState({
+    firstName: dentist.firstName || "",
+    lastName: dentist.lastName || "",
+    matriculaProv: dentist.matriculaProv || "",
+    matriculaNac: dentist.matriculaNac || "",
     phone: dentist.phone || "",
     email: dentist.email || "",
     deliveryMethod: dentist.deliveryMethod || "DIGITAL",
@@ -364,16 +368,37 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               <Settings className="text-brand-600" size={24}/> Preferencias
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-5 py-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Teléfono (WhatsApp)</Label>
-              <Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="Ej: 1123456789" />
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Nombre</Label>
+                <Input value={profileData.firstName} onChange={e => setProfileData({...profileData, firstName: e.target.value})} className="h-12 font-medium bg-neutral-50 uppercase focus-visible:ring-brand-600" placeholder="Nombre" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Apellido</Label>
+                <Input value={profileData.lastName} onChange={e => setProfileData({...profileData, lastName: e.target.value})} className="h-12 font-medium bg-neutral-50 uppercase focus-visible:ring-brand-600" placeholder="Apellido" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Mat. Provincial</Label>
+                <Input value={profileData.matriculaProv} onChange={e => setProfileData({...profileData, matriculaProv: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="Ej: 12345" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Mat. Nacional</Label>
+                <Input value={profileData.matriculaNac} onChange={e => setProfileData({...profileData, matriculaNac: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="Ej: 67890" />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Correo Electrónico</Label>
-              <Input value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} type="email" className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="doctor@email.com" />
+
+            <div className="border-t border-neutral-200 pt-4 space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Teléfono (WhatsApp)</Label>
+                <Input value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="Ej: 1123456789" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Correo Electrónico</Label>
+                <Input value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} type="email" className="h-12 font-medium bg-neutral-50 focus-visible:ring-brand-600" placeholder="doctor@email.com" />
+              </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-neutral-200">
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Formato Entrega</Label>
@@ -881,18 +906,18 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
            />
         </div>
 
-        {/* BOTONES: Nueva Derivación + Nueva Solicitud */}
-        <div className="flex gap-3">
+        {/* BOTONES: Nueva Derivación + Nueva Solicitud — en columna */}
+        <div className="flex flex-col gap-2">
           <Button
             onClick={() => setShowDerivacion(true)}
-            className="flex-1 h-12 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all text-xs sm:text-sm"
+            className="w-full h-12 bg-brand-600 hover:bg-brand-700 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all text-xs sm:text-sm"
           >
             <FilePlus size={18} className="shrink-0" />
             Nueva Derivación
           </Button>
           <Button
             onClick={() => setShowTicketModal(true)}
-            className="flex-1 h-12 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 border border-neutral-700 hover:border-neutral-500 transition-all text-xs sm:text-sm"
+            className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider px-4 rounded-xl shadow-md flex items-center justify-center gap-2 border border-neutral-700 hover:border-neutral-500 transition-all text-xs sm:text-sm"
           >
             <MessageSquarePlus size={18} className="text-brand-500 shrink-0" />
             Nueva Solicitud

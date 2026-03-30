@@ -53,7 +53,13 @@ export async function saveDerivacion(data: {
   indicaciones?: string
 }) {
   try {
-    const prescriptionCode = `DER-${Date.now()}-${randomBytes(3).toString('hex').toUpperCase()}`
+    const lastDer = await prisma.derivacion.findFirst({ orderBy: { createdAt: 'desc' }, select: { prescriptionCode: true } })
+    let nextNum = 100001
+    if (lastDer?.prescriptionCode) {
+      const n = parseInt(lastDer.prescriptionCode)
+      if (!isNaN(n) && n >= 100000) nextNum = n + 1
+    }
+    const prescriptionCode = nextNum.toString()
     await prisma.derivacion.create({
       data: {
         prescriptionCode,

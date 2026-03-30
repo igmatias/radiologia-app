@@ -101,7 +101,11 @@ export async function updateDentistProfile(dentistId: string, data: any) {
         phone: data.phone,
         email: data.email,
         deliveryMethod: data.deliveryMethod,
-        resultPreference: data.resultPreference
+        resultPreference: data.resultPreference,
+        ...(data.firstName  ? { firstName:    data.firstName.trim()  } : {}),
+        ...(data.lastName   ? { lastName:     data.lastName.trim()   } : {}),
+        ...(data.matriculaProv !== undefined ? { matriculaProv: data.matriculaProv || null } : {}),
+        ...(data.matriculaNac  !== undefined ? { matriculaNac:  data.matriculaNac  || null } : {}),
       }
     });
     return { success: true };
