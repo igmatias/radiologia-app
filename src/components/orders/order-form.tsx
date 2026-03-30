@@ -103,7 +103,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     let birthDate = "";
     if (prefillData.patientBirthDate) {
       const raw = String(prefillData.patientBirthDate);
-      const ddmm = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      // Maneja DD/MM/YYYY (barras) y DD-MM-YYYY (guiones) → YYYY-MM-DD para input[type=date]
+      const ddmm = raw.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
       birthDate = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw.slice(0, 10);
     }
 
@@ -393,6 +394,74 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     setActiveTab("NUEVA_ORDEN");
     toast.info(`Editando Orden Nº ${orden.code || orden.dailyId}`);
   }
+
+  // 👉 COMPROBANTE A4 — recibo de pago completo
+  const handleImprimirComprobante = (orden: any) => {
+    const dentistName = orden.dentist ? `Dr. ${orden.dentist.lastName}, ${orden.dentist.firstName}` : "Paciente Particular";
+    const fechaOrden = new Date(orden.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const horaOrden = new Date(orden.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const dob = orden.patient?.birthDate ? new Date(orden.patient.birthDate).toLocaleDateString('es-AR') : "—";
+    const itemsRows = orden.items.map((it: any) => {
+      const proc = it.procedure || procedures.find((p:any) => p.id === it.procedureId);
+      const piezas = it.teeth?.length > 0 ? ` <span style="font-size:10px;color:#666">(P: ${it.teeth.join(', ')})</span>` : it.locations?.length > 0 ? ` <span style="font-size:10px;color:#666">(${it.locations.join(', ')})</span>` : '';
+      return `<tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px">${proc?.name || 'ESTUDIO'}${piezas}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px">$${(Number(it.insuranceCoverage)||0).toLocaleString('es-AR')}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px;font-weight:900">$${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</td>
+      </tr>`;
+    }).join('');
+    const pagosRows = (orden.payments || []).map((pago: any) => {
+      const metodos: any = { EFECTIVO: '💵 Efectivo', MERCADOPAGO: '📱 MercadoPago', TARJETA_DEBITO: '💳 Débito', TARJETA_CREDITO: '💳 Crédito', TRANSFERENCIA: '🏛 Transferencia', SALDO: '⏳ Saldo Pendiente' };
+      return `<tr><td style="padding:6px 12px;font-size:13px">${metodos[pago.method] || pago.method}</td><td style="padding:6px 12px;text-align:right;font-size:13px;font-weight:900">$${Number(pago.amount).toLocaleString('es-AR')}</td></tr>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante ${orden.code}</title>
+    <style>@page{size:A4;margin:15mm}body{font-family:Arial,sans-serif;color:#111;margin:0}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #BA2C66;padding-bottom:12px;margin-bottom:20px}
+    .logo{font-size:22px;font-weight:900;color:#BA2C66;letter-spacing:-1px}
+    .logo span{color:#111}
+    .badge{background:#BA2C66;color:white;padding:6px 16px;border-radius:8px;font-size:20px;font-weight:900}
+    .section-title{font-size:10px;font-weight:900;text-transform:uppercase;color:#BA2C66;letter-spacing:2px;margin-bottom:6px}
+    .patient-block{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:14px;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:#111;color:white;padding:8px 12px;font-size:11px;text-transform:uppercase;text-align:left}
+    thead th:not(:first-child){text-align:right}
+    .totals-row td{padding:10px 12px;font-size:14px;font-weight:900}
+    .footer{margin-top:30px;border-top:1px solid #eee;padding-top:10px;font-size:10px;color:#999;text-align:center}
+    @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>
+    <div class="header">
+      <div><div class="logo">I-R<span> Dental</span></div><div style="font-size:11px;color:#666;margin-top:4px">${fechaOrden} — ${horaOrden}hs</div></div>
+      <div class="badge">Nº ${orden.code || orden.dailyId}</div>
+    </div>
+    <div class="patient-block">
+      <div class="section-title">Paciente</div>
+      <div style="font-size:18px;font-weight:900;text-transform:uppercase">${orden.patient?.lastName}, ${orden.patient?.firstName}</div>
+      <div style="font-size:12px;color:#555;margin-top:4px">DNI: ${orden.patient?.dni || '—'} &nbsp;|&nbsp; F.Nac: ${dob} &nbsp;|&nbsp; Tel: ${orden.patient?.phone || '—'}</div>
+      <div style="font-size:12px;color:#555;margin-top:2px">Solicitante: <strong>${dentistName}</strong></div>
+    </div>
+    <div class="section-title" style="margin-bottom:8px">Estudios</div>
+    <table style="margin-bottom:20px">
+      <thead><tr><th>Estudio</th><th>O.S.</th><th>Paciente</th></tr></thead>
+      <tbody>${itemsRows}</tbody>
+      <tfoot>
+        <tr class="totals-row" style="background:#f9f9f9"><td>Subtotal O.S.</td><td colspan="2" style="text-align:right">$${(orden.insuranceAmount||0).toLocaleString('es-AR')}</td></tr>
+        <tr class="totals-row" style="background:#BA2C66;color:white"><td>TOTAL PACIENTE</td><td colspan="2" style="text-align:right">$${(orden.patientAmount||0).toLocaleString('es-AR')}</td></tr>
+      </tfoot>
+    </table>
+    ${pagosRows ? `<div class="section-title" style="margin-bottom:8px">Forma de Pago</div><table><tbody>${pagosRows}</tbody></table>` : ''}
+    <div class="footer">I-R Dental · Comprobante Nº ${orden.code || orden.dailyId} · ${fechaOrden}</div>
+    </body></html>`;
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.top = '-9999px';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open(); doc.write(html); doc.close();
+      iframe.onload = () => setTimeout(() => { iframe.contentWindow?.focus(); iframe.contentWindow?.print(); setTimeout(() => document.body.removeChild(iframe), 1000); }, 300);
+    }
+    toast.success("Imprimiendo comprobante...");
+  };
 
   // 👉 NUEVA FUNCIÓN DE REIMPRESIÓN CORREGIDA
   const handleReimprimir = (orden: any) => {
@@ -805,6 +874,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           {!isAnulada ? (
                             <>
                               <Button onClick={() => handleReimprimir(orden)} variant="outline" className="h-12 border-2 border-slate-200 text-slate-700 font-black uppercase text-xs rounded-xl shadow-sm hover:bg-white"><Printer size={16} className="mr-2"/> Etiqueta</Button>
+                              <Button onClick={() => handleImprimirComprobante(orden)} variant="outline" className="h-12 border-2 border-brand-200 text-brand-700 font-black uppercase text-xs rounded-xl shadow-sm hover:bg-brand-50"><FileText size={16} className="mr-2"/> Comprobante</Button>
                               <Button onClick={() => handleEditarOrden(orden)} className="h-12 bg-slate-900 text-white font-black uppercase text-xs rounded-xl shadow-md"><Edit size={16} className="mr-2"/> Editar</Button>
                               <Button 
                                 variant="ghost" 
