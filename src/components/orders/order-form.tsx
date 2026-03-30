@@ -41,6 +41,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
   const [orderSearch, setOrderSearch] = useState("")
+  const [sinOdontologo, setSinOdontologo] = useState(false)
 
   const form = useForm({
     defaultValues: {
@@ -98,9 +99,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     form.setValue("patient.lastName",  prefillData.patientApellido || "");
     form.setValue("patient.firstName", prefillData.patientNombre   || "");
     form.setValue("patient.dni",       prefillData.patientDni      || "");
-    if (prefillData.patientBirthDate) form.setValue("patient.birthDate", prefillData.patientBirthDate);
-    if (prefillData.nroAfiliado)      form.setValue("patient.affiliateNumber", prefillData.nroAfiliado);
-    // Buscar dentista por matrícula si viene del objeto dentist
+    // Normalizar fecha a YYYY-MM-DD
+    if (prefillData.patientBirthDate) {
+      const raw = prefillData.patientBirthDate;
+      // Si viene como DD/MM/YYYY convertir
+      const ddmm = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const normalized = ddmm ? `${ddmm[3]}-${ddmm[2]}-${ddmm[1]}` : raw;
+      form.setValue("patient.birthDate", normalized);
+    }
+    if (prefillData.nroAfiliado) form.setValue("patient.affiliateNumber", prefillData.nroAfiliado);
+    // Buscar dentista por matrícula
     if (prefillData.dentist) {
       const match = dentists.find((d: any) =>
         d.matriculaProv === prefillData.dentist.matriculaProv ||
@@ -108,11 +116,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       );
       if (match) form.setValue("dentistId", match.id);
     }
-    // Ir al paso 1 y marcar como usado
+    // Generar número de orden si no está seteado
+    if (!orderNumber && session?.branchId) {
+      getNextOrderNumber(session.branchId).then(n => setOrderNumber(n));
+    }
     setStep(1);
     setActiveTab("NUEVA_ORDEN");
     if (onPrefillUsed) onPrefillUsed();
-    toast.success("Datos de la derivación cargados en el formulario");
+    toast.success("Datos de la derivación cargados ✓");
   }, [prefillData]);
 
   useEffect(() => {
@@ -466,21 +477,32 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 <div className="space-y-8 animate-in slide-in-from-right">
                   <div className="bg-white p-6 rounded-2xl border-2 border-red-500 relative shadow-md">
                     <div className="flex justify-between items-center mb-4 text-red-700 font-black uppercase italic">
-                      <Label className="text-sm">Odontólogo Solicitante</Label>
-                      <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700">+ Nuevo Profesional</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
-                          <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
-                          <QuickDentistForm onSuccess={() => setIsDentistModalOpen(false)} />
-                        </DialogContent>
-                      </Dialog>
+                      <Label className="text-sm flex items-center gap-1.5">Odontólogo Solicitante <span className="text-red-500">*</span></Label>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" className="h-8 text-[10px] bg-slate-50 shadow-sm hover:bg-slate-100 border-slate-300 text-slate-600"
+                          onClick={() => { setSinOdontologo(true); form.setValue("dentistId", ""); setSearchTerm(""); }}>
+                          Sin Odontólogo
+                        </Button>
+                        <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-red-50 border-red-200 text-red-700">+ Nuevo Profesional</Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
+                            <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
+                            <QuickDentistForm onSuccess={() => setIsDentistModalOpen(false)} />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
-                    {!form.watch("dentistId") ? (
+                    {sinOdontologo ? (
+                      <div className="flex items-center justify-between px-5 py-3 bg-slate-700 text-white rounded-xl text-sm font-black italic shadow-md">
+                        <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> Paciente Particular</div>
+                        <button type="button" onClick={() => setSinOdontologo(false)} className="bg-slate-900 hover:bg-black p-1.5 rounded-full transition-colors"><X size={14} /></button>
+                      </div>
+                    ) : !form.watch("dentistId") ? (
                       <div className="relative shadow-sm rounded-xl">
                         <Search className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
-                        <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50" />
+                        <Input placeholder="Escribí APELLIDO O MATRÍCULA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 h-12 uppercase font-bold border-2 border-slate-300 bg-slate-50 focus-visible:ring-red-500" autoFocus />
                         {searchTerm && (
                           <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold">
                             {filteredDentists.map((d: any) => (
@@ -497,9 +519,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         <div className="flex flex-col gap-2">
                           <div className="px-5 py-3 bg-red-700 text-white rounded-xl text-sm font-black italic flex items-center justify-between shadow-md">
                             <div className="flex items-center gap-2 uppercase"><Stethoscope size={16} /> {d.lastName}, {d.firstName}</div>
-                            <button type="button" onClick={() => form.setValue("dentistId", "")} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
+                            <button type="button" onClick={() => { form.setValue("dentistId", ""); setSinOdontologo(false); }} className="bg-red-900 hover:bg-red-950 p-1.5 rounded-full transition-colors"><X size={14} /></button>
                           </div>
-                          {/* 👉 NUEVO: CHIPS DE PREFERENCIAS DEL MEDICO */}
                           <div className="flex gap-2 ml-1">
                             {(d.deliveryMethod === 'IMPRESA' || d.deliveryMethod === 'AMBAS') && (
                               <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md bg-orange-100 text-orange-800 border border-orange-200 shadow-sm flex items-center gap-1">📦 FÍSICO</span>
