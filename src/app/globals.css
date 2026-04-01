@@ -134,9 +134,17 @@
   }
   body {
     @apply bg-background text-foreground;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
     text-rendering: optimizeLegibility;
+  }
+
+  /* En pantallas de alta densidad (retina/4K) sí usar antialiased */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
   }
 }
 
@@ -148,7 +156,6 @@ body, * {
 /* Botones y elementos interactivos */
 button, [role="button"], input, textarea, select {
   font-family: inherit;
-  -webkit-font-smoothing: antialiased;
 }
 
 /* ===== CUBOS 3D LOGIN ===== */

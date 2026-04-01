@@ -345,7 +345,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all text-left ${
-        active ? `${activeClass} text-white shadow-md` : 'text-slate-400 hover:bg-neutral-800 hover:text-white'
+        active ? `${activeClass} text-white shadow-md` : 'text-slate-500 hover:bg-neutral-800 hover:text-white'
       }`}
     >
       {icon}
@@ -366,9 +366,9 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
         {/* Branding */}
         <div className="px-5 py-5 border-b border-slate-800">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Módulo</p>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Módulo</p>
           <p className="text-base font-black text-white uppercase tracking-tight">Recepción</p>
-          <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate">{nombreSedeActual}</p>
+          <p className="text-xs font-bold text-slate-500 mt-0.5 truncate">{nombreSedeActual}</p>
         </div>
 
         {/* Navegación */}
@@ -386,7 +386,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
         {/* Footer del sidebar */}
         <div className="px-5 py-4 border-t border-slate-800">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Operador</p>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none">Operador</p>
           <p className="text-sm font-black text-white uppercase mt-0.5 truncate">{userName}</p>
         </div>
       </aside>
@@ -401,7 +401,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 flex items-center gap-2">
               <MessageSquare className="text-brand-600" size={24}/> Mensajes de Odontólogos
             </h2>
-            <button onClick={() => cargarTickets(ticketFilter)} className="text-slate-400 hover:text-slate-700 transition-colors">
+            <button onClick={() => cargarTickets(ticketFilter)} className="text-slate-500 hover:text-slate-700 transition-colors">
               <RefreshCw size={16}/>
             </button>
           </div>
@@ -414,18 +414,18 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 <button key={s} onClick={() => setTicketFilter(s)}
                   className={`px-4 py-2 rounded-xl font-black uppercase text-xs transition-all ${ticketFilter === s ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
                   {labels[s]}
-                  {s === "ABIERTO" && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
+                  {s === "ABIERTO" && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[11px] font-black px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
                 </button>
               )
             })}
           </div>
 
           {loadingTickets ? (
-            <div className="text-center py-20 font-black uppercase text-slate-400 animate-pulse">Cargando...</div>
+            <div className="text-center py-20 font-black uppercase text-slate-500 animate-pulse">Cargando...</div>
           ) : tickets.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
               <MessageSquare size={48} className="mx-auto text-slate-200 mb-4"/>
-              <p className="font-black uppercase text-slate-400">No hay mensajes {ticketFilter === "ABIERTO" ? "pendientes" : ticketFilter === "RESPONDIDO" ? "respondidos" : "cerrados"}</p>
+              <p className="font-black uppercase text-slate-500">No hay mensajes {ticketFilter === "ABIERTO" ? "pendientes" : ticketFilter === "RESPONDIDO" ? "respondidos" : "cerrados"}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -442,10 +442,10 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     <div className="flex items-center justify-between p-5 border-b border-slate-100">
                       <div>
                         <p className="font-black uppercase text-slate-900 text-sm">Dr. {ticket.dentist?.lastName}, {ticket.dentist?.firstName}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{subjectLabels[ticket.subject] || ticket.subject}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{subjectLabels[ticket.subject] || ticket.subject}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-400">{new Date(ticket.createdAt).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })}</span>
+                        <span className="text-xs text-slate-500">{new Date(ticket.createdAt).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })}</span>
                         {ticket.status === "RESPONDIDO" && (
                           <button onClick={() => handleCloseTicket(ticket.id)} title="Cerrar ticket" className="text-slate-300 hover:text-slate-500 transition-colors">
                             <X size={16}/>
@@ -457,14 +457,14 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     {/* Mensaje */}
                     <div className="p-5 space-y-4">
                       <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1.5">Mensaje</p>
+                        <p className="text-xs font-black uppercase text-slate-500 mb-1.5">Mensaje</p>
                         <p className="text-sm text-slate-700 leading-relaxed">{ticket.message}</p>
                       </div>
 
                       {/* Respuesta existente */}
                       {ticket.reply && (
                         <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200">
-                          <p className="text-[10px] font-black uppercase text-emerald-600 mb-1.5">Tu respuesta · {ticket.repliedBy}</p>
+                          <p className="text-xs font-black uppercase text-emerald-600 mb-1.5">Tu respuesta · {ticket.repliedBy}</p>
                           <p className="text-sm text-emerald-900 leading-relaxed">{ticket.reply}</p>
                         </div>
                       )}
@@ -511,11 +511,11 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 onClick={() => { setDerivExpanded(v => !v); setDerivResult(null); setDerivSearch("") }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left"
               >
-                <FileInput size={15} className={`shrink-0 transition-colors ${derivExpanded ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <FileInput size={15} className={`shrink-0 transition-colors ${derivExpanded ? 'text-indigo-600' : 'text-slate-500'}`} />
                 <span className={`text-xs font-black uppercase tracking-widest transition-colors ${derivExpanded ? 'text-indigo-700' : 'text-slate-500'}`}>
                   Derivación Médica
                 </span>
-                <span className={`text-[10px] font-semibold transition-colors ${derivExpanded ? 'text-indigo-400' : 'text-slate-400'}`}>
+                <span className={`text-xs font-semibold transition-colors ${derivExpanded ? 'text-indigo-400' : 'text-slate-500'}`}>
                   — ¿El paciente trae número de derivación?
                 </span>
                 <ChevronDown size={14} className={`ml-auto transition-all duration-200 ${derivExpanded ? 'text-indigo-400 rotate-180' : 'text-slate-300'}`} />
@@ -545,8 +545,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-0.5 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">N° {derivResult.prescriptionCode}</span>
-                            <span className="text-[10px] text-slate-400">{new Date(derivResult.createdAt).toLocaleDateString('es-AR')}</span>
+                            <span className="text-xs font-black uppercase tracking-widest text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full">N° {derivResult.prescriptionCode}</span>
+                            <span className="text-xs text-slate-500">{new Date(derivResult.createdAt).toLocaleDateString('es-AR')}</span>
                           </div>
                           <p className="font-black text-slate-800 text-sm mt-1">{derivResult.patientApellido}, {derivResult.patientNombre}</p>
                           {derivResult.patientDni && <p className="text-xs text-slate-500">DNI: {derivResult.patientDni}</p>}
@@ -559,7 +559,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                               const label = typeof p === 'string' ? p : p.procName
                               const teeth = typeof p === 'object' && p.teeth?.length ? ` (${p.teeth.join(', ')})` : ''
                               return (
-                                <span key={i} className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold uppercase border border-indigo-100">
+                                <span key={i} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold uppercase border border-indigo-100">
                                   {label}{teeth}
                                 </span>
                               )
@@ -578,7 +578,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                           <Button onClick={() => handleVerDerivacion(derivResult)} size="sm" variant="outline" className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 text-xs font-bold whitespace-nowrap">
                             <Search size={13} className="mr-1" /> Ver / Imprimir
                           </Button>
-                          <Button onClick={() => { setDerivResult(null); setDerivSearch("") }} size="sm" variant="ghost" className="text-slate-400 text-xs">
+                          <Button onClick={() => { setDerivResult(null); setDerivSearch("") }} size="sm" variant="ghost" className="text-slate-500 text-xs">
                             Cancelar
                           </Button>
                         </div>
@@ -610,7 +610,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
            <Card className="border-none shadow-lg rounded-[2.5rem] bg-white border-t-8 border-brand-700 p-8">
               <h3 className="text-3xl font-black uppercase italic text-slate-900 mb-8 flex items-center gap-3"><Clock size={32} className="text-brand-700"/> Saldos Pendientes</h3>
               <div className="space-y-4">
-                {saldosFiltrados.length === 0 ? <p className="text-center py-10 text-slate-400 font-bold uppercase">No hay deudas en esta sede</p> : 
+                {saldosFiltrados.length === 0 ? <p className="text-center py-10 text-slate-500 font-bold uppercase">No hay deudas en esta sede</p> : 
                   saldosFiltrados.map((s: any) => (
                     <div key={s.id} className="bg-slate-50 p-5 rounded-2xl flex justify-between items-center border border-slate-200">
                        <div><p className="text-lg font-black uppercase text-slate-800">{s.order?.patient?.lastName}, {s.order?.patient?.firstName}</p><p className="text-xs font-bold text-slate-500 uppercase">DNI: {s.order?.patient?.dni}</p></div>
@@ -626,14 +626,14 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
       {activeTab === "CAJA" && (
         <div className="animate-in fade-in duration-300">
           {cargandoCaja && !estadoCaja ? (
-            <div className="text-center py-20 font-black uppercase text-slate-400 italic tracking-widest animate-pulse">Iniciando Bóveda...</div>
+            <div className="text-center py-20 font-black uppercase text-slate-500 italic tracking-widest animate-pulse">Iniciando Bóveda...</div>
           ) : !estadoCaja?.cajaAbierta ? (
             <div className="flex justify-center mt-10">
               <Card className="border-none shadow-2xl rounded-[3rem] bg-white border border-slate-100 overflow-hidden text-center py-20 px-10 max-w-lg w-full relative">
                 <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-emerald-400 to-blue-500"></div>
                 <Lock size={80} className="mx-auto text-slate-200 mb-8" />
                 <h2 className="text-4xl font-black uppercase tracking-tighter mb-4 text-slate-800">Caja Inactiva</h2>
-                <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mb-10">Sede: {nombreSedeActual}</p>
+                <p className="text-slate-500 font-bold uppercase text-xs tracking-widest mb-10">Sede: {nombreSedeActual}</p>
                 <Button onClick={handleAbrirCaja} disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase h-16 rounded-full shadow-xl">Abrir Turno de Hoy</Button>
               </Card>
             </div>
@@ -680,8 +680,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                         </Button>
                       </div>
                       <div className="flex gap-2 mt-2">
-                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-black uppercase italic">Turno Abierto</span>
-                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Apertura: {new Date(estadoCaja.caja.createdAt).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}hs</span>
+                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-black uppercase italic">Turno Abierto</span>
+                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-black uppercase">Apertura: {new Date(estadoCaja.caja.createdAt).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}hs</span>
                       </div>
                     </div>
                     <div className="flex gap-3 w-full md:w-auto">
@@ -693,19 +693,19 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                   {/* 4 cards de totales por método */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <div className="p-4 rounded-2xl border border-emerald-100 bg-emerald-50">
-                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-emerald-700 opacity-80">Efectivo</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1 text-emerald-700 opacity-80">Efectivo</p>
                       <p className="text-xl font-black text-emerald-700">${(totalesPorMetodo['EFECTIVO'] || 0).toLocaleString('es-AR')}</p>
                     </div>
                     <div className="p-4 rounded-2xl border border-blue-100 bg-blue-50">
-                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-blue-700 opacity-80">Débito</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1 text-blue-700 opacity-80">Débito</p>
                       <p className="text-xl font-black text-blue-700">${((totalesPorMetodo['DEBITO'] || 0) + (totalesPorMetodo['TARJETA_DEBITO'] || 0)).toLocaleString('es-AR')}</p>
                     </div>
                     <div className="p-4 rounded-2xl border border-purple-100 bg-purple-50">
-                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-purple-700 opacity-80">Transferencia</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1 text-purple-700 opacity-80">Transferencia</p>
                       <p className="text-xl font-black text-purple-700">${(totalesPorMetodo['TRANSFERENCIA'] || 0).toLocaleString('es-AR')}</p>
                     </div>
                     <div className="p-4 rounded-2xl border border-sky-100 bg-sky-50">
-                      <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-sky-700 opacity-80">MercadoPago</p>
+                      <p className="text-[11px] font-black uppercase tracking-widest mb-1 text-sky-700 opacity-80">MercadoPago</p>
                       <p className="text-xl font-black text-sky-700">${(totalesPorMetodo['MERCADOPAGO'] || 0).toLocaleString('es-AR')}</p>
                     </div>
                   </div>
@@ -719,7 +719,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       { t: "EN CAJÓN", v: estadoCaja.totalEnCajon, c: "text-slate-900 font-black", bg: "bg-emerald-50 border-emerald-200 shadow-inner" }
                     ].map((item, i) => (
                       <div key={i} className={`p-4 rounded-2xl border border-slate-100 bg-slate-50/50 ${item.bg || ''}`}>
-                        <p className="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{item.t}</p>
+                        <p className="text-[11px] font-black uppercase tracking-widest mb-1 opacity-70 italic">{item.t}</p>
                         <p className={`text-lg font-bold ${item.c}`}>${item.v.toLocaleString('es-AR')}</p>
                       </div>
                     ))}
@@ -729,7 +729,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                 {/* Cobros del día - acordeones por método */}
                 {methodsWithPayments.length > 0 && (
                   <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-7">
-                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-4 border-b border-slate-50 pb-2">Cobros del Día</h4>
+                    <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest mb-4 border-b border-slate-50 pb-2">Cobros del Día</h4>
                     <div className="space-y-2">
                       {methodsWithPayments.map((method) => {
                         const cfg = methodConfig[method] || { label: method, color: 'slate', icon: '💰' };
@@ -753,7 +753,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                               <span className="text-xl">{cfg.icon}</span>
                               <span className="flex-1 font-black uppercase text-sm tracking-wide">{cfg.label}</span>
                               <span className="font-black text-base mr-3">${total.toLocaleString('es-AR')}</span>
-                              <span className="text-[10px] font-bold bg-white/60 px-2 py-0.5 rounded-full mr-2">{pagos.length} cobro{pagos.length !== 1 ? 's' : ''}</span>
+                              <span className="text-xs font-bold bg-white/60 px-2 py-0.5 rounded-full mr-2">{pagos.length} cobro{pagos.length !== 1 ? 's' : ''}</span>
                               <ChevronDown size={16} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                             </button>
                             {isExpanded && (
@@ -763,7 +763,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                                     <span className="font-bold text-sm uppercase">{p.patient}</span>
                                     <div className="flex items-center gap-3">
                                       <span className="font-black text-base">${p.amount.toLocaleString('es-AR')}</span>
-                                      <span className="text-[10px] font-bold opacity-60">{new Date(p.time).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</span>
+                                      <span className="text-xs font-bold opacity-60">{new Date(p.time).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'})}</span>
                                     </div>
                                   </div>
                                 ))}
@@ -778,7 +778,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
                 {/* Movimientos manuales */}
                 <Card className="border-none shadow-sm rounded-[2.5rem] bg-white p-7">
-                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest mb-4 border-b border-slate-50 pb-2">Operaciones de Hoy</h4>
+                  <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest mb-4 border-b border-slate-50 pb-2">Operaciones de Hoy</h4>
                   <div className="space-y-2">
                     {estadoCaja.movimientos.length === 0 ? <p className="text-center py-8 text-slate-300 font-bold uppercase text-xs">Sin movimientos manuales</p> :
                       estadoCaja.movimientos.map((m: any) => (
@@ -789,7 +789,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                             </div>
                             <div>
                               <p className="text-sm font-black uppercase text-slate-800 leading-none">{m.description}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{m.type.replace(/_/g, ' ')} • {new Date(m.createdAt).toLocaleTimeString()}</p>
+                              <p className="text-xs font-bold text-slate-500 uppercase mt-0.5">{m.type.replace(/_/g, ' ')} • {new Date(m.createdAt).toLocaleTimeString()}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -818,13 +818,13 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                   <div className="p-7 space-y-5">
                     {/* Sistema vs cajón */}
                     <div className="bg-slate-50 rounded-2xl border border-slate-100 px-5 py-4 flex justify-between items-center">
-                      <span className="text-xs font-black uppercase text-slate-400">Sistema dice</span>
+                      <span className="text-xs font-black uppercase text-slate-500">Sistema dice</span>
                       <span className="text-2xl font-black text-slate-800">${estadoCaja.totalEnCajon.toLocaleString('es-AR')}</span>
                     </div>
 
                     {/* Input de conteo */}
                     <div>
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1 mb-1.5 block">Tu conteo ($)</label>
+                      <label className="text-xs font-black uppercase text-slate-500 ml-1 mb-1.5 block">Tu conteo ($)</label>
                       <Input
                         type="number"
                         placeholder="0"
@@ -840,7 +840,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       const ok = dif === 0;
                       return (
                         <div className={`px-5 py-4 rounded-2xl border-2 text-center animate-in fade-in slide-in-from-top-2 ${ok ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
-                          <p className="text-[10px] font-black uppercase mb-1 opacity-60">{ok ? 'Estado' : 'Diferencia'}</p>
+                          <p className="text-xs font-black uppercase mb-1 opacity-60">{ok ? 'Estado' : 'Diferencia'}</p>
                           <p className={`text-xl font-black ${ok ? 'text-emerald-700' : 'text-amber-800'}`}>
                             {ok ? 'CUADRADA ✓' : dif > 0 ? `SOBRA $${Math.abs(dif).toLocaleString('es-AR')}` : `FALTA $${Math.abs(dif).toLocaleString('es-AR')}`}
                           </p>
@@ -886,11 +886,11 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase">{nuevoMovimiento.type === 'GASTO' ? "Registrar Gasto" : "Pase a Bóveda"}</DialogTitle></DialogHeader>
           <div className="py-4 space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-400 ml-2">Monto del Movimiento</Label>
+              <Label className="text-xs font-black uppercase text-slate-500 ml-2">Monto del Movimiento</Label>
               <Input type="number" placeholder="0.00" value={nuevoMovimiento.amount} onChange={e => setNuevoMovimiento({...nuevoMovimiento, amount: e.target.value})} className="h-16 rounded-2xl border-2 font-black text-2xl px-6"/>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-400 ml-2">Descripción / Concepto</Label>
+              <Label className="text-xs font-black uppercase text-slate-500 ml-2">Descripción / Concepto</Label>
               <Input placeholder="Ej: Pago de limpieza, artículos oficina..." value={nuevoMovimiento.description} onChange={e => setNuevoMovimiento({...nuevoMovimiento, description: e.target.value})} className="h-14 rounded-2xl border-2 font-bold text-lg px-6"/>
             </div>
             <Button onClick={handleGuardarMovimiento} disabled={loading} className="w-full h-16 bg-slate-900 text-white font-black uppercase rounded-2xl shadow-lg transition-all hover:bg-black active:scale-95">Confirmar Operación</Button>
@@ -903,11 +903,11 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-brand-600">Finalizar Turno</DialogTitle></DialogHeader>
           <div className="py-2 space-y-6">
             <div className="bg-slate-50 p-8 rounded-3xl text-center border-2 border-slate-100">
-              <p className="text-xs font-black uppercase text-slate-400 mb-2 italic">Efectivo Físico a Resguardar</p>
+              <p className="text-xs font-black uppercase text-slate-500 mb-2 italic">Efectivo Físico a Resguardar</p>
               <p className="text-5xl font-black italic text-slate-900 tracking-tighter">${parseFloat(efectivoFisico || "0").toLocaleString('es-AR')}</p>
             </div>
             <div className="space-y-2">
-               <Label className="text-[10px] font-black uppercase text-slate-400 ml-2">Observaciones de Cierre</Label>
+               <Label className="text-xs font-black uppercase text-slate-500 ml-2">Observaciones de Cierre</Label>
                <Input placeholder="Opcional..." value={notasCierre} onChange={e => setNotasCierre(e.target.value)} className="h-14 rounded-2xl border-2 font-bold px-6"/>
             </div>
             <Button onClick={handleCerrarCaja} disabled={loading} className="w-full h-16 bg-brand-600 hover:bg-brand-700 text-white font-black uppercase rounded-2xl shadow-xl transition-all active:scale-95">Confirmar Cierre Final</Button>
@@ -920,12 +920,12 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           <DialogHeader><DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Cobrar Saldo Pendiente</DialogTitle></DialogHeader>
           <div className="space-y-6 mt-4">
             <div className="bg-slate-50 p-6 rounded-3xl border-2 border-slate-100 shadow-inner">
-              <p className="text-xs font-black uppercase text-slate-400 mb-1">Paciente</p>
+              <p className="text-xs font-black uppercase text-slate-500 mb-1">Paciente</p>
               <p className="text-xl font-black uppercase text-slate-800 leading-tight">{saldoSeleccionado?.order?.patient?.lastName}, {saldoSeleccionado?.order?.patient?.firstName}</p>
               <p className="text-4xl font-black text-emerald-600 italic mt-4 tracking-tighter">${saldoSeleccionado?.amount.toLocaleString('es-AR')}</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-slate-400 ml-2">Método de Cobro</Label>
+              <Label className="text-xs font-black uppercase text-slate-500 ml-2">Método de Cobro</Label>
               <Select value={metodoPago} onValueChange={setMetodoPago}>
                 <SelectTrigger className="h-14 font-black uppercase rounded-2xl border-2 px-6"><SelectValue placeholder="Seleccionar método" /></SelectTrigger>
                 <SelectContent className="rounded-xl border-2 font-black uppercase italic">
