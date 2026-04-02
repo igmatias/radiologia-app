@@ -1,11 +1,40 @@
 "use client"
 
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Search, Plus, Check, Settings2, X, ScanLine, MapPin, UserCheck, AlertCircle } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import { QuickDentistForm } from "./quick-dentist-form"
+
+function PersonalizadaInput({ form, procedureId }: { form: any; procedureId: string }) {
+  const items = form.getValues("items");
+  const item = items.find((i: any) => i.procedureId === procedureId);
+  const [value, setValue] = useState(item?.customName || '');
+
+  const syncToForm = () => {
+    const current = form.getValues("items");
+    const idx = current.findIndex((i: any) => i.procedureId === procedureId);
+    if (idx !== -1) {
+      current[idx].customName = value;
+      form.setValue("items", [...current]);
+    }
+  };
+
+  return (
+    <div className="px-4 pb-3">
+      <Input
+        placeholder="Ingresá el nombre de la práctica..."
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={syncToForm}
+        className="h-9 text-xs font-bold border-2 border-brand-300 bg-white rounded-xl focus-visible:ring-brand-400"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+}
 
 interface StepStudiesProps {
   form: any
@@ -261,22 +290,7 @@ export function StepStudies({
 
                 {/* Input nombre para práctica personalizada — debajo de la fila */}
                 {isSelected && p.code === '99.99.99' && (
-                  <div className="px-4 pb-3">
-                    <Input
-                      placeholder="Ingresá el nombre de la práctica..."
-                      value={selectedItem?.customName || ''}
-                      onChange={(e) => {
-                        const items = form.getValues("items");
-                        const idx = items.findIndex((i: any) => i.procedureId === p.id);
-                        if (idx !== -1) {
-                          items[idx].customName = e.target.value;
-                          form.setValue("items", [...items], { shouldDirty: false });
-                        }
-                      }}
-                      className="h-9 text-xs font-bold border-2 border-brand-300 bg-white rounded-xl focus-visible:ring-brand-400"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
+                  <PersonalizadaInput form={form} procedureId={p.id} />
                 )}
               </div>
             )
