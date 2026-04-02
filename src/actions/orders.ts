@@ -105,7 +105,7 @@ export async function createOrder(data: any) {
               patientCopay: item.patientCopay || 0,
               insuranceCoverage: item.insuranceCoverage || 0,
               status: "CREADA",
-              metadata: { teeth: item.teeth || [], locations: item.locations || [] }
+              metadata: { teeth: item.teeth || [], locations: item.locations || [], customName: item.customName || null }
             }))
           },
           payments: {
@@ -163,7 +163,7 @@ export async function updateOrder(orderId: string, data: any) {
           patientCopay: item.patientCopay || 0,
           insuranceCoverage: item.insuranceCoverage || 0,
           status: "CREADA",
-          metadata: { teeth: item.teeth || [], locations: item.locations || [] }
+          metadata: { teeth: item.teeth || [], locations: item.locations || [], customName: item.customName || null }
         }))
       })
 
@@ -282,7 +282,7 @@ export async function getPatientHistory(dni: string) {
   try {
     return await prisma.order.findMany({
       where: { patient: { dni } },
-      include: { branch: true, dentist: true, items: { include: { procedure: true } } },
+      include: { branch: true, dentist: true, items: { include: { procedure: true } }, payments: true },
       orderBy: { createdAt: 'desc' }
     })
   } catch (error) { return [] }

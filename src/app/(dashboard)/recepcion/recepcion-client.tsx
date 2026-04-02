@@ -24,7 +24,7 @@ import {
   UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
   Send, RefreshCw, Plus, ChevronRight, ChevronDown, MessageSquare, CheckCircle, X,
-  Search, FileInput, Stethoscope
+  Search, FileInput, Stethoscope, CreditCard, Smartphone, Building2, FileText
 } from "lucide-react"
 import { getTickets, replyTicket, closeTicket } from "@/actions/tickets"
 import { findDerivacion, markDerivacionCargada } from "@/actions/derivaciones"
@@ -566,8 +566,8 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                             })}
                           </div>
                           {derivResult.indicaciones && (
-                            <p className="text-xs text-slate-500 mt-1.5 italic border-t border-slate-100 pt-1">
-                              📋 {derivResult.indicaciones}
+                            <p className="text-xs text-slate-500 mt-1.5 italic border-t border-slate-100 pt-1 flex items-start gap-1.5">
+                              <FileText size={12} className="shrink-0 mt-0.5"/> {derivResult.indicaciones}
                             </p>
                           )}
                         </div>
@@ -649,13 +649,13 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
               </Card>
             </div>
           ) : (() => {
-            const methodConfig: Record<string, { label: string; color: string; icon: string }> = {
-              EFECTIVO: { label: 'Efectivo', color: 'emerald', icon: '💵' },
-              DEBITO: { label: 'Débito', color: 'blue', icon: '💳' },
-              TARJETA_DEBITO: { label: 'Débito', color: 'blue', icon: '💳' },
-              TARJETA_CREDITO: { label: 'Crédito', color: 'violet', icon: '💳' },
-              TRANSFERENCIA: { label: 'Transferencia', color: 'purple', icon: '🏦' },
-              MERCADOPAGO: { label: 'MercadoPago', color: 'sky', icon: '📱' },
+            const methodConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+              EFECTIVO: { label: 'Efectivo', color: 'emerald', icon: <Banknote size={18}/> },
+              DEBITO: { label: 'Débito', color: 'blue', icon: <CreditCard size={18}/> },
+              TARJETA_DEBITO: { label: 'Débito', color: 'blue', icon: <CreditCard size={18}/> },
+              TARJETA_CREDITO: { label: 'Crédito', color: 'violet', icon: <CreditCard size={18}/> },
+              TRANSFERENCIA: { label: 'Transferencia', color: 'purple', icon: <Building2 size={18}/> },
+              MERCADOPAGO: { label: 'MercadoPago', color: 'sky', icon: <Smartphone size={18}/> },
             };
             const pagosPorMetodo = estadoCaja.pagosPorMetodo || {};
             const totalesPorMetodo = estadoCaja.totalesPorMetodo || {};
@@ -732,7 +732,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                     <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest mb-4 border-b border-slate-50 pb-2">Cobros del Día</h4>
                     <div className="space-y-2">
                       {methodsWithPayments.map((method) => {
-                        const cfg = methodConfig[method] || { label: method, color: 'slate', icon: '💰' };
+                        const cfg = methodConfig[method] || { label: method, color: 'slate', icon: <Wallet size={18}/> };
                         const pagos = pagosPorMetodo[method] || [];
                         const total = totalesPorMetodo[method] || 0;
                         const isExpanded = expandedMethod === method;
@@ -750,7 +750,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                               onClick={() => setExpandedMethod(isExpanded ? null : method)}
                               className="w-full flex items-center gap-3 px-5 py-4 text-left"
                             >
-                              <span className="text-xl">{cfg.icon}</span>
+                              <span className="shrink-0">{cfg.icon}</span>
                               <span className="flex-1 font-black uppercase text-sm tracking-wide">{cfg.label}</span>
                               <span className="font-black text-base mr-3">${total.toLocaleString('es-AR')}</span>
                               <span className="text-xs font-bold bg-white/60 px-2 py-0.5 rounded-full mr-2">{pagos.length} cobro{pagos.length !== 1 ? 's' : ''}</span>
@@ -929,9 +929,9 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
               <Select value={metodoPago} onValueChange={setMetodoPago}>
                 <SelectTrigger className="h-14 font-black uppercase rounded-2xl border-2 px-6"><SelectValue placeholder="Seleccionar método" /></SelectTrigger>
                 <SelectContent className="rounded-xl border-2 font-black uppercase italic">
-                  <SelectItem value="EFECTIVO">💵 Efectivo</SelectItem>
-                  <SelectItem value="MERCADOPAGO">📱 MercadoPago</SelectItem>
-                  <SelectItem value="TARJETA_DEBITO">💳 Débito</SelectItem>
+                  <SelectItem value="EFECTIVO">Efectivo</SelectItem>
+                  <SelectItem value="MERCADOPAGO">MercadoPago</SelectItem>
+                  <SelectItem value="TARJETA_DEBITO">Débito</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -245,6 +245,27 @@ export function StepStudies({
                   </div>
                 </button>
 
+                {/* Input de nombre para práctica personalizada */}
+                {isSelected && p.code === '99.99.99' && (
+                  <div className="px-4 pb-3 pt-1">
+                    <Input
+                      placeholder="Ingresá el nombre de la práctica..."
+                      value={selectedItem?.customName || ''}
+                      onChange={(e) => {
+                        const items = form.getValues("items");
+                        const idx = items.findIndex((i: any) => i.procedureId === p.id);
+                        if (idx !== -1) {
+                          items[idx].customName = e.target.value;
+                          form.setValue("items", [...items]);
+                        }
+                      }}
+                      className="h-9 text-xs font-bold border-2 border-brand-300 bg-white rounded-xl focus-visible:ring-brand-400"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
+
                 {/* Botón de configuración */}
                 {isSelected && hasConfig && (
                   <button

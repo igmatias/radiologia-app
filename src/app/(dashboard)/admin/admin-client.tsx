@@ -120,12 +120,12 @@ export default function AdminClient({ branches }: { branches: any[] }) {
             </div>
             
             <Select value={sedeFiltrada} onValueChange={setSedeFiltrada}>
-              <SelectTrigger className="h-14 w-[200px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg">
-                {/* 🔥 SOLUCIÓN 2: Cambiamos <div> por <span> para no romper el HTML */}
-                <span className="flex items-center gap-2"><Filter size={14}/> <SelectValue placeholder="Todas las sedes" /></span>
+              <SelectTrigger className="h-14 w-[220px] bg-slate-900 text-white border-none font-black uppercase text-xs rounded-2xl shadow-lg flex items-center gap-2 whitespace-nowrap">
+                <Filter size={14} className="shrink-0 text-slate-400" />
+                <SelectValue placeholder="Todas las sedes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL" className="font-black text-xs uppercase">🌎 Todas las sedes</SelectItem>
+                <SelectItem value="ALL" className="font-black text-xs uppercase">Todas las sedes</SelectItem>
                 {branches.map(b => <SelectItem key={b.id} value={b.id} className="font-black text-xs uppercase">{b.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -134,14 +134,14 @@ export default function AdminClient({ branches }: { branches: any[] }) {
 
         {/* PESTAÑAS (TABS) */}
         <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full max-w-2xl mt-8 shadow-inner border border-slate-200">
-          <button onClick={() => setActiveTab("TESORERIA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "TESORERIA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
-            💰 Tesorería y Cajas
+          <button onClick={() => setActiveTab("TESORERIA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1.5 ${activeTab === "TESORERIA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+            <Wallet size={12} className="shrink-0"/> Tesorería y Cajas
           </button>
-          <button onClick={() => setActiveTab("CLINICA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "CLINICA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
-            🩺 Rendimiento Clínico
+          <button onClick={() => setActiveTab("CLINICA")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1.5 ${activeTab === "CLINICA" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+            <Activity size={12} className="shrink-0"/> Rendimiento Clínico
           </button>
-          <button onClick={() => setActiveTab("PERSONAL")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all ${activeTab === "PERSONAL" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
-            👩‍⚕️ Personal
+          <button onClick={() => setActiveTab("PERSONAL")} className={`flex-1 py-3 px-4 rounded-xl font-black uppercase text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1.5 ${activeTab === "PERSONAL" ? 'bg-white text-slate-900 shadow-md border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>
+            <Users size={12} className="shrink-0"/> Personal
           </button>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
             <div className="space-y-8 animate-in slide-in-from-bottom-4">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Cajas Fuertes por Sede</h2>
+                  <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Fondos por Sede</h2>
                   <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-12 shadow-lg">
                     <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar al Bolsillo
                   </Button>

@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 const procedures = [
+  { code: '99.99.99', name: 'PERSONALIZADA' },
   { code: '09.01.01', name: 'PERIAPICAL' },
   { code: '09.01.02', name: 'BITE WING' },
   { code: '09.01.03', name: 'OCLUSAL' },

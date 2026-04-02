@@ -318,11 +318,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     } else {
       const priceData = await getProcedurePrice(pId, osId)
       const procedure = procedures.find((p: any) => p.id === pId);
-      form.setValue("items", [...currentItems, { 
+      form.setValue("items", [...currentItems, {
         procedureId: pId, price: priceData.amount, basePrice: priceData.amount,
         insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
         patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
-        teeth: [], locations: [], quantity: 1
+        teeth: [], locations: [], quantity: 1,
+        customName: procedure?.code === '99.99.99' ? '' : undefined
       }])
       if (procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
     }
@@ -356,7 +357,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           const dentist = dentists.find((d: any) => d.id === data.dentistId);
           const itemsFormatted = data.items.map((it: any) => {
             const proc = procedures.find((p: any) => p.id === it.procedureId);
-            return { name: proc?.name, info: it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '') }
+            const name = it.customName || proc?.name;
+            return { name, info: it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '') }
           });
           setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
           toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
@@ -1093,18 +1095,56 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
         <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-brand-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">{patientHistory.map((order: any) => (
+          <div className="space-y-4 py-4">{patientHistory.map((order: any) => {
+            const paymentMethodLabel: Record<string, string> = {
+              EFECTIVO: 'Efectivo', DEBITO: 'Débito', TARJETA_DEBITO: 'Débito',
+              TARJETA_CREDITO: 'Crédito', TRANSFERENCIA: 'Transferencia', MERCADOPAGO: 'MercadoPago'
+            };
+            return (
               <div key={order.id} className="bg-slate-50 p-5 rounded-[1.5rem] border-2 border-slate-100 flex flex-col gap-3">
+                {/* Encabezado: fecha + sede */}
                 <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-                  <div className="flex items-center gap-2"><Calendar size={16} className="text-slate-400" /><span className="text-lg font-black italic uppercase leading-none mt-1">{new Date(order.createdAt).toLocaleDateString('es-AR')}</span></div>
-                  <span className="text-[10px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
+                  <div className="flex items-center gap-2"><Calendar size={16} className="text-slate-500" /><span className="text-lg font-black italic uppercase leading-none mt-1">{new Date(order.createdAt).toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'})}</span></div>
+                  <span className="text-[11px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2"><GraduationCap size={14} className="text-brand-700 mt-0.5" /><div><span className="font-bold text-slate-400 uppercase text-[9px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
-                  <div className="text-right"><span className="font-bold text-slate-400 uppercase text-[9px]">Abonado</span><p className="font-black text-emerald-700 uppercase text-xs">${order.patientAmount || order.totalAmount}</p></div>
+                {/* Prestaciones */}
+                {order.items?.length > 0 && (
+                  <div>
+                    <span className="font-bold text-slate-500 uppercase text-[11px] block mb-1.5">Prestaciones</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {order.items.map((it: any) => {
+                        const meta = it.metadata as any;
+                        const nombre = meta?.customName || it.procedure?.name;
+                        return (
+                          <span key={it.id} className="text-[11px] font-bold bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
+                            {nombre}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Fila inferior: odontólogo, monto, forma de pago */}
+                <div className="grid grid-cols-3 gap-3 pt-1">
+                  <div className="flex items-start gap-2"><GraduationCap size={13} className="text-brand-700 mt-0.5 shrink-0" /><div><span className="font-bold text-slate-500 uppercase text-[11px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                  <div><span className="font-bold text-slate-500 uppercase text-[11px]">Abonado</span><p className="font-black text-emerald-700 text-sm">${Number(order.patientAmount || order.totalAmount).toLocaleString('es-AR')}</p></div>
+                  <div>
+                    <span className="font-bold text-slate-500 uppercase text-[11px]">Forma de pago</span>
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {order.payments?.length > 0
+                        ? order.payments.map((p: any) => (
+                            <span key={p.id} className="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                              {paymentMethodLabel[p.method] || p.method}
+                            </span>
+                          ))
+                        : <span className="text-[11px] text-slate-400 font-bold">—</span>
+                      }
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}</div>
+            );
+          })}</div>
         </DialogContent>
       </Dialog>
     </div>
