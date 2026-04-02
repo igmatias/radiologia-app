@@ -282,15 +282,10 @@ export function StepStudies({
           })}
         </div>
 
-        {/* Input nombre personalizada — FUERA del grid, sin riesgo de interferencia */}
-        {(() => {
-          const personalItem = selectedItems.find((i: any) => {
-            const proc = procedures.find((p: any) => p.id === i.procedureId)
-            return proc?.code === '99.99.99'
-          })
-          if (!personalItem) return null
-          return <PersonalizadaInput form={form} procedureId={personalItem.procedureId} />
-        })()}
+        {/* Input nombre personalizada — FUERA del grid, detecta por campo customName */}
+        {selectedItems.filter((i: any) => typeof i.customName === 'string').map((i: any) => (
+          <PersonalizadaInput key={i.procedureId} form={form} procedureId={i.procedureId} />
+        ))}
       </div>
     </div>
   )
