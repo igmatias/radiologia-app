@@ -13,24 +13,26 @@ function PersonalizadaInput({ form, procedureId }: { form: any; procedureId: str
   const item = items.find((i: any) => i.procedureId === procedureId);
   const [value, setValue] = useState(item?.customName || '');
 
-  const syncToForm = () => {
+  const syncToForm = (val: string) => {
     const current = form.getValues("items");
     const idx = current.findIndex((i: any) => i.procedureId === procedureId);
     if (idx !== -1) {
-      current[idx].customName = value;
+      current[idx].customName = val;
       form.setValue("items", [...current]);
     }
   };
 
   return (
-    <div className="px-4 pb-3">
+    <div className="rounded-2xl border-2 border-brand-300 bg-brand-50 p-4">
+      <p className="text-[11px] font-black uppercase text-brand-700 tracking-widest mb-2">
+        Nombre de la prestación
+      </p>
       <Input
-        placeholder="Ingresá el nombre de la práctica..."
+        placeholder="Ej: Tomografía cone beam sector anterior..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onBlur={syncToForm}
-        className="h-9 text-xs font-bold border-2 border-brand-300 bg-white rounded-xl focus-visible:ring-brand-400"
-        onClick={(e) => e.stopPropagation()}
+        onBlur={() => syncToForm(value)}
+        className="h-11 text-sm font-bold border-2 border-brand-200 bg-white rounded-xl focus-visible:ring-brand-400"
       />
     </div>
   );
@@ -217,85 +219,78 @@ export function StepStudies({
             return (
               <div
                 key={p.id}
-                className={`flex flex-col rounded-2xl border-2 transition-all duration-150 ${
+                className={`flex items-stretch rounded-2xl border-2 transition-all duration-150 ${
                   isSelected
                     ? 'bg-brand-50 border-brand-600 shadow-md'
                     : 'bg-white border-slate-100 hover:border-slate-300 hover:shadow-sm'
                 }`}
               >
-                {/* Fila principal: botón + config */}
-                <div className="flex items-stretch">
+                <button
+                  type="button"
+                  onClick={() => onToggleProcedure(p.id)}
+                  className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left"
+                >
+                  <div className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-colors ${
+                    isSelected ? 'bg-brand-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={`inline-block text-[10px] font-black uppercase px-1.5 py-0.5 rounded mb-1 ${
+                      isSelected ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {p.code}
+                    </span>
+                    <p className="text-sm font-bold uppercase leading-tight text-slate-900 truncate" title={p.name}>
+                      {p.name}
+                    </p>
+                    {isSelected && (hasTeeth || hasLocations) && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {hasTeeth && (
+                          <span className="inline-flex items-center gap-1 text-xs font-black bg-brand-100 text-brand-800 px-2 py-0.5 rounded-lg border border-brand-200">
+                            <ScanLine size={11} />
+                            Piezas: {selectedItem.teeth.join(', ')}
+                          </span>
+                        )}
+                        {hasLocations && (
+                          <span className="inline-flex items-center gap-1 text-xs font-black bg-blue-100 text-blue-800 px-2 py-0.5 rounded-lg border border-blue-200">
+                            <MapPin size={11} />
+                            {selectedItem.locations.join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {isSelected && hasConfig && !hasTeeth && !hasLocations && (
+                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                        ⚠ Configurar piezas/posición
+                      </span>
+                    )}
+                  </div>
+                </button>
+                {isSelected && hasConfig && (
                   <button
                     type="button"
-                    onClick={() => onToggleProcedure(p.id)}
-                    className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left"
+                    onClick={() => setActiveConfigId(p.id)}
+                    className="px-3 mr-2 my-2 shrink-0 bg-slate-900 hover:bg-brand-700 text-white rounded-xl transition-colors shadow-sm flex items-center"
+                    title="Configurar piezas o posición"
                   >
-                    {/* Check / Plus */}
-                    <div className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-colors ${
-                      isSelected ? 'bg-brand-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                    </div>
-
-                    {/* Texto */}
-                    <div className="flex-1 min-w-0">
-                      {/* Código */}
-                      <span className={`inline-block text-[10px] font-black uppercase px-1.5 py-0.5 rounded mb-1 ${
-                        isSelected ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {p.code}
-                      </span>
-                      {/* Nombre */}
-                      <p className="text-sm font-bold uppercase leading-tight text-slate-900 truncate" title={p.name}>
-                        {p.name}
-                      </p>
-                      {/* Piezas / Ubicaciones seleccionadas */}
-                      {isSelected && (hasTeeth || hasLocations) && (
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {hasTeeth && (
-                            <span className="inline-flex items-center gap-1 text-xs font-black bg-brand-100 text-brand-800 px-2 py-0.5 rounded-lg border border-brand-200">
-                              <ScanLine size={11} />
-                              Piezas: {selectedItem.teeth.join(', ')}
-                            </span>
-                          )}
-                          {hasLocations && (
-                            <span className="inline-flex items-center gap-1 text-xs font-black bg-blue-100 text-blue-800 px-2 py-0.5 rounded-lg border border-blue-200">
-                              <MapPin size={11} />
-                              {selectedItem.locations.join(', ')}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {/* Indicador de que necesita config */}
-                      {isSelected && hasConfig && !hasTeeth && !hasLocations && (
-                        <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                          ⚠ Configurar piezas/posición
-                        </span>
-                      )}
-                    </div>
+                    <Settings2 className="h-4 w-4" />
                   </button>
-
-                  {/* Botón de configuración */}
-                  {isSelected && hasConfig && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveConfigId(p.id)}
-                      className="px-3 mr-2 my-2 shrink-0 bg-slate-900 hover:bg-brand-700 text-white rounded-xl transition-colors shadow-sm flex items-center"
-                      title="Configurar piezas o posición"
-                    >
-                      <Settings2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Input nombre para práctica personalizada — debajo de la fila */}
-                {isSelected && p.code === '99.99.99' && (
-                  <PersonalizadaInput form={form} procedureId={p.id} />
                 )}
               </div>
             )
           })}
         </div>
+
+        {/* Input nombre personalizada — FUERA del grid, sin riesgo de interferencia */}
+        {(() => {
+          const personalItem = selectedItems.find((i: any) => {
+            const proc = procedures.find((p: any) => p.id === i.procedureId)
+            return proc?.code === '99.99.99'
+          })
+          if (!personalItem) return null
+          return <PersonalizadaInput form={form} procedureId={personalItem.procedureId} />
+        })()}
       </div>
     </div>
   )
