@@ -163,7 +163,7 @@ export default function AdminClient({ branches }: { branches: any[] }) {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-black uppercase italic text-slate-900 flex items-center gap-2"><Vault className="text-amber-500" size={28}/> Fondos por Sede</h2>
                   <Button onClick={() => setRetiroModal(true)} className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black uppercase rounded-xl h-12 shadow-lg">
-                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar al Bolsillo
+                    <Briefcase size={16} className="mr-2 hidden sm:block"/> Retirar
                   </Button>
                 </div>
                 

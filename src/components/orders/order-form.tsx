@@ -263,10 +263,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
   const filteredProcedures = useMemo(() => {
     const search = procedureSearch.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-    if (!search) return procedures;
-    return procedures.filter((p: any) => 
-      p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) || p.code.toLowerCase().includes(search)
-    );
+    const filtered = search
+      ? procedures.filter((p: any) =>
+          p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(search) ||
+          p.code.toLowerCase().includes(search)
+        )
+      : procedures;
+    // PERSONALIZADA siempre al final del listado
+    const personalizada = filtered.find((p: any) => p.code === '99.99.99');
+    const resto = filtered.filter((p: any) => p.code !== '99.99.99');
+    return personalizada ? [...resto, personalizada] : resto;
   }, [procedureSearch, procedures]);
 
   const handleDniBlur = async (dni: string) => {
@@ -1115,9 +1121,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       {order.items.map((it: any) => {
                         const meta = it.metadata as any;
                         const nombre = meta?.customName || it.procedure?.name;
+                        const teeth: number[] = meta?.teeth || [];
+                        const locations: string[] = meta?.locations || [];
+                        const detalle = teeth.length > 0
+                          ? `Pieza${teeth.length > 1 ? 's' : ''}: ${teeth.join(', ')}`
+                          : locations.length > 0
+                          ? locations.join(', ')
+                          : null;
                         return (
                           <span key={it.id} className="text-[11px] font-bold bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
-                            {nombre}
+                            {nombre}{detalle ? <span className="text-brand-600 ml-1">· {detalle}</span> : null}
                           </span>
                         );
                       })}
