@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
+import { ORTODONCIA_CODES } from "@/lib/constants"
 import { saveDerivacion } from "@/actions/derivaciones"
 import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -147,7 +148,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     })
   }
 
-  const ORTODONCIA_CODES = ['09.01.06', '09.02.07']
+  // ORTODONCIA_CODES importado desde @/lib/constants
   const GRUPOS_DERIVACION = [
     { prefix: '09.01', exclude: ORTODONCIA_CODES, label: '🦷 Intraorales',    color: 'bg-blue-50 border-blue-200 text-blue-800' },
     { prefix: '09.02', exclude: ORTODONCIA_CODES, label: '📷 Extraorales',    color: 'bg-emerald-50 border-emerald-200 text-emerald-800' },

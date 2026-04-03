@@ -15,6 +15,7 @@ import {
 } from "@/actions/orders"
 import { importDentistsAction } from "@/actions/dentists"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
+import { ORTODONCIA_CODES } from "@/lib/constants"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
 import {
@@ -325,7 +326,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   }
 
   // Alerta edad máxima ortodoncia (reactivo via watch)
-  const ORTODONCIA_CODES = ['09.01.06', '09.02.07'];
+  // ORTODONCIA_CODES importado desde @/lib/constants
   const watchedOsId = form.watch("patient.obrasocialId");
   const watchedBirthDate = form.watch("patient.birthDate");
   const watchedItems = form.watch("items");
