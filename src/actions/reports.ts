@@ -54,7 +54,7 @@ export async function getDentistStats(dentistId: string, startDate: string, endD
   }
 }
 
-export async function getInsuranceBilling(obrasocialId: string, startDate: string, endDate: string, branchId: string) {
+export async function getInsuranceBilling(obrasocialId: string, startDate: string, endDate: string, branchId: string, variantId?: string) {
   try {
     const start = startOfDay(new Date(startDate + "T12:00:00"));
     const end = endOfDay(new Date(endDate + "T12:00:00"));
@@ -62,15 +62,20 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
     // Armamos el filtro base
     const whereClause: any = {
       order: {
-        obraSocialId: obrasocialId, // 🔥 Busca por la OS de la Orden, no del paciente actual
-        status: { not: 'ANULADA' }, // 🔥 CRUCIAL: No le facturamos a la mutual algo anulado
+        obraSocialId: obrasocialId,
+        status: { not: 'ANULADA' },
         createdAt: { gte: start, lte: end }
       }
     };
 
-    // Si eligió una sede en particular (y no "TODAS"), filtramos por esa sede
+    // Filtro por sede
     if (branchId && branchId !== "ALL") {
       whereClause.order.branchId = branchId;
+    }
+
+    // Filtro por sub-selección (variante)
+    if (variantId) {
+      whereClause.order.osVariantId = variantId;
     }
 
     const items = await prisma.orderItem.findMany({
@@ -78,7 +83,7 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
       include: {
         procedure: true,
         order: {
-          include: { patient: true, branch: true }
+          include: { patient: true, branch: true, osVariant: true }
         }
       },
       orderBy: {

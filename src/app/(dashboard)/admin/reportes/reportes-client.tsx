@@ -23,6 +23,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   
   // Estados Facturación
   const [selectedOS, setSelectedOS] = useState<string>("")
+  const [selectedVariant, setSelectedVariant] = useState<string>("ALL")
   const [selectedBranch, setSelectedBranch] = useState<string>("ALL")
   const [sortBy, setSortBy] = useState<string>("PACIENTE_ASC")
   const [billingItems, setBillingItems] = useState<any[]>([])
@@ -60,7 +61,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   const handleSearchBilling = async () => {
     if (!selectedOS) return toast.error("Seleccioná una Obra Social");
     setLoading(true);
-    const res = await getInsuranceBilling(selectedOS, startDate, endDate, selectedBranch);
+    const res = await getInsuranceBilling(selectedOS, startDate, endDate, selectedBranch, selectedVariant !== "ALL" ? selectedVariant : undefined);
     if (res.success) setBillingItems(res.items);
     else toast.error("Error al buscar liquidación");
     setLoading(false);
@@ -372,16 +373,29 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
           
           <Card className="border-none shadow-md rounded-[2rem] bg-white border-t-8 border-slate-900 print:hidden">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social / Prepaga</Label>
-                  <Select value={selectedOS} onValueChange={setSelectedOS}>
+                  <Select value={selectedOS} onValueChange={(v) => { setSelectedOS(v); setSelectedVariant("ALL"); }}>
                     <SelectTrigger className="h-14 font-black uppercase border-2 border-slate-200 focus:border-brand-700 text-sm"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
                     <SelectContent className="font-black uppercase italic">
-                      {/* Convertimos a String explícitamente */}
-                      {obrasSociales.map(os => <SelectItem key={os.id} value={String(os.id)}>{os.name}</SelectItem>)}
+                      {obrasSociales.map((os: any) => <SelectItem key={os.id} value={String(os.id)}>{os.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  {/* Sub-selección si la OS tiene variantes */}
+                  {(() => {
+                    const os = obrasSociales.find((o: any) => String(o.id) === selectedOS);
+                    if (!os?.variants?.length) return null;
+                    return (
+                      <Select value={selectedVariant} onValueChange={setSelectedVariant}>
+                        <SelectTrigger className="h-10 font-bold uppercase border-2 border-violet-300 bg-violet-50 text-xs mt-1.5"><SelectValue /></SelectTrigger>
+                        <SelectContent className="font-black uppercase italic">
+                          <SelectItem value="ALL">— TODAS LAS VARIANTES —</SelectItem>
+                          {os.variants.map((v: any) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })()}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Sede (Sucursal)</Label>

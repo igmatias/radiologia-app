@@ -8,7 +8,8 @@ export default async function AdminOSPage() {
         include: {
           prices: true
         }
-      }
+      },
+      variants: { orderBy: { name: 'asc' } }
     },
     orderBy: { name: 'asc' }
   })

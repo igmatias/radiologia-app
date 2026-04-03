@@ -128,7 +128,30 @@ export async function updateMaxAgeOrtodoncia(osId: string, maxAge: number | null
   }
 }
 
-// 6. Importación masiva de Odontólogos desde CSV
+// 6. CRUD de variantes (sub-selecciones) de Obra Social
+export async function createOSVariant(obraSocialId: string, name: string) {
+  try {
+    await prisma.obraSocialVariant.create({ data: { obraSocialId, name: name.toUpperCase().trim() } })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al crear variante:", error)
+    return { success: false, error: "Error al crear variante" }
+  }
+}
+
+export async function deleteOSVariant(variantId: string) {
+  try {
+    await prisma.obraSocialVariant.delete({ where: { id: variantId } })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al eliminar variante:", error)
+    return { success: false, error: "No se puede eliminar, tiene órdenes asociadas" }
+  }
+}
+
+// 7. Importación masiva de Odontólogos desde CSV
 export async function importDentists(data: any[]) {
   try {
     // Procesamos en bloque para mayor velocidad

@@ -35,6 +35,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
   const [search, setSearch] = useState("")
   const [branchId, setBranchId] = useState("ALL")
   const [obraSocialId, setObraSocialId] = useState("ALL")
+  const [osVariantId, setOsVariantId] = useState("ALL")
   const [procedureId, setProcedureId] = useState("ALL")
   const [status, setStatus] = useState("ALL")
   const [startDate, setStartDate] = useState(() => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0] })
@@ -51,7 +52,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
 
   const handleSearch = async () => {
     setLoading(true)
-    const res = await searchOrdersAdmin({ search, branchId, obraSocialId, procedureId, status, startDate, endDate })
+    const res = await searchOrdersAdmin({ search, branchId, obraSocialId, procedureId, status, startDate, endDate, osVariantId: osVariantId !== "ALL" ? osVariantId : undefined })
     if (res.success) { setOrders(res.orders); setSearched(true) }
     else toast.error("Error al buscar órdenes")
     setLoading(false)
@@ -198,13 +199,27 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social</Label>
-              <Select value={obraSocialId} onValueChange={setObraSocialId}>
+              <Select value={obraSocialId} onValueChange={(v) => { setObraSocialId(v); setOsVariantId("ALL"); }}>
                 <SelectTrigger className="h-11 font-bold border-2 uppercase"><SelectValue /></SelectTrigger>
                 <SelectContent className="font-bold uppercase">
                   <SelectItem value="ALL">Todas</SelectItem>
-                  {obrasSociales.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                  {obrasSociales.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {/* Sub-selección si la OS tiene variantes */}
+              {(() => {
+                const os = obrasSociales.find((o: any) => o.id === obraSocialId);
+                if (!os?.variants?.length) return null;
+                return (
+                  <Select value={osVariantId} onValueChange={setOsVariantId}>
+                    <SelectTrigger className="h-9 font-bold uppercase border-2 border-violet-300 bg-violet-50 text-[10px] mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent className="font-black uppercase">
+                      <SelectItem value="ALL">— Todas las variantes —</SelectItem>
+                      {os.variants.map((v: any) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase text-slate-400">Práctica</Label>

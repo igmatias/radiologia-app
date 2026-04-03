@@ -93,6 +93,7 @@ export async function createOrder(data: any) {
           patientId: dbPatient.id,
           dentistId: dentistId && dentistId !== "" ? dentistId : null,
           obraSocialId: patient.obrasocialId || null,
+          osVariantId: data.osVariantId || null,
           totalAmount: total,
           patientAmount: patientAmount || 0,
           insuranceAmount: insuranceAmount || 0,
@@ -335,6 +336,7 @@ export async function searchOrdersAdmin(filters: {
   search?: string
   branchId?: string
   obraSocialId?: string
+  osVariantId?: string
   procedureId?: string
   startDate?: string
   endDate?: string
@@ -350,6 +352,7 @@ export async function searchOrdersAdmin(filters: {
     }
     if (filters.branchId && filters.branchId !== 'ALL') where.branchId = filters.branchId
     if (filters.obraSocialId && filters.obraSocialId !== 'ALL') where.obraSocialId = filters.obraSocialId
+    if (filters.osVariantId) where.osVariantId = filters.osVariantId
     if (filters.status && filters.status !== 'ALL') where.status = filters.status
     if (filters.procedureId && filters.procedureId !== 'ALL') {
       where.items = { some: { procedureId: filters.procedureId } }
@@ -370,7 +373,8 @@ export async function searchOrdersAdmin(filters: {
         patient: true,
         dentist: true,
         branch: true,
-        obraSocial: true,
+        obraSocial: { include: { variants: true } },
+        osVariant: true,
         items: { include: { procedure: true } },
         payments: true,
       },
@@ -422,6 +426,7 @@ export async function adminUpdateOrder(orderId: string, data: {
       if (data.notes !== undefined) orderUpdate.notes = data.notes
       if (data.dentistId !== undefined) orderUpdate.dentistId = data.dentistId
       if (data.obraSocialId !== undefined) orderUpdate.obraSocialId = data.obraSocialId
+      if (data.osVariantId !== undefined) orderUpdate.osVariantId = data.osVariantId || null
       if (data.branchId) orderUpdate.branchId = data.branchId
 
       if (Object.keys(orderUpdate).length > 0) {

@@ -6,7 +6,7 @@ export default async function RecepcionPage() {
   const [branches, dentists, obrasSociales, procedures, saldos] = await Promise.all([
     prisma.branch.findMany({ where: { isActive: true } }),
     prisma.dentist.findMany({ where: { isActive: true } }),
-    prisma.obraSocial.findMany({ where: { isActive: true } }),
+    prisma.obraSocial.findMany({ where: { isActive: true }, include: { variants: { orderBy: { name: 'asc' } } } }),
     prisma.procedure.findMany({ 
       where: { isActive: true },
       orderBy: { code: 'asc' } 

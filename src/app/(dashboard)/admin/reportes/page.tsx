@@ -10,8 +10,9 @@ export default async function ReportesPage() {
     orderBy: { lastName: 'asc' }
   })
   
-  const obrasSociales = await prisma.obraSocial.findMany({ 
+  const obrasSociales = await prisma.obraSocial.findMany({
     where: { isActive: true },
+    include: { variants: { orderBy: { name: 'asc' } } },
     orderBy: { name: 'asc' }
   })
   

@@ -45,12 +45,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [derivacionSugerida, setDerivacionSugerida] = useState<{ procId: string, procName: string, teeth: number[], options: string[] }[]>([])
   const [derivacionIndicacion, setDerivacionIndicacion] = useState("")
   const [comprobanteOrden, setComprobanteOrden] = useState<any>(null)
+  const [osSearch, setOsSearch] = useState("")
 
   const form = useForm({
     defaultValues: {
       branchId: "",
       patient: { dni: "", firstName: "", lastName: "", birthDate: "", phone: "", email: "", affiliateNumber: "", obrasocialId: "", plan: "" },
       dentistId: "",
+      osVariantId: "",
       items: [] as any[],
       total: 0,
       patientAmount: 0,
@@ -76,6 +78,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       branchId: session?.branchId || "",
       patient: { dni: "", firstName: "", lastName: "", birthDate: "", phone: "", email: "", affiliateNumber: "", obrasocialId: "", plan: "" },
       dentistId: "",
+      osVariantId: "",
       items: [],
       total: 0,
       patientAmount: 0,
@@ -84,6 +87,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       notes: ""
     });
     setStep(1);
+    setOsSearch("");
     setPatientHistory([]);
     setEditingOrderId(null);
     if (session?.branchId) {
@@ -698,7 +702,50 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Fecha Nac.</Label><Input type="date" value={form.watch("patient.birthDate") || ""} onChange={(e) => form.setValue("patient.birthDate", e.target.value, { shouldDirty: true })} className="h-11 border-2 font-bold" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Teléfono</Label><Input {...form.register("patient.phone")} className="h-11 font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">E-mail</Label><Input {...form.register("patient.email")} type="email" className="h-11 font-bold border-2 lowercase" /></div>
-                  <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Obra Social</Label><Select value={form.watch("patient.obrasocialId")} onValueChange={(v) => form.setValue("patient.obrasocialId", v)}><SelectTrigger className="h-11 font-bold border-2"><SelectValue placeholder="MUTUAL..." /></SelectTrigger><SelectContent className="font-black italic uppercase">{obrasSociales.map((os: any) => <SelectItem key={os.id} value={os.id}>{os.name}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="space-y-2 relative">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase">Obra Social</Label>
+                    {!form.watch("patient.obrasocialId") ? (
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                        <Input
+                          placeholder="BUSCAR MUTUAL..."
+                          value={osSearch}
+                          onChange={(e) => setOsSearch(e.target.value)}
+                          className="pl-9 h-11 uppercase font-bold border-2"
+                        />
+                        {osSearch.length >= 1 && (
+                          <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-slate-200 shadow-2xl rounded-xl overflow-hidden font-bold max-h-48 overflow-y-auto">
+                            {obrasSociales.filter((os: any) => os.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(osSearch.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))).map((os: any) => (
+                              <div key={os.id} className="p-3 hover:bg-brand-50 cursor-pointer border-b last:border-0 font-black uppercase italic text-sm" onClick={() => { form.setValue("patient.obrasocialId", os.id); setOsSearch(""); form.setValue("osVariantId", ""); }}>
+                                {os.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-11 px-3 bg-brand-50 border-2 border-brand-300 rounded-md flex items-center justify-between font-black uppercase text-sm text-brand-800">
+                          {obrasSociales.find((os: any) => os.id === form.watch("patient.obrasocialId"))?.name}
+                          <button type="button" onClick={() => { form.setValue("patient.obrasocialId", ""); form.setValue("osVariantId", ""); setOsSearch(""); }} className="text-brand-500 hover:text-brand-800"><X size={16} /></button>
+                        </div>
+                      </div>
+                    )}
+                    {/* Sub-selección si la OS tiene variantes */}
+                    {(() => {
+                      const currentOS = obrasSociales.find((os: any) => os.id === form.watch("patient.obrasocialId"));
+                      if (!currentOS?.variants?.length) return null;
+                      return (
+                        <Select value={form.watch("osVariantId") || "NONE"} onValueChange={(v) => form.setValue("osVariantId", v === "NONE" ? "" : v)}>
+                          <SelectTrigger className="h-10 font-bold border-2 border-violet-300 bg-violet-50 text-xs mt-1.5"><SelectValue placeholder="SUB-SELECCIÓN..." /></SelectTrigger>
+                          <SelectContent className="font-black uppercase italic">
+                            <SelectItem value="NONE">— SIN SUB-SELECCIÓN —</SelectItem>
+                            {currentOS.variants.map((v: any) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()}
+                  </div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">N° Afiliado</Label><Input {...form.register("patient.affiliateNumber")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Plan OS</Label><Input {...form.register("patient.plan")} placeholder="Ej: 210, PMO..." className="h-11 uppercase font-bold border-2 bg-blue-50 focus-visible:ring-blue-500" /></div>
                   <div className="space-y-2 md:col-span-3 mt-2"><Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label><textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-brand-700 resize-none h-20 shadow-inner"/></div>

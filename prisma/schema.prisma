@@ -213,10 +213,21 @@ model ObraSocial {
   priceListId String?
   priceList   PriceList? @relation(fields: [priceListId], references: [id])
 
+  variants    ObraSocialVariant[]
   orders      Order[]
   patients    Patient[]
 
   isActive    Boolean    @default(true)
+}
+
+model ObraSocialVariant {
+  id            String     @id @default(cuid())
+  name          String
+  obraSocialId  String
+  obraSocial    ObraSocial @relation(fields: [obraSocialId], references: [id], onDelete: Cascade)
+  orders        Order[]    @relation("OrderVariant")
+
+  @@index([obraSocialId])
 }
 
 model Procedure {
@@ -277,6 +288,9 @@ model Order {
 
   obraSocialId    String?
   obraSocial      ObraSocial?    @relation(fields: [obraSocialId], references: [id])
+
+  osVariantId     String?
+  osVariant       ObraSocialVariant? @relation("OrderVariant", fields: [osVariantId], references: [id])
 
   technicianId    String?
   technician      TechnicianProfile? @relation(fields: [technicianId], references: [id])

@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode, updateMaxAgeOrtodoncia } from "@/actions/admin"
+import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode, updateMaxAgeOrtodoncia, createOSVariant, deleteOSVariant } from "@/actions/admin"
 import { toast } from "sonner"
-import { Plus, Trash2, Building2, Search, X, Calculator, Tag, ShieldAlert } from "lucide-react"
+import { Plus, Trash2, Building2, Search, X, Calculator, Tag, ShieldAlert, List, Check } from "lucide-react"
 
 export function PriceEditor({ obrasSociales, procedures }: any) {
   // Copia local de todas las OS (para mantener cambios al switchear entre ellas)
@@ -17,6 +17,8 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
   const [newOSName, setNewOSName] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [newVariantName, setNewVariantName] = useState("")
+  const [isAddingVariant, setIsAddingVariant] = useState(false)
 
   const filteredProcedures = procedures.filter((p: any) =>
     p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")) ||
@@ -234,6 +236,93 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                 />
                 <span className="text-xs font-black uppercase text-indigo-500 shrink-0">Años</span>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sub-selecciones (variantes) */}
+        {selectedOS && (
+          <Card className="border-none shadow-sm rounded-2xl bg-violet-50 border border-violet-200">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <List size={14} className="text-violet-600 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-black uppercase text-violet-800 mb-1">Sub-selecciones</p>
+                  <p className="text-[10px] font-bold text-violet-600 leading-relaxed">
+                    Variantes de facturación (ej: Gravado, No Gravado, Intraorales, etc.)
+                  </p>
+                </div>
+              </div>
+
+              {/* Lista de variantes existentes */}
+              {(selectedOS.variants || []).length > 0 && (
+                <div className="space-y-1.5">
+                  {selectedOS.variants.map((v: any) => (
+                    <div key={v.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-violet-200">
+                      <span className="text-xs font-black uppercase text-violet-800">{v.name}</span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!confirm(`¿Eliminar "${v.name}"?`)) return;
+                          const res = await deleteOSVariant(v.id);
+                          if (res.success) {
+                            toast.success("Variante eliminada");
+                            const updatedVariants = selectedOS.variants.filter((vr: any) => vr.id !== v.id);
+                            setSelectedOS((prev: any) => ({ ...prev, variants: updatedVariants }));
+                            setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, variants: updatedVariants } : o));
+                          } else toast.error(res.error || "Error al eliminar");
+                        }}
+                        className="text-violet-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Agregar nueva variante */}
+              {!isAddingVariant ? (
+                <Button
+                  variant="outline"
+                  className="w-full border-dashed border-violet-300 text-violet-600 h-9 hover:border-violet-500 hover:text-violet-800 transition-all font-bold uppercase text-[10px]"
+                  onClick={() => setIsAddingVariant(true)}
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Agregar Variante
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="EJ: GRAVADO, NO GRAVADO..."
+                    value={newVariantName}
+                    onChange={(e) => setNewVariantName(e.target.value.toUpperCase())}
+                    className="h-9 text-xs font-black uppercase border-2 border-violet-300 bg-white flex-1"
+                    autoFocus
+                  />
+                  <Button
+                    className="h-9 px-3 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs"
+                    onClick={async () => {
+                      if (!newVariantName.trim()) return;
+                      const res = await createOSVariant(selectedOS.id, newVariantName);
+                      if (res.success) {
+                        toast.success("Variante creada");
+                        // Refresh: add locally
+                        const newVar = { id: `temp-${Date.now()}`, name: newVariantName.toUpperCase().trim(), obraSocialId: selectedOS.id };
+                        const updatedVariants = [...(selectedOS.variants || []), newVar];
+                        setSelectedOS((prev: any) => ({ ...prev, variants: updatedVariants }));
+                        setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, variants: updatedVariants } : o));
+                        setNewVariantName("");
+                        setIsAddingVariant(false);
+                      } else toast.error(res.error || "Error al crear");
+                    }}
+                  >
+                    <Check size={14} />
+                  </Button>
+                  <Button variant="ghost" className="h-9 px-2" onClick={() => { setIsAddingVariant(false); setNewVariantName(""); }}>
+                    <X size={14} />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
