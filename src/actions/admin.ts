@@ -113,7 +113,22 @@ export async function updatePriceCustomCode(priceListId: string, procedureId: st
   }
 }
 
-// 5. Importación masiva de Odontólogos desde CSV
+// 5. Actualizar edad máxima de ortodoncia para una Obra Social
+export async function updateMaxAgeOrtodoncia(osId: string, maxAge: number | null) {
+  try {
+    await prisma.obraSocial.update({
+      where: { id: osId },
+      data: { maxAgeOrtodoncia: maxAge }
+    })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al actualizar edad máxima:", error)
+    return { success: false, error: "Error al guardar" }
+  }
+}
+
+// 6. Importación masiva de Odontólogos desde CSV
 export async function importDentists(data: any[]) {
   try {
     // Procesamos en bloque para mayor velocidad

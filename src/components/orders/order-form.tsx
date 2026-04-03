@@ -314,6 +314,29 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     recalculateTotal();
   }
 
+  // Alerta edad máxima ortodoncia
+  const ORTODONCIA_CODES = ['09.01.06', '09.02.07'];
+  const ortodonciaAlert = useMemo(() => {
+    const osId = form.watch("patient.obrasocialId");
+    const birthDate = form.watch("patient.birthDate");
+    const items = form.watch("items");
+    if (!osId || !birthDate) return null;
+    const os = obrasSociales.find((o: any) => o.id === osId);
+    if (!os?.maxAgeOrtodoncia) return null;
+    const hasOrtodoncia = items.some((i: any) => {
+      const proc = procedures.find((p: any) => p.id === i.procedureId);
+      return proc && ORTODONCIA_CODES.includes(proc.code);
+    });
+    if (!hasOrtodoncia) return null;
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    if (age > os.maxAgeOrtodoncia) return { age, maxAge: os.maxAgeOrtodoncia, osName: os.name };
+    return null;
+  }, [form.watch("patient.obrasocialId"), form.watch("patient.birthDate"), form.watch("items")]);
+
   const toggleProcedure = async (pId: string) => {
     const osId = form.getValues("patient.obrasocialId")
     if (!osId) return toast.error("Seleccione Obra Social primero")
@@ -836,6 +859,19 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     {form.watch("items").filter((i: any) => typeof i.customName === 'string').map((i: any, idx: number) => (
                       <PersonalizadaInput key={i._uid || `pers-${idx}`} form={form} itemIndex={form.watch("items").indexOf(i)} />
                     ))}
+
+                    {/* Alerta edad máxima ortodoncia */}
+                    {ortodonciaAlert && (
+                      <div className="flex items-start gap-3 bg-red-50 border-2 border-red-300 rounded-xl p-4 animate-in fade-in">
+                        <AlertTriangle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-black uppercase text-red-800">Paciente fuera de cobertura de ortodoncia</p>
+                          <p className="text-xs font-bold text-red-600 mt-1">
+                            El paciente tiene {ortodonciaAlert.age} años. {ortodonciaAlert.osName} cubre estudios de ortodoncia hasta los {ortodonciaAlert.maxAge} años.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

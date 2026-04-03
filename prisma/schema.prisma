@@ -205,10 +205,11 @@ model Dentist {
 }
 
 model ObraSocial {
-  id          String     @id @default(cuid())
-  name        String
-  code        String?    @unique
-  
+  id                String     @id @default(cuid())
+  name              String
+  code              String?    @unique
+  maxAgeOrtodoncia  Int?
+
   priceListId String?
   priceList   PriceList? @relation(fields: [priceListId], references: [id])
 

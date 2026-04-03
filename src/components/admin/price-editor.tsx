@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode } from "@/actions/admin"
+import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode, updateMaxAgeOrtodoncia } from "@/actions/admin"
 import { toast } from "sonner"
-import { Plus, Trash2, Building2, Search, X, Calculator, Tag } from "lucide-react"
+import { Plus, Trash2, Building2, Search, X, Calculator, Tag, ShieldAlert } from "lucide-react"
 
 export function PriceEditor({ obrasSociales, procedures }: any) {
   // Copia local de todas las OS (para mantener cambios al switchear entre ellas)
@@ -190,6 +190,49 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
                     Completá la columna <strong>Cód. OS</strong> si esta mutual usa un código distinto al estándar. Aparecerá en la liquidación en lugar del código por defecto.
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Edad máxima ortodoncia */}
+        {selectedOS && (
+          <Card className="border-none shadow-sm rounded-2xl bg-indigo-50 border border-indigo-200">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <ShieldAlert size={14} className="text-indigo-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-indigo-800 mb-1">Edad Máx. Estudios Ortodoncia</p>
+                  <p className="text-[10px] font-bold text-indigo-600 leading-relaxed">
+                    Si esta mutual tiene límite de edad para cefalogramas y fotos clínicas, ingresá la edad máxima. Se mostrará una alerta al cargar la orden.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={120}
+                  placeholder="Sin límite"
+                  className="h-10 w-full font-black text-center border-2 border-indigo-200 bg-white text-indigo-800"
+                  defaultValue={selectedOS.maxAgeOrtodoncia ?? ''}
+                  key={selectedOS.id}
+                  onBlur={async (e) => {
+                    const val = e.target.value.trim();
+                    const newAge = val ? parseInt(val) : null;
+                    const currentAge = selectedOS.maxAgeOrtodoncia ?? null;
+                    if (newAge === currentAge) return;
+                    const res = await updateMaxAgeOrtodoncia(selectedOS.id, newAge);
+                    if (res.success) {
+                      toast.success("Edad máxima actualizada");
+                      setSelectedOS((prev: any) => ({ ...prev, maxAgeOrtodoncia: newAge }));
+                      setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, maxAgeOrtodoncia: newAge } : o));
+                    } else {
+                      toast.error("Error al guardar");
+                    }
+                  }}
+                />
+                <span className="text-xs font-black uppercase text-indigo-500 shrink-0">Años</span>
               </div>
             </CardContent>
           </Card>
