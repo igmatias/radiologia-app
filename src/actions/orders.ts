@@ -460,9 +460,17 @@ export async function getAuditLog(startDate: string, endDate: string, search?: s
 
 export async function getOrders() {
   try {
+    const now = new Date()
     return await prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: startOfDay(now),
+          lte: endOfDay(now),
+        },
+      },
       include: { patient: true, dentist: true, items: { include: { procedure: true } } },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 200,
     })
   } catch (error) { return [] }
 }

@@ -35,6 +35,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [step, setStep] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
   const [procedureSearch, setProcedureSearch] = useState("")
+  const [debouncedProcedureSearch, setDebouncedProcedureSearch] = useState("")
   const [isDentistModalOpen, setIsDentistModalOpen] = useState(false)
   const [activeConfigId, setActiveConfigId] = useState<string | null>(null)
   const [orderNumber, setOrderNumber] = useState<string | null>(null)
@@ -107,6 +108,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   useEffect(() => {
     if (resetTrigger > 0 && !editingOrderId) resetFormToNew();
   }, [resetTrigger]);
+
+  // Debounce para búsqueda de procedimientos (evita recalcular en cada tecla)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedProcedureSearch(procedureSearch), 200)
+    return () => clearTimeout(timer)
+  }, [procedureSearch]);
 
   // Rellenar formulario desde derivación médica
   useEffect(() => {
@@ -274,7 +281,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   }, [searchTerm, dentists]);
 
   const filteredProcedures = useMemo(() => {
-    const search = normalizeText(procedureSearch);
+    const search = normalizeText(debouncedProcedureSearch);
     const filtered = search
       ? procedures.filter((p: any) =>
           normalizeText(p.name).includes(search) ||
@@ -285,7 +292,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     const personalizada = filtered.find((p: any) => p.code === '99.99.99');
     const resto = filtered.filter((p: any) => p.code !== '99.99.99');
     return personalizada ? [...resto, personalizada] : resto;
-  }, [procedureSearch, procedures]);
+  }, [debouncedProcedureSearch, procedures]);
 
   const handleDniBlur = async (dni: string) => {
     if (dni.length < 7) { setPatientHistory([]); setPatientDebt(null); return; }
