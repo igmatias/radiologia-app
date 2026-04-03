@@ -318,20 +318,34 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     const osId = form.getValues("patient.obrasocialId")
     if (!osId) return toast.error("Seleccione Obra Social primero")
     const currentItems = form.getValues("items")
-    const exists = currentItems.find(i => i.procedureId === pId)
-    if (exists) {
-      form.setValue("items", currentItems.filter(i => i.procedureId !== pId))
-    } else {
+    const procedure = procedures.find((p: any) => p.id === pId);
+    const isPersonalizada = procedure?.code === '99.99.99';
+
+    // PERSONALIZADA siempre agrega una nueva instancia (no toggle)
+    if (isPersonalizada) {
       const priceData = await getProcedurePrice(pId, osId)
-      const procedure = procedures.find((p: any) => p.id === pId);
       form.setValue("items", [...currentItems, {
         procedureId: pId, price: priceData.amount, basePrice: priceData.amount,
         insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
         patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
         teeth: [], locations: [], quantity: 1,
-        customName: procedure?.code === '99.99.99' ? '' : undefined
+        customName: '', _uid: Date.now().toString()
       }])
-      if (procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
+    } else {
+      const exists = currentItems.find(i => i.procedureId === pId)
+      if (exists) {
+        form.setValue("items", currentItems.filter(i => i.procedureId !== pId))
+      } else {
+        const priceData = await getProcedurePrice(pId, osId)
+        form.setValue("items", [...currentItems, {
+          procedureId: pId, price: priceData.amount, basePrice: priceData.amount,
+          insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
+          patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
+          teeth: [], locations: [], quantity: 1,
+          customName: undefined
+        }])
+        if (procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
+      }
     }
     recalculateTotal()
   }
@@ -782,20 +796,25 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto pr-2 pb-2">
                       {filteredProcedures.map((p: any) => {
+                        const isPersonalizada = p.code === '99.99.99';
+                        const personalizadaCount = isPersonalizada ? form.watch("items").filter((i: any) => i.procedureId === p.id).length : 0;
                         const selectedItem = form.watch("items").find(i => i.procedureId === p.id);
-                        const isSelected = !!selectedItem;
+                        const isSelected = !isPersonalizada && !!selectedItem;
                         const hasConfig = p.requiresTooth || (p.options && p.options.length > 0);
-                        
+
                         return (
-                          <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isSelected ? 'bg-brand-50 border-brand-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
+                          <div key={p.id} className={`flex items-center p-2 rounded-2xl border-2 transition-all ${isPersonalizada ? (personalizadaCount > 0 ? 'bg-amber-50 border-amber-400 shadow-md' : 'bg-white border-amber-200 hover:border-amber-400') : isSelected ? 'bg-brand-50 border-brand-700 shadow-md scale-[1.02]' : 'bg-white border-slate-100 hover:border-slate-300'}`}>
                              <button type="button" onClick={() => toggleProcedure(p.id)} className="flex-1 flex items-start gap-3 p-1.5 text-left">
-                               <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isSelected ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                 {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                               <div className={`h-8 w-8 mt-1 shrink-0 rounded-lg flex items-center justify-center transition-colors ${isPersonalizada ? 'bg-amber-500 text-white' : isSelected ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                 {isPersonalizada ? <Plus className="h-4 w-4" /> : isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                                </div>
                                <div className="overflow-hidden flex-1">
                                  <p className="text-xs font-black uppercase text-brand-700 mb-0.5 leading-none">{p.code}</p>
                                  <p className="text-sm font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
-                                 {isSelected && selectedItem && (
+                                 {isPersonalizada && personalizadaCount > 0 && (
+                                   <p className="text-[10px] font-black text-amber-600 mt-0.5">{personalizadaCount} agregada{personalizadaCount > 1 ? 's' : ''}</p>
+                                 )}
+                                 {!isPersonalizada && isSelected && selectedItem && (
                                    <div className="mt-1.5 flex flex-wrap gap-1">
                                      {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-md uppercase border border-brand-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
                                      {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
@@ -813,9 +832,9 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       })}
                     </div>
 
-                    {/* Input para práctica PERSONALIZADA */}
-                    {form.watch("items").filter((i: any) => typeof i.customName === 'string').map((i: any) => (
-                      <PersonalizadaInput key={i.procedureId} form={form} procedureId={i.procedureId} />
+                    {/* Input para práctica(s) PERSONALIZADA */}
+                    {form.watch("items").filter((i: any) => typeof i.customName === 'string').map((i: any, idx: number) => (
+                      <PersonalizadaInput key={i._uid || `pers-${idx}`} form={form} itemIndex={form.watch("items").indexOf(i)} />
                     ))}
                   </div>
                 </div>
@@ -834,7 +853,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           return (
                             <tr key={index} className="hover:bg-slate-50 transition-colors">
                               <td className="p-4">
-                                <p className="text-sm font-black uppercase text-slate-800">{proc?.name}</p>
+                                <p className="text-sm font-black uppercase text-slate-800">{item.customName || proc?.name}</p>
                                 {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-brand-600 uppercase italic">Piezas: {item.teeth.join(' - ')}</p>}
                                 {(item.locations?.length > 0) && <p className="text-[10px] font-bold text-blue-600 uppercase italic">Pos: {item.locations.join(' - ')}</p>}
                               </td>
@@ -850,16 +869,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="flex flex-col gap-4">
-                      <div className="bg-slate-100 p-5 rounded-2xl border-2 border-slate-200 text-center flex flex-col justify-center shadow-inner"><p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">A Facturar O.S.</p><p className="text-3xl font-black italic text-slate-700">${form.watch("insuranceAmount")}</p></div>
+                      <div className="bg-slate-100 p-5 rounded-2xl border-2 border-slate-200 text-center flex flex-col justify-center shadow-inner"><p className="text-xs font-black uppercase italic text-slate-500 tracking-wider mb-1">A Facturar O.S.</p><p className="text-3xl font-black italic text-slate-700">${form.watch("insuranceAmount")}</p></div>
                       
                       {editingOrderId && yaPagado > 0 && (
                         <div className="bg-emerald-50 p-5 rounded-2xl border-2 border-emerald-200 text-center shadow-md animate-in zoom-in-95 duration-300">
-                          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Ya abonado anteriormente</p>
+                          <p className="text-xs font-black uppercase italic text-emerald-600 tracking-wider mb-1">Ya abonado anteriormente</p>
                           <p className="text-3xl font-black italic text-emerald-700">-${yaPagado.toLocaleString('es-AR')}</p>
                         </div>
                       )}
 
-                      <div className="bg-slate-900 p-5 rounded-2xl border-t-8 border-brand-700 flex flex-col justify-center shadow-xl text-center"><p className="text-[11px] font-black text-brand-400 uppercase tracking-widest mb-1">{editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR AL PACIENTE"}</p><h3 className="text-5xl tracking-tighter text-white uppercase italic leading-none">${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}</h3></div>
+                      <div className="bg-slate-900 p-5 rounded-2xl border-t-8 border-brand-700 flex flex-col justify-center shadow-xl text-center"><p className="text-xs font-black uppercase italic text-brand-400 tracking-wider mb-1">{editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR AL PACIENTE"}</p><h3 className="text-5xl tracking-tighter text-white uppercase italic leading-none">${editingOrderId ? saldoDiferencia : form.watch("patientAmount")}</h3></div>
                     </div>
 
                     <div className="md:col-span-2 bg-white border-2 border-slate-200 rounded-2xl p-6 shadow-sm">
@@ -1205,18 +1224,22 @@ function Step({ num, label, active, current }: any) {
 
 function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-brand-700 shadow-sm' : 'bg-slate-200'}`} /> }
 
-function PersonalizadaInput({ form, procedureId }: { form: any, procedureId: string }) {
-  const items = form.watch("items");
-  const item = items.find((i: any) => i.procedureId === procedureId);
+function PersonalizadaInput({ form, itemIndex }: { form: any, itemIndex: number }) {
+  const item = form.watch("items")[itemIndex];
   const [localName, setLocalName] = useState(item?.customName || "");
 
   const syncToForm = () => {
     const currentItems = form.getValues("items");
-    const idx = currentItems.findIndex((i: any) => i.procedureId === procedureId);
-    if (idx !== -1) {
-      currentItems[idx].customName = localName;
-      form.setValue("items", currentItems);
+    if (currentItems[itemIndex]) {
+      currentItems[itemIndex].customName = localName;
+      form.setValue("items", [...currentItems]);
     }
+  };
+
+  const removeItem = () => {
+    const currentItems = form.getValues("items");
+    currentItems.splice(itemIndex, 1);
+    form.setValue("items", [...currentItems]);
   };
 
   return (
@@ -1229,6 +1252,9 @@ function PersonalizadaInput({ form, procedureId }: { form: any, procedureId: str
         onBlur={syncToForm}
         className="h-10 uppercase font-black border-2 border-amber-300 bg-white flex-1"
       />
+      <button type="button" onClick={removeItem} className="shrink-0 text-red-400 hover:text-red-600 transition-colors p-1">
+        <X size={18} />
+      </button>
     </div>
   );
 }
