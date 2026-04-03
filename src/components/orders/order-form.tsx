@@ -314,28 +314,28 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     recalculateTotal();
   }
 
-  // Alerta edad máxima ortodoncia
+  // Alerta edad máxima ortodoncia (reactivo via watch)
   const ORTODONCIA_CODES = ['09.01.06', '09.02.07'];
-  const ortodonciaAlert = useMemo(() => {
-    const osId = form.watch("patient.obrasocialId");
-    const birthDate = form.watch("patient.birthDate");
-    const items = form.watch("items");
-    if (!osId || !birthDate) return null;
-    const os = obrasSociales.find((o: any) => o.id === osId);
+  const watchedOsId = form.watch("patient.obrasocialId");
+  const watchedBirthDate = form.watch("patient.birthDate");
+  const watchedItems = form.watch("items");
+  const ortodonciaAlert = (() => {
+    if (!watchedOsId || !watchedBirthDate) return null;
+    const os = obrasSociales.find((o: any) => o.id === watchedOsId);
     if (!os?.maxAgeOrtodoncia) return null;
-    const hasOrtodoncia = items.some((i: any) => {
+    const hasOrtodoncia = watchedItems.some((i: any) => {
       const proc = procedures.find((p: any) => p.id === i.procedureId);
       return proc && ORTODONCIA_CODES.includes(proc.code);
     });
     if (!hasOrtodoncia) return null;
-    const birth = new Date(birthDate);
+    const birth = new Date(watchedBirthDate);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     if (age > os.maxAgeOrtodoncia) return { age, maxAge: os.maxAgeOrtodoncia, osName: os.name };
     return null;
-  }, [form.watch("patient.obrasocialId"), form.watch("patient.birthDate"), form.watch("items")]);
+  })();
 
   const toggleProcedure = async (pId: string) => {
     const osId = form.getValues("patient.obrasocialId")
