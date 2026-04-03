@@ -318,6 +318,11 @@ model Order {
 
   notes           String?
   deliveryMethod  String?
+
+  recipeChecked   Boolean        @default(false)
+  recipeCheckedAt DateTime?
+  recipeCheckedBy String?
+
   updatedAt       DateTime       @updatedAt
 
   @@index([branchId, status])

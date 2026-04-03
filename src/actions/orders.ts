@@ -304,6 +304,37 @@ export async function getDailyOrders(branchId: string) {
   } catch (error) { return { success: false, error: "Error al cargar órdenes" } }
 }
 
+// Control de recetas
+export async function getOrdersForRecipeCheck(branchId: string, startDate: string, endDate: string, obraSocialId?: string, osVariantId?: string) {
+  try {
+    const start = startOfDay(new Date(startDate + "T12:00:00"));
+    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const where: any = { branchId, status: { not: 'ANULADA' }, createdAt: { gte: start, lte: end } };
+    if (obraSocialId && obraSocialId !== 'ALL') where.obraSocialId = obraSocialId;
+    if (osVariantId) where.osVariantId = osVariantId;
+    const ordenes = await prisma.order.findMany({
+      where,
+      include: { patient: true, dentist: true, obraSocial: true, osVariant: true, items: { include: { procedure: true } } },
+      orderBy: { createdAt: 'asc' }
+    });
+    return { success: true, data: ordenes };
+  } catch (error) { return { success: false, error: "Error al cargar órdenes" } }
+}
+
+export async function toggleRecipeCheck(orderId: string, checked: boolean, userName?: string) {
+  try {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        recipeChecked: checked,
+        recipeCheckedAt: checked ? new Date() : null,
+        recipeCheckedBy: checked ? (userName || null) : null
+      }
+    });
+    return { success: true };
+  } catch (error) { return { success: false, error: "Error al actualizar" } }
+}
+
 export async function updateOrderStatusAction(orderId: string, newStatus: OrderStatus | 'PARA_REPETIR') {
   try {
     // Si el estado es PARA_REPETIR lo guardamos, sino usamos el normal
