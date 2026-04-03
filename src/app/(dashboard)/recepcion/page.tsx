@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import RecepcionClient from "./recepcion-client"
 
+export const dynamic = 'force-dynamic'
+
 export default async function RecepcionPage() {
   // Buscamos TODOS los datos de una sola vez, incluyendo los saldos pendientes
   const [branches, dentists, obrasSociales, procedures, saldos] = await Promise.all([

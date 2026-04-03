@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import OrdenesAdminClient from "./ordenes-admin-client"
 
+export const dynamic = 'force-dynamic'
+
 export default async function OrdenesAdminPage() {
   const [branches, procedures, obrasSociales, dentists] = await Promise.all([
     prisma.branch.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),

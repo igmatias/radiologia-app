@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { PriceEditor } from "@/components/admin/price-editor"
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminOSPage() {
   const obrasSociales = await prisma.obraSocial.findMany({
     include: {

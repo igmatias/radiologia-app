@@ -295,6 +295,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
                         <td className="px-4 py-3 font-bold text-slate-600 whitespace-nowrap">{order.branch?.name}</td>
                         <td className="px-4 py-3 font-bold text-slate-600 whitespace-nowrap">
                           {order.obraSocial?.name || <span className="text-slate-300">Particular</span>}
+                          {order.osVariant?.name && <span className="block text-[9px] font-bold text-violet-600">{order.osVariant.name}</span>}
                         </td>
                         <td className="px-4 py-3 max-w-[180px]">
                           <div className="flex flex-wrap gap-1">
