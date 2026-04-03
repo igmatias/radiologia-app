@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { OrderStatus } from "@prisma/client"
 import { startOfDay, endOfDay } from "date-fns"
 import { toNum } from "@/lib/utils"
+import { getCurrentSession } from "@/actions/auth"
 
 // Helper para audit log
 async function logOrderHistory(orderId: string, action: string, details?: string, oldStatus?: OrderStatus, newStatus?: OrderStatus, userId?: string) {
@@ -60,6 +61,8 @@ export async function getNextOrderNumber(branchId: string) {
  * Crea una nueva orden desde Recepción
  */
 export async function createOrder(data: any) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const { branchId, patient, dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList } = data
 
@@ -133,7 +136,7 @@ export async function createOrder(data: any) {
       })
     })
 
-    await logOrderHistory(newOrder.id, "ORDEN_CREADA", `Código: ${newOrder.code}. ${items.length} práctica(s). Total: $${total}`, undefined, "CREADA" as OrderStatus);
+    await logOrderHistory(newOrder.id, "ORDEN_CREADA", `Código: ${newOrder.code}. ${items.length} práctica(s). Total: $${total}`, undefined, "CREADA" as OrderStatus, session.id);
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
     return { success: true, orderId: newOrder.id, orderCode: newOrder.code }
@@ -148,6 +151,8 @@ export async function createOrder(data: any) {
  * Actualiza una orden existente (Edición)
  */
 export async function updateOrder(orderId: string, data: any) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const { dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList, branchId } = data
 
@@ -189,7 +194,7 @@ export async function updateOrder(orderId: string, data: any) {
       }
     })
 
-    await logOrderHistory(orderId, "ORDEN_EDITADA", `${items.length} práctica(s). Total: $${total}`);
+    await logOrderHistory(orderId, "ORDEN_EDITADA", `${items.length} práctica(s). Total: $${total}`, undefined, undefined, session.id);
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
     return { success: true }
@@ -203,6 +208,8 @@ export async function updateOrder(orderId: string, data: any) {
  * Alterna entre ANULADA y CREADA con impacto contable limpio
  */
 export async function toggleOrderActivation(orderId: string, currentStatus: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const isAnulando = currentStatus !== 'ANULADA';
     const newStatus: OrderStatus = isAnulando ? 'ANULADA' : 'CREADA';
@@ -250,7 +257,7 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
       data: { status: newStatus }
     });
 
-    await logOrderHistory(orderId, isAnulando ? "ORDEN_ANULADA" : "ORDEN_REACTIVADA", description, currentStatus as OrderStatus, newStatus);
+    await logOrderHistory(orderId, isAnulando ? "ORDEN_ANULADA" : "ORDEN_REACTIVADA", description, currentStatus as OrderStatus, newStatus, session.id);
     revalidatePath("/recepcion");
     revalidatePath("/tecnico");
     return { success: true };
@@ -343,6 +350,8 @@ export async function getOrdersForRecipeCheck(branchId: string, startDate: strin
 }
 
 export async function toggleRecipeCheck(orderId: string, checked: boolean, userName?: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     await prisma.order.update({
       where: { id: orderId },
@@ -357,6 +366,8 @@ export async function toggleRecipeCheck(orderId: string, checked: boolean, userN
 }
 
 export async function updateOrderStatusAction(orderId: string, newStatus: OrderStatus | 'PARA_REPETIR') {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const prev = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
     await prisma.order.update({
@@ -366,7 +377,7 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
         completedAt: newStatus === 'LISTO_PARA_ENTREGA' ? new Date() : undefined
       }
     });
-    await logOrderHistory(orderId, "CAMBIO_ESTADO", `${prev?.status} → ${newStatus}`, prev?.status, newStatus as OrderStatus);
+    await logOrderHistory(orderId, "CAMBIO_ESTADO", `${prev?.status} → ${newStatus}`, prev?.status, newStatus as OrderStatus, session.id);
     revalidatePath("/tecnico");
     revalidatePath("/recepcion");
     return { success: true };
@@ -494,6 +505,9 @@ export async function adminUpdateOrder(orderId: string, data: {
     locations?: string[]
   }>
 }) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
+  if (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN') return { success: false, error: "Sin permisos" };
   try {
     await prisma.$transaction(async (tx) => {
       const orderUpdate: any = {}
@@ -550,7 +564,7 @@ export async function adminUpdateOrder(orderId: string, data: {
       }
     })
 
-    await logOrderHistory(orderId, "ORDEN_EDITADA_ADMIN", `Campos editados: ${Object.keys(data).filter(k => data[k as keyof typeof data] !== undefined).join(', ')}`);
+    await logOrderHistory(orderId, "ORDEN_EDITADA_ADMIN", `Campos editados: ${Object.keys(data).filter(k => data[k as keyof typeof data] !== undefined).join(', ')}`, undefined, undefined, session.id);
     revalidatePath('/admin/ordenes')
     revalidatePath('/recepcion')
     return { success: true }

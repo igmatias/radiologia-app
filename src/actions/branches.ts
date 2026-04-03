@@ -2,9 +2,12 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
 
 // GUARDAR O CREAR SEDE
 export async function upsertBranch(data: any) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     const branch = await prisma.branch.upsert({
       where: { id: data.id || 'new' },
@@ -31,6 +34,8 @@ export async function upsertBranch(data: any) {
 
 // GUARDAR O CREAR EQUIPO / PC
 export async function upsertEquipment(data: any) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     let equipment;
 
@@ -70,6 +75,8 @@ export async function upsertEquipment(data: any) {
 
 // ELIMINAR EQUIPO
 export async function deleteEquipment(id: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.equipment.delete({ where: { id } });
     revalidatePath("/admin/sedes");

@@ -3,9 +3,12 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
+import { getCurrentSession } from "@/actions/auth"
 
 // 1. GESTIÓN DE PERSONAL INTERNO
 export async function saveStaffUser(data: any) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     if (data.id) {
       // Actualizar usuario existente
@@ -52,6 +55,8 @@ export async function saveStaffUser(data: any) {
 
 // 2. BLANQUEO DE CLAVES PARA ODONTÓLOGOS
 export async function resetDentistPassword(dentistId: string, newPassword: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.dentist.update({
       where: { id: dentistId },

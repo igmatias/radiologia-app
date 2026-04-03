@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { MovementType, PaymentMethod } from "@prisma/client"
+import { getCurrentSession } from "@/actions/auth"
 
 export async function getDailyCash(branchId: string, dateStr: string) {
   try {
@@ -42,6 +43,8 @@ export async function getDailyCash(branchId: string, dateStr: string) {
 }
 
 export async function createCashMovement(data: { branchId: string, type: MovementType, amount: number, description: string, method: PaymentMethod }) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     await prisma.cashMovement.create({
       data: {
@@ -62,6 +65,8 @@ export async function createCashMovement(data: { branchId: string, type: Movemen
 }
 
 export async function updateCashMovement(id: string, data: { type: MovementType, amount: number, description: string, method: PaymentMethod }) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     await prisma.cashMovement.update({
       where: { id },
@@ -82,6 +87,8 @@ export async function updateCashMovement(id: string, data: { type: MovementType,
 }
 
 export async function deleteCashMovement(id: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     await prisma.cashMovement.delete({
       where: { id }
@@ -96,6 +103,8 @@ export async function deleteCashMovement(id: string) {
 }
 
 export async function updatePatientPaymentMethod(paymentId: string, newMethod: PaymentMethod) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     await prisma.payment.update({
       where: { id: paymentId },

@@ -2,8 +2,11 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
 
 export async function upsertProcedure(data: { id?: string, code: string, name: string, category?: string, requiresTooth?: boolean, options?: string[], extraPhotoPrice?: number }) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     let procedure;
 
@@ -45,6 +48,8 @@ export async function upsertProcedure(data: { id?: string, code: string, name: s
 }
 
 export async function deleteProcedure(id: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.procedure.delete({
       where: { id }

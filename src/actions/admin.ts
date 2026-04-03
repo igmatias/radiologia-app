@@ -2,9 +2,18 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
+
+async function requireAdmin() {
+  const session = await getCurrentSession();
+  if (!session) return { error: "No autenticado" as const };
+  if (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN') return { error: "Sin permisos" as const };
+  return { session };
+}
 
 // 1. Actualizar o crear un precio para un estudio en una lista específica
 export async function updateProcedurePrice(priceListId: string, procedureId: string, insuranceCoverage: number, patientCopay: number) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     // Calculamos el total sumando la parte de la Obra Social + el Copago
     const totalAmount = insuranceCoverage + patientCopay;
@@ -40,6 +49,7 @@ export async function updateProcedurePrice(priceListId: string, procedureId: str
 
 // 2. Crear una nueva Obra Social con su propia lista de precios
 export async function createObraSocial(name: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     const newList = await prisma.priceList.create({
       data: { name: `Lista ${name}` }
@@ -62,6 +72,7 @@ export async function createObraSocial(name: string) {
 
 // 3. Eliminar una Obra Social (y su lista de precios si no tiene otras dependencias)
 export async function deleteObraSocial(id: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     const os = await prisma.obraSocial.findUnique({
       where: { id },
@@ -92,6 +103,7 @@ export async function deleteObraSocial(id: string) {
 
 // 4. Actualizar solo el código personalizado de una práctica para una OS
 export async function updatePriceCustomCode(priceListId: string, procedureId: string, customCode: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     await prisma.price.upsert({
       where: { priceListId_procedureId: { priceListId, procedureId } },
@@ -115,6 +127,7 @@ export async function updatePriceCustomCode(priceListId: string, procedureId: st
 
 // 5. Actualizar edad máxima de ortodoncia para una Obra Social
 export async function updateMaxAgeOrtodoncia(osId: string, maxAge: number | null) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     await prisma.obraSocial.update({
       where: { id: osId },
@@ -130,6 +143,7 @@ export async function updateMaxAgeOrtodoncia(osId: string, maxAge: number | null
 
 // 6. CRUD de variantes (sub-selecciones) de Obra Social
 export async function createOSVariant(obraSocialId: string, name: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     await prisma.obraSocialVariant.create({ data: { obraSocialId, name: name.toUpperCase().trim() } })
     revalidatePath("/admin/obras-sociales")
@@ -141,6 +155,7 @@ export async function createOSVariant(obraSocialId: string, name: string) {
 }
 
 export async function deleteOSVariant(variantId: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     await prisma.obraSocialVariant.delete({ where: { id: variantId } })
     revalidatePath("/admin/obras-sociales")
@@ -153,6 +168,7 @@ export async function deleteOSVariant(variantId: string) {
 
 // 7. Importación masiva de Odontólogos desde CSV
 export async function importDentists(data: any[]) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {
     // Procesamos en bloque para mayor velocidad
     const operations = data.map((row) => {

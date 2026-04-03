@@ -1,8 +1,11 @@
 "use server"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
 
 export async function importDentistsAction(data: any[]) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     // Usamos una transacción para procesar todos los registros juntos
     const operations = data.map((d) => {
@@ -48,6 +51,8 @@ export async function importDentistsAction(data: any[]) {
 }
 
 export async function deleteDentist(id: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.dentist.delete({
       where: { id }
@@ -61,6 +66,8 @@ export async function deleteDentist(id: string) {
 }
 
 export async function cleanDuplicateDentists() {
+  const session = await getCurrentSession();
+  if (!session || session.role !== 'SUPERADMIN') return { success: false, error: "Sin permisos" };
   try {
     // Buscamos todos los odontólogos
     const allDentists = await prisma.dentist.findMany();
@@ -90,6 +97,8 @@ export async function cleanDuplicateDentists() {
 }
 
 export async function updateDentistAction(id: string, data: any) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.dentist.update({
       where: { id },

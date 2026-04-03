@@ -2,10 +2,13 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
 // Si usás bcrypt para encriptar contraseñas, descomentá la línea de abajo:
-// import bcrypt from "bcryptjs" 
+// import bcrypt from "bcryptjs"
 
 export async function upsertUser(data: { id?: string, name: string, username: string, role: string, branchId?: string, password?: string }) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     const userData: any = {
       name: data.name.toUpperCase(),
@@ -47,6 +50,8 @@ export async function upsertUser(data: { id?: string, name: string, username: st
 }
 
 export async function deleteUser(id: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) return { success: false, error: "Sin permisos" };
   try {
     await prisma.user.delete({ where: { id } });
     revalidatePath("/admin/usuarios");

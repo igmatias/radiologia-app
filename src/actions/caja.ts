@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay } from "date-fns"
 import { revalidatePath } from "next/cache"
 import { toNum } from "@/lib/utils"
+import { getCurrentSession } from "@/actions/auth"
 
 // 1. OBTENER EL ESTADO ACTUAL DE LA CAJA DEL DÍA
 export async function getEstadoCaja(branchId: string) {
@@ -103,6 +104,8 @@ export async function getEstadoCaja(branchId: string) {
 
 // 2. ABRIR LA CAJA A LA MAÑANA
 export async function abrirCajaDiaria(branchId: string, userName: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     // Buscamos la caja de ayer (la última registrada) para traer la plata que quedó
     const ultimaCaja = await prisma.dailyRegister.findFirst({
@@ -133,6 +136,8 @@ export async function abrirCajaDiaria(branchId: string, userName: string) {
 
 // 3. REGISTRAR UN GASTO O MANDAR PLATA A CAJA FUERTE
 export async function registrarMovimientoRecepcion(branchId: string, type: any, amount: number, description: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     // 1. Anotamos la salida de plata del mostrador
     await prisma.cashMovement.create({
@@ -164,6 +169,8 @@ export async function registrarMovimientoRecepcion(branchId: string, type: any, 
 
 // 4. ELIMINAR UN MOVIMIENTO (Por error de carga)
 export async function eliminarMovimientoRecepcion(movimientoId: string, branchId: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const mov = await prisma.cashMovement.findUnique({ where: { id: movimientoId } });
     if (!mov) return { success: false, error: "Movimiento no encontrado" };
@@ -189,6 +196,8 @@ export async function eliminarMovimientoRecepcion(movimientoId: string, branchId
 
 // 5b. GUARDADO PARCIAL (ARQUEO MID-TURNO)
 export async function registrarArqueoParcial(branchId: string, montoContado: number, notas: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const hoy = new Date();
     const inicioHoy = startOfDay(hoy);
@@ -221,6 +230,8 @@ export async function registrarArqueoParcial(branchId: string, montoContado: num
 
 // 5. CERRAR LA CAJA (FINAL DEL DÍA)
 export async function cerrarCajaDiaria(branchId: string, userName: string, endBalance: number, notes: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
   try {
     const hoy = new Date();
     const inicioHoy = startOfDay(hoy);
