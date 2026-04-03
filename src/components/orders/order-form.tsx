@@ -674,13 +674,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     <div className="flex justify-between items-center mb-4 text-brand-700 font-black uppercase italic">
                       <Label className="text-sm flex items-center gap-1.5">Odontólogo Solicitante <span className="text-brand-500">*</span></Label>
                       <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" className="h-8 text-[10px] bg-slate-50 shadow-sm hover:bg-slate-100 border-slate-300 text-slate-600"
+                        <Button type="button" variant="outline" size="sm" className="h-10 px-4 text-xs bg-slate-700 shadow-md hover:bg-slate-800 border-slate-700 text-white font-black uppercase"
                           onClick={() => { setSinOdontologo(true); form.setValue("dentistId", ""); setSearchTerm(""); }}>
                           Sin Odontólogo
                         </Button>
                         <Dialog open={isDentistModalOpen} onOpenChange={setIsDentistModalOpen}>
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 text-[10px] bg-white shadow-sm hover:bg-brand-50 border-brand-200 text-brand-700">+ Nuevo Profesional</Button>
+                            <Button variant="outline" size="sm" className="h-10 px-4 text-xs bg-brand-700 shadow-md hover:bg-brand-800 border-brand-700 text-white font-black uppercase">+ Nuevo Profesional</Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-[600px] border-none bg-transparent shadow-none p-0 outline-none">
                             <DialogTitle className="sr-only">Nuevo Profesional</DialogTitle>
@@ -793,8 +793,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                                  {isSelected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                                </div>
                                <div className="overflow-hidden flex-1">
-                                 <p className="text-[9px] font-black uppercase text-brand-700 mb-0.5 leading-none">{p.code}</p>
-                                 <p className="text-xs font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
+                                 <p className="text-xs font-black uppercase text-brand-700 mb-0.5 leading-none">{p.code}</p>
+                                 <p className="text-sm font-black uppercase leading-tight truncate" title={p.name}>{p.name}</p>
                                  {isSelected && selectedItem && (
                                    <div className="mt-1.5 flex flex-wrap gap-1">
                                      {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-md uppercase border border-brand-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
@@ -812,6 +812,11 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         )
                       })}
                     </div>
+
+                    {/* Input para práctica PERSONALIZADA */}
+                    {form.watch("items").filter((i: any) => typeof i.customName === 'string').map((i: any) => (
+                      <PersonalizadaInput key={i.procedureId} form={form} procedureId={i.procedureId} />
+                    ))}
                   </div>
                 </div>
               )}
@@ -1200,32 +1205,90 @@ function Step({ num, label, active, current }: any) {
 
 function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-brand-700 shadow-sm' : 'bg-slate-200'}`} /> }
 
+function PersonalizadaInput({ form, procedureId }: { form: any, procedureId: string }) {
+  const items = form.watch("items");
+  const item = items.find((i: any) => i.procedureId === procedureId);
+  const [localName, setLocalName] = useState(item?.customName || "");
+
+  const syncToForm = () => {
+    const currentItems = form.getValues("items");
+    const idx = currentItems.findIndex((i: any) => i.procedureId === procedureId);
+    if (idx !== -1) {
+      currentItems[idx].customName = localName;
+      form.setValue("items", currentItems);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
+      <Edit className="h-5 w-5 text-amber-600 shrink-0" />
+      <Input
+        placeholder="NOMBRE DE LA PRÁCTICA PERSONALIZADA..."
+        value={localName}
+        onChange={(e) => setLocalName(e.target.value.toUpperCase())}
+        onBlur={syncToForm}
+        className="h-10 uppercase font-black border-2 border-amber-300 bg-white flex-1"
+      />
+    </div>
+  );
+}
+
 function QuickDentistForm({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({ Nombre: "", Apellido: "", MatriculaProvincial: "", MatriculaNacional: "", Telefono: "", Email: "", deliveryMethod: "DIGITAL", digitalChannel: "WHATSAPP" });
-  
+
   const handleSubmit = async () => {
     if (!data.Apellido || !data.Nombre) return toast.error("Completá nombre y apellido");
     setLoading(true);
-    const res = await importDentistsAction([{ 
-      firstName: data.Nombre, 
-      lastName: data.Apellido, 
-      matriculaProv: data.MatriculaProvincial, 
-      email: data.Email, 
-      deliveryMethod: data.deliveryMethod, 
+    const res = await importDentistsAction([{
+      firstName: data.Nombre,
+      lastName: data.Apellido,
+      matriculaProv: data.MatriculaProvincial,
+      matriculaNac: data.MatriculaNacional,
+      phone: data.Telefono,
+      email: data.Email,
+      deliveryMethod: data.deliveryMethod,
       resultPreference: data.digitalChannel,
-      isActive: true 
+      isActive: true
     }]);
     if (res.success) { toast.success("Profesional guardado"); onSuccess(); }
     setLoading(false);
   };
-  
+
   return (
     <div className="bg-white p-8 font-black uppercase italic rounded-3xl flex flex-col gap-6">
       <h3 className="text-2xl border-b-2 border-brand-700 pb-2">Nuevo Profesional</h3>
       <div className="grid grid-cols-2 gap-4">
-        <Input placeholder="APELLIDO" value={data.Apellido} onChange={e => setData({...data, Apellido: e.target.value.toUpperCase()})} className="h-12 border-2"/>
-        <Input placeholder="NOMBRE" value={data.Nombre} onChange={e => setData({...data, Nombre: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="APELLIDO *" value={data.Apellido} onChange={e => setData({...data, Apellido: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="NOMBRE *" value={data.Nombre} onChange={e => setData({...data, Nombre: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="MATRÍCULA PROVINCIAL" value={data.MatriculaProvincial} onChange={e => setData({...data, MatriculaProvincial: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="MATRÍCULA NACIONAL" value={data.MatriculaNacional} onChange={e => setData({...data, MatriculaNacional: e.target.value.toUpperCase()})} className="h-12 border-2"/>
+        <Input placeholder="TELÉFONO" value={data.Telefono} onChange={e => setData({...data, Telefono: e.target.value})} className="h-12 border-2"/>
+        <Input placeholder="EMAIL" type="email" value={data.Email} onChange={e => setData({...data, Email: e.target.value.toLowerCase()})} className="h-12 border-2 lowercase not-italic"/>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-[10px] text-slate-500">Entrega de Resultados</Label>
+          <Select value={data.deliveryMethod} onValueChange={(v) => setData({...data, deliveryMethod: v})}>
+            <SelectTrigger className="h-12 border-2 font-black uppercase"><SelectValue /></SelectTrigger>
+            <SelectContent className="font-black uppercase">
+              <SelectItem value="DIGITAL">Digital</SelectItem>
+              <SelectItem value="IMPRESA">Impresa</SelectItem>
+              <SelectItem value="AMBAS">Ambas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label className="text-[10px] text-slate-500">Canal Digital</Label>
+          <Select value={data.digitalChannel} onValueChange={(v) => setData({...data, digitalChannel: v})}>
+            <SelectTrigger className="h-12 border-2 font-black uppercase"><SelectValue /></SelectTrigger>
+            <SelectContent className="font-black uppercase">
+              <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
+              <SelectItem value="EMAIL">Email</SelectItem>
+              <SelectItem value="PORTAL">Portal Médico</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <Button className="bg-brand-700 text-white h-14 uppercase" onClick={handleSubmit} disabled={loading}>GUARDAR PROFESIONAL ✓</Button>
     </div>
