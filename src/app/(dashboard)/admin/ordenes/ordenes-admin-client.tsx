@@ -68,6 +68,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
       notes: order.notes || "",
       dentistId: order.dentistId || "",
       obraSocialId: order.obraSocialId || "",
+      osVariantId: order.osVariantId || "",
       branchId: order.branchId,
       patient: {
         firstName: order.patient?.firstName || "",
@@ -101,6 +102,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
       notes: editData.notes,
       dentistId: editData.dentistId || null,
       obraSocialId: editData.obraSocialId || null,
+      osVariantId: editData.osVariantId || null,
       branchId: editData.branchId,
       patient: editData.patient,
       items: editData.items.map((i: any) => ({
@@ -386,13 +388,27 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social</Label>
-                    <Select value={editData.obraSocialId || "NONE"} onValueChange={v => setEditData({...editData, obraSocialId: v === "NONE" ? "" : v})}>
+                    <Select value={editData.obraSocialId || "NONE"} onValueChange={v => setEditData({...editData, obraSocialId: v === "NONE" ? "" : v, osVariantId: ""})}>
                       <SelectTrigger className="h-10 font-bold border-2 uppercase"><SelectValue /></SelectTrigger>
                       <SelectContent className="font-bold uppercase">
                         <SelectItem value="NONE">— Particular —</SelectItem>
-                        {obrasSociales.map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
+                        {obrasSociales.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
+                    {/* Sub-selección en edición */}
+                    {(() => {
+                      const os = obrasSociales.find((o: any) => o.id === editData.obraSocialId);
+                      if (!os?.variants?.length) return null;
+                      return (
+                        <Select value={editData.osVariantId || "NONE"} onValueChange={v => setEditData({...editData, osVariantId: v === "NONE" ? "" : v})}>
+                          <SelectTrigger className="h-9 font-bold uppercase border-2 border-violet-300 bg-violet-50 text-[10px] mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent className="font-black uppercase">
+                            <SelectItem value="NONE">— Sin variante —</SelectItem>
+                            {os.variants.map((v: any) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()}
                   </div>
                   <div className="col-span-2 space-y-1">
                     <Label className="text-[10px] font-black uppercase text-slate-400">Notas / Observaciones</Label>

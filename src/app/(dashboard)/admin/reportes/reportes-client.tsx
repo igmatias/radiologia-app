@@ -132,7 +132,9 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   const activeOS = obrasSociales.find(o => String(o.id) === String(selectedOS));
   const activeBranch = branches.find(b => String(b.id) === String(selectedBranch));
   
+  const activeVariant = activeOS?.variants?.find((v: any) => v.id === selectedVariant);
   const osNameSafe = activeOS ? activeOS.name.toUpperCase() : "OBRA SOCIAL";
+  const variantNameSafe = activeVariant ? activeVariant.name.toUpperCase() : null;
   const branchNameSafe = selectedBranch === 'ALL' ? 'TODAS LAS SEDES' : (activeBranch ? activeBranch.name.toUpperCase() : "");
 
   // --- EXPORTACIÓN EXCEL (.XLS) ---
@@ -165,7 +167,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
         <body>
           <table style="width: 700px;">
             <tr>
-              <td colspan="7" class="title">LIQUIDACIÓN DE PRESTACIONES - ${osNameSafe}</td>
+              <td colspan="7" class="title">LIQUIDACIÓN DE PRESTACIONES - ${osNameSafe}${variantNameSafe ? ` — ${variantNameSafe}` : ''}</td>
             </tr>
             <tr>
               <td colspan="7" class="subtitle">SEDE: ${branchNameSafe} | PERÍODO: ${fechaInicioStr} AL ${fechaFinStr}</td>
@@ -313,7 +315,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
       '<body>',
       '  <div class="doc-header">',
       '    <h1>Liquidación de Prestaciones</h1>',
-      `    <p>Obra Social: <span class="os-name">${osNameSafe}</span></p>`,
+      `    <p>Obra Social: <span class="os-name">${osNameSafe}${variantNameSafe ? ` — ${variantNameSafe}` : ''}</span></p>`,
       `    <p>Sede: ${branchNameSafe}  |  Período: ${periodoStr}</p>`,
       '  </div>',
       '  <table>',
@@ -456,7 +458,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                 <div className="border-b-2 border-slate-400 pb-4 mb-6">
                   <h2 className="text-2xl font-black uppercase italic text-slate-800 leading-tight">Liquidación de Prestaciones</h2>
                   <div className="mt-2">
-                    <p className="text-sm font-bold uppercase text-slate-700">Obra Social: <span className="font-black text-brand-700">{osNameSafe}</span></p>
+                    <p className="text-sm font-bold uppercase text-slate-700">Obra Social: <span className="font-black text-brand-700">{osNameSafe}</span>{variantNameSafe && <span className="font-black text-violet-600"> — {variantNameSafe}</span>}</p>
                     <p className="text-xs font-bold uppercase text-slate-600">Sede: {branchNameSafe}</p>
                     <p className="text-xs font-bold uppercase text-slate-600">Período: {new Date(startDate).toLocaleDateString('es-AR')} al {new Date(endDate).toLocaleDateString('es-AR')}</p>
                   </div>
