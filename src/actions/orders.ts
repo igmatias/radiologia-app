@@ -398,6 +398,7 @@ export async function adminUpdateOrder(orderId: string, data: {
   notes?: string
   dentistId?: string | null
   obraSocialId?: string | null
+  osVariantId?: string | null
   branchId?: string
   patient?: {
     firstName?: string
