@@ -6,6 +6,13 @@ import { OrderStatus } from "@prisma/client"
 import { startOfDay, endOfDay } from "date-fns"
 import { toNum } from "@/lib/utils"
 
+// Helper para audit log
+async function logOrderHistory(orderId: string, action: string, details?: string, oldStatus?: OrderStatus, newStatus?: OrderStatus, userId?: string) {
+  try {
+    await prisma.orderHistory.create({ data: { orderId, action, details, oldStatus, newStatus, userId } });
+  } catch (e) { console.error("Error logging history:", e); }
+}
+
 /**
  * Genera el próximo número de orden correlativo para una sucursal.
  */
@@ -126,6 +133,7 @@ export async function createOrder(data: any) {
       })
     })
 
+    await logOrderHistory(newOrder.id, "ORDEN_CREADA", `Código: ${newOrder.code}. ${items.length} práctica(s). Total: $${total}`, undefined, "CREADA" as OrderStatus);
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
     return { success: true, orderId: newOrder.id, orderCode: newOrder.code }
@@ -181,6 +189,7 @@ export async function updateOrder(orderId: string, data: any) {
       }
     })
 
+    await logOrderHistory(orderId, "ORDEN_EDITADA", `${items.length} práctica(s). Total: $${total}`);
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
     return { success: true }
@@ -241,6 +250,7 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
       data: { status: newStatus }
     });
 
+    await logOrderHistory(orderId, isAnulando ? "ORDEN_ANULADA" : "ORDEN_REACTIVADA", description, currentStatus as OrderStatus, newStatus);
     revalidatePath("/recepcion");
     revalidatePath("/tecnico");
     return { success: true };
@@ -277,6 +287,17 @@ export async function getPatientByDni(dni: string) {
       select: { firstName: true, lastName: true, birthDate: true, phone: true, email: true, affiliateNumber: true, plan: true, defaultObraSocialId: true }
     })
   } catch (error) { return null }
+}
+
+export async function getPatientPendingDebt(dni: string) {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { method: 'SALDO', order: { patient: { dni }, status: { not: 'ANULADA' } } },
+      include: { order: { select: { code: true, createdAt: true } } }
+    });
+    const totalDebt = payments.reduce((acc, p) => acc + Number(p.amount || 0), 0);
+    return { totalDebt, payments: payments.map(p => ({ amount: Number(p.amount), orderCode: p.order.code, date: p.order.createdAt })) };
+  } catch (error) { return { totalDebt: 0, payments: [] } }
 }
 
 export async function getPatientHistory(dni: string) {
@@ -337,14 +358,15 @@ export async function toggleRecipeCheck(orderId: string, checked: boolean, userN
 
 export async function updateOrderStatusAction(orderId: string, newStatus: OrderStatus | 'PARA_REPETIR') {
   try {
-    // Si el estado es PARA_REPETIR lo guardamos, sino usamos el normal
+    const prev = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
     await prisma.order.update({
       where: { id: orderId },
-      data: { 
+      data: {
         status: newStatus as OrderStatus,
         completedAt: newStatus === 'LISTO_PARA_ENTREGA' ? new Date() : undefined
       }
     });
+    await logOrderHistory(orderId, "CAMBIO_ESTADO", `${prev?.status} → ${newStatus}`, prev?.status, newStatus as OrderStatus);
     revalidatePath("/tecnico");
     revalidatePath("/recepcion");
     return { success: true };
@@ -352,6 +374,29 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
     console.error("Error al actualizar estado:", error);
     return { success: false } 
   }
+}
+
+export async function getAuditLog(startDate: string, endDate: string, search?: string) {
+  try {
+    const start = startOfDay(new Date(startDate + "T12:00:00"));
+    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const where: any = { createdAt: { gte: start, lte: end } };
+    if (search?.trim()) {
+      where.OR = [
+        { action: { contains: search.trim(), mode: 'insensitive' } },
+        { details: { contains: search.trim(), mode: 'insensitive' } },
+        { order: { code: { contains: search.trim(), mode: 'insensitive' } } },
+        { order: { patient: { lastName: { contains: search.trim(), mode: 'insensitive' } } } },
+      ];
+    }
+    const logs = await prisma.orderHistory.findMany({
+      where,
+      include: { order: { include: { patient: { select: { lastName: true, firstName: true, dni: true } } } } },
+      orderBy: { createdAt: 'desc' },
+      take: 500
+    });
+    return { success: true, logs };
+  } catch (error) { return { success: false, logs: [] } }
 }
 
 export async function getOrders() {
@@ -505,6 +550,7 @@ export async function adminUpdateOrder(orderId: string, data: {
       }
     })
 
+    await logOrderHistory(orderId, "ORDEN_EDITADA_ADMIN", `Campos editados: ${Object.keys(data).filter(k => data[k as keyof typeof data] !== undefined).join(', ')}`);
     revalidatePath('/admin/ordenes')
     revalidatePath('/recepcion')
     return { success: true }

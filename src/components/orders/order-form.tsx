@@ -11,7 +11,7 @@ import { toast } from "sonner"
 import {
   createOrder, getProcedurePrice, getPatientByDni, getNextOrderNumber,
   getPatientHistory, getDailyOrders, updateOrder, toggleOrderActivation,
-  getOrdersForRecipeCheck, toggleRecipeCheck
+  getOrdersForRecipeCheck, toggleRecipeCheck, getPatientPendingDebt
 } from "@/actions/orders"
 import { importDentistsAction } from "@/actions/dentists"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
@@ -47,6 +47,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [derivacionIndicacion, setDerivacionIndicacion] = useState("")
   const [comprobanteOrden, setComprobanteOrden] = useState<any>(null)
   const [osSearch, setOsSearch] = useState("")
+  const [patientDebt, setPatientDebt] = useState<{ totalDebt: number, payments: any[] } | null>(null)
 
   const form = useForm({
     defaultValues: {
@@ -89,6 +90,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     });
     setStep(1);
     setOsSearch("");
+    setPatientDebt(null);
     setPatientHistory([]);
     setEditingOrderId(null);
     if (session?.branchId) {
@@ -281,9 +283,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   }, [procedureSearch, procedures]);
 
   const handleDniBlur = async (dni: string) => {
-    if (dni.length < 7) { setPatientHistory([]); return; }
+    if (dni.length < 7) { setPatientHistory([]); setPatientDebt(null); return; }
     const p = await getPatientByDni(dni);
     if (!orderNumber && session?.branchId && !editingOrderId) setOrderNumber(await getNextOrderNumber(session.branchId));
+    // Consultar deuda pendiente
+    const debt = await getPatientPendingDebt(dni);
+    setPatientDebt(debt.totalDebt > 0 ? debt : null);
     if (p) {
       toast.info("Paciente encontrado.");
       form.setValue("patient.firstName", p.firstName?.toUpperCase() || "");
@@ -696,7 +701,24 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
               </div>
 
               {step === 1 && (
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                 {/* Alerta de deuda pendiente */}
+                 {patientDebt && (
+                   <div className="flex items-start gap-3 bg-red-50 border-2 border-red-300 rounded-2xl p-4 animate-in fade-in zoom-in-95">
+                     <AlertTriangle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" />
+                     <div className="flex-1">
+                       <p className="text-sm font-black uppercase text-red-800">Deuda Pendiente</p>
+                       <p className="text-xs font-bold text-red-600 mt-1">
+                         Este paciente tiene <span className="text-lg font-black">${patientDebt.totalDebt.toLocaleString('es-AR')}</span> de saldo pendiente
+                         ({patientDebt.payments.length} orden{patientDebt.payments.length > 1 ? 'es' : ''})
+                       </p>
+                     </div>
+                     <div className="text-right shrink-0">
+                       <p className="text-3xl font-black italic text-red-700">${patientDebt.totalDebt.toLocaleString('es-AR')}</p>
+                     </div>
+                   </div>
+                 )}
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2 relative"><Label className="text-[10px] font-bold text-slate-400 uppercase">DNI</Label><div className="flex gap-2"><Input {...form.register("patient.dni")} onBlur={(e) => handleDniBlur(e.target.value)} onChange={(e) => { form.setValue("patient.dni", e.target.value); if (e.target.value.replace(/\D/g,'').length >= 7) handleDniBlur(e.target.value); }} className="h-11 font-black border-2 flex-1" autoFocus />{patientHistory.length > 0 && (<Button type="button" onClick={() => setShowHistoryModal(true)} className="h-11 px-4 bg-slate-900 hover:bg-brand-700 text-white font-black italic uppercase rounded-lg shadow-md"><FileText size={18} className="mr-2" /> Historial ({patientHistory.length})</Button>)}</div></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Apellido</Label><Input {...form.register("patient.lastName")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Nombre</Label><Input {...form.register("patient.firstName")} className="h-11 uppercase font-bold border-2" /></div>
@@ -750,6 +772,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">N° Afiliado</Label><Input {...form.register("patient.affiliateNumber")} className="h-11 uppercase font-bold border-2" /></div>
                   <div className="space-y-2"><Label className="text-[10px] font-bold text-slate-400 uppercase">Plan OS</Label><Input {...form.register("patient.plan")} placeholder="Ej: 210, PMO..." className="h-11 uppercase font-bold border-2 bg-blue-50 focus-visible:ring-blue-500" /></div>
                   <div className="space-y-2 md:col-span-3 mt-2"><Label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">Observaciones / Notas</Label><textarea {...form.register("notes")} className="flex w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm font-bold uppercase placeholder:text-slate-400 focus-visible:ring-brand-700 resize-none h-20 shadow-inner"/></div>
+                </div>
                 </div>
               )}
 
