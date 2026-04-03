@@ -6,6 +6,48 @@ import { OrderStatus } from "@prisma/client"
 import { startOfDay, endOfDay } from "date-fns"
 import { toNum } from "@/lib/utils"
 import { getCurrentSession } from "@/actions/auth"
+import { z } from "zod"
+
+// ─── Schemas de validación ────────────────────────────────────────────────────
+const PatientSchema = z.object({
+  dni: z.string().min(7, "DNI inválido").max(11, "DNI inválido").regex(/^\d+$/, "DNI solo debe contener números"),
+  firstName: z.string().min(1, "Nombre requerido").max(100),
+  lastName: z.string().min(1, "Apellido requerido").max(100),
+  birthDate: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  affiliateNumber: z.string().optional(),
+  obrasocialId: z.string().optional(),
+  plan: z.string().optional(),
+})
+
+const OrderItemSchema = z.object({
+  procedureId: z.string().min(1, "ID de práctica requerido"),
+  price: z.number().min(0, "Precio no puede ser negativo"),
+  insuranceCoverage: z.number().min(0),
+  patientCopay: z.number().min(0),
+  teeth: z.array(z.number()).optional(),
+  locations: z.array(z.string()).optional(),
+  customName: z.string().optional().nullable(),
+})
+
+const PaymentSchema = z.object({
+  method: z.enum(["EFECTIVO", "TARJETA_DEBITO", "TARJETA_CREDITO", "TRANSFERENCIA", "MERCADOPAGO", "CUENTA_CORRIENTE", "OTRO", "SALDO"]),
+  amount: z.number().min(0),
+})
+
+const CreateOrderSchema = z.object({
+  branchId: z.string().min(1, "Sede requerida"),
+  patient: PatientSchema,
+  dentistId: z.string().optional(),
+  osVariantId: z.string().optional(),
+  items: z.array(OrderItemSchema).min(1, "Debe agregar al menos una práctica"),
+  total: z.number().min(0),
+  patientAmount: z.number().min(0),
+  insuranceAmount: z.number().min(0),
+  notes: z.string().optional(),
+  paymentsList: z.array(PaymentSchema).optional(),
+})
 
 // Helper para audit log
 async function logOrderHistory(orderId: string, action: string, details?: string, oldStatus?: OrderStatus, newStatus?: OrderStatus, userId?: string) {
@@ -15,7 +57,10 @@ async function logOrderHistory(orderId: string, action: string, details?: string
 }
 
 /**
- * Genera el próximo número de orden correlativo para una sucursal.
+ * Genera una ESTIMACIÓN del próximo código de orden para mostrar en la UI.
+ * ⚠️  NOTA: Solo es informativo. El código real se asigna atómicamente en createOrder()
+ *     usando el dailyId (autoincrement) que garantiza unicidad sin race conditions.
+ *     Este preview puede no coincidir exactamente si hay órdenes concurrentes.
  */
 export async function getNextOrderNumber(branchId: string) {
   try {
@@ -24,36 +69,29 @@ export async function getNextOrderNumber(branchId: string) {
       select: { name: true }
     })
 
-    if (!branch) throw new Error("Sucursal no encontrada")
+    if (!branch) return "---"
 
     const prefix = branch.name.charAt(0).toUpperCase()
     const currentYear = new Date().getFullYear()
 
+    // Tomamos el dailyId más alto de este año para estimar el siguiente
     const lastOrder = await prisma.order.findFirst({
       where: {
-        branchId: branchId,
+        branchId,
         createdAt: {
-          gte: new Date(`${currentYear}-01-01`),
-          lt: new Date(`${currentYear + 1}-01-01`),
+          gte: new Date(`${currentYear}-01-01T00:00:00.000Z`),
+          lt: new Date(`${currentYear + 1}-01-01T00:00:00.000Z`),
         }
       },
-      orderBy: { createdAt: 'desc' },
-      select: { code: true }
+      orderBy: { dailyId: 'desc' },
+      select: { dailyId: true }
     })
 
-    let nextNumber = 1
-    if (lastOrder?.code) {
-      const parts = lastOrder.code.split('-')
-      const lastCount = parseInt(parts[parts.length - 1])
-      if (!isNaN(lastCount)) {
-        nextNumber = lastCount + 1
-      }
-    }
-
+    const nextNumber = (lastOrder?.dailyId ?? 0) + 1
     return `${prefix}-${currentYear}-${nextNumber.toString().padStart(6, '0')}`
   } catch (error) {
-    console.error("Error al generar Nro de Orden:", error)
-    return `ERR-${Math.floor(Math.random() * 1000)}`
+    console.error("Error al estimar Nro de Orden:", error)
+    return "---"
   }
 }
 
@@ -63,8 +101,16 @@ export async function getNextOrderNumber(branchId: string) {
 export async function createOrder(data: any) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+
+  // Validar datos de entrada
+  const parsed = CreateOrderSchema.safeParse(data);
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return { success: false, error: firstError.message };
+  }
+
   try {
-    const { branchId, patient, dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList } = data
+    const { branchId, patient, dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList } = parsed.data
 
     const branch = await prisma.branch.findUnique({ where: { id: branchId }, select: { name: true } })
     const prefix = branch?.name?.charAt(0)?.toUpperCase() || "X"
@@ -221,7 +267,9 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
 
     if (!order) return { success: false, error: "Orden no encontrada" };
 
-    const description = `ANULACIÓN ORDEN Nº ${order.code || order.id}`;
+    // Usamos el orderId (UUID único) en la descripción para evitar borrar movimientos equivocados
+    const anulacionTag = `[ANULACION:${orderId}]`;
+    const description = `ANULACIÓN ORDEN Nº ${order.code || order.id} ${anulacionTag}`;
 
     if (isAnulando) {
       // 1. Si anulamos, calculamos el efectivo a restar y creamos un GASTO
@@ -242,11 +290,11 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
       }
     } else {
       // 2. Si reactivamos, BORRAMOS el movimiento de gasto que creamos al anular.
-      // Esto devuelve el balance de caja a la normalidad.
+      // Filtramos por el tag único del orderId para no borrar movimientos equivocados.
       await prisma.cashMovement.deleteMany({
         where: {
           branchId: order.branchId,
-          description: description
+          description: { contains: anulacionTag }
         }
       });
     }
