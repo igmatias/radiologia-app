@@ -131,23 +131,50 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     const linkPortal = `${window.location.origin}/resultados/${order.accessCode}`;
     
     if (method === "WHATSAPP") {
-      const cleanPhone = order.patient?.phone?.replace(/\D/g, ''); 
+      const cleanPhone = order.patient?.phone?.replace(/\D/g, '');
       if (!cleanPhone) return toast.error("El paciente no tiene teléfono registrado.");
 
       let text = `¡Hola ${order.patient?.firstName || ''}! Te avisamos de *i-R Dental* que tus estudios ya están listos.`;
-      
+
       if (order.accessCode) {
         text += `\n\nPodés verlos y descargarlos ingresando a este link:\n${linkPortal}`;
       }
-      
+
       if (debt > 0) {
         text += `\n\n⚠️ Te recordamos que quedó un saldo pendiente de *$${debt.toLocaleString('es-AR')}* para abonar al retirar o vía transferencia.`;
       }
-      
+
       text += `\n\n¡Que tengas un excelente día!`;
 
       const msj = encodeURIComponent(text);
       window.open(`https://wa.me/549${cleanPhone}?text=${msj}`, '_blank');
+    }
+
+    if (method === "EMAIL") {
+      // Preferencia: email del dentista si tiene canal digital EMAIL, sino email del paciente
+      const dentistDigitalChannel = (order.dentist?.digitalChannel || "").toUpperCase();
+      const targetEmail = dentistDigitalChannel === "EMAIL"
+        ? (order.dentist?.email || order.patient?.email)
+        : (order.patient?.email || order.dentist?.email);
+
+      if (!targetEmail) return toast.error("No hay email registrado para este paciente u odontólogo.");
+
+      const patientName = `${order.patient?.firstName || ''} ${order.patient?.lastName || ''}`.trim();
+      const subject = encodeURIComponent(`Estudios listos - ${patientName} | i-R Dental`);
+
+      let body = `Estimado/a ${patientName},\n\nLe informamos que sus estudios ya se encuentran disponibles.`;
+      if (order.accessCode) {
+        body += `\n\nPuede verlos y descargarlos desde el siguiente enlace:\n${linkPortal}`;
+      }
+      if (debt > 0) {
+        body += `\n\nRecordamos que existe un saldo pendiente de $${debt.toLocaleString('es-AR')}.`;
+      }
+      body += `\n\nSaludos,\ni-R Dental`;
+
+      window.open(
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail)}&su=${subject}&body=${encodeURIComponent(body)}`,
+        '_blank'
+      );
     }
     
     const res = await markAsDelivered(order.id, method);
@@ -230,7 +257,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
           <div className="grid grid-cols-6 gap-2 mt-2">
             <Button onClick={() => copyLink(order.accessCode)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Copiar Link"><LinkIcon size={18}/></Button>
             <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Imprimir Ticket QR"><QrCode size={18}/></Button>
-            <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-12 border-2 px-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" title="Marcar enviado por Email"><Mail size={18}/></Button>
+            <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-12 border-2 px-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={18}/></Button>
             
             <Button onClick={() => handleDeliver(order, 'WHATSAPP')} className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white px-0 border-b-[3px] border-emerald-800 active:border-b-0 active:translate-y-px transition-all" title="Enviar WhatsApp al Paciente">
               <Smartphone size={18}/>
@@ -332,7 +359,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                     <div className="grid grid-cols-5 gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
                       <Button onClick={() => copyLink(order.accessCode)} variant="outline" className="h-9 border bg-white px-0"><LinkIcon size={14}/></Button>
                       <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-9 border bg-white px-0"><QrCode size={14}/></Button>
-                      <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-9 border bg-white px-0"><Mail size={14}/></Button>
+                      <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-9 border bg-white px-0" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={14}/></Button>
                       <Button onClick={() => handleDeliver(order, 'WHATSAPP')} variant="outline" className="h-9 border border-emerald-200 bg-emerald-50 text-emerald-700 px-0"><Smartphone size={14}/></Button>
                       <Button onClick={() => handleDeliver(order, 'FÍSICO')} className="h-9 bg-slate-700 text-white px-0"><UserCheck size={14}/></Button>
                     </div>
