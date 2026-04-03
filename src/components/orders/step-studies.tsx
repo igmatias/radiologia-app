@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Search, Plus, Check, Settings2, X, ScanLine, MapPin, UserCheck, AlertCircle } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
-import { QuickDentistForm } from "./quick-dentist-form"
+import QuickDentistForm from "./quick-dentist-form"
 
 function PersonalizadaInput({ form, procedureId }: { form: any; procedureId: string }) {
   const items = form.getValues("items");
