@@ -13,13 +13,65 @@ export function Step({ num, label, active, current }: any) {
 
 export function Line({ active }: { active: boolean }) { return <div className={`flex-1 h-1 mx-4 rounded-full transition-all ${active ? 'bg-brand-700 shadow-sm' : 'bg-slate-200'}`} /> }
 
-export function ToothBtn({ t, itemIndex, form, recalculate }: any) {
+// ─── Lógica de placas periapicales ──────────────────────────────────────────
+// Orden de los dientes en el arco (de derecha a izquierda, siguiendo la clínica)
+const UPPER_ORDER = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28]
+const LOWER_ORDER = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38]
+
+// Dientes anteriores: hasta 4 caben en la misma placa
+const ANTERIOR_TEETH = new Set([11, 12, 21, 22, 41, 42, 31, 32])
+
+/**
+ * Calcula la cantidad mínima de placas necesarias para cubrir
+ * los dientes seleccionados. Lógica:
+ * - Posteriores: hasta 2 dientes adyacentes por placa
+ * - Anteriores (11,12,21,22 / 41,42,31,32): hasta 4 adyacentes por placa
+ */
+export function countPeriapicalFilms(selectedTeeth: number[]): number {
+  if (selectedTeeth.length === 0) return 1
+  const selected = new Set(selectedTeeth)
+  let films = 0
+
+  for (const archOrder of [UPPER_ORDER, LOWER_ORDER]) {
+    const archSelected = archOrder.filter(t => selected.has(t))
+    let i = 0
+    while (i < archSelected.length) {
+      films++
+      const isAnterior = ANTERIOR_TEETH.has(archSelected[i])
+      const maxOnFilm = isAnterior ? 4 : 2
+      let covered = 1
+      while (covered < maxOnFilm && i + covered < archSelected.length) {
+        const currPos = archOrder.indexOf(archSelected[i + covered - 1])
+        const nextPos = archOrder.indexOf(archSelected[i + covered])
+        if (nextPos === currPos + 1) {
+          covered++
+        } else {
+          break
+        }
+      }
+      i += covered
+    }
+  }
+
+  return films
+}
+
+export function isPeriapicalLike(name?: string): boolean {
+  if (!name) return false
+  const n = name.toLowerCase()
+  return n.includes('periapical') || n.includes('bite wing') || n.includes('bite-wing') || n.includes('bitewing')
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
+export function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any) {
   const selected = form.watch(`items.${itemIndex}.teeth`) || [];
   const isSelected = selected.includes(t);
+  const isPeri = isPeriapicalLike(procedureName)
   return (
     <button type="button" onClick={() => {
         const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
-        const count = next.length || 1;
+        const count = isPeri ? countPeriapicalFilms(next) : (next.length || 1)
         const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
         const basePat = form.getValues(`items.${itemIndex}.basePatient`);
         form.setValue(`items.${itemIndex}.teeth`, next);

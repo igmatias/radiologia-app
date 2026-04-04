@@ -18,7 +18,7 @@ import { ORTODONCIA_CODES } from "@/lib/constants"
 import { normalizeText } from "@/lib/normalize"
 import PersonalizadaInput from "@/components/orders/personalizada-input"
 import QuickDentistForm from "@/components/orders/quick-dentist-form"
-import { Step, Line, ToothBtn, StatCard } from "@/components/orders/order-ui"
+import { Step, Line, ToothBtn, StatCard, isPeriapicalLike, countPeriapicalFilms } from "@/components/orders/order-ui"
 import OrderesView from "@/components/orders/ordenes-view"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
@@ -1186,14 +1186,27 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                     <div className="py-6 flex flex-col items-center">
                       <div className="flex flex-col gap-4">
                         <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
-                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
-                          <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                          <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                         </div>
                         <div className="flex gap-4 pt-2">
-                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
-                          <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} />)}</div>
+                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                          <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                         </div>
                       </div>
+                      {(() => {
+                        const selectedTeeth = form.watch(`items.${itemIndex}.teeth`) || []
+                        if (!isPeriapicalLike(p?.name) || selectedTeeth.length === 0) return null
+                        const films = countPeriapicalFilms(selectedTeeth)
+                        const basePat = form.getValues(`items.${itemIndex}.basePatient`) || 0
+                        return (
+                          <div className="mt-4 flex items-center justify-center gap-3 bg-brand-900/40 border border-brand-700/60 rounded-2xl px-6 py-3">
+                            <span className="text-brand-300 text-sm font-black uppercase tracking-wider">{films} placa{films !== 1 ? 's' : ''}</span>
+                            <span className="text-slate-500">·</span>
+                            <span className="text-white font-black text-lg">${(basePat * films).toLocaleString('es-AR')}</span>
+                          </div>
+                        )
+                      })()}
                     </div>
                   ) : (
                     <div className="flex flex-wrap justify-center gap-4 py-10">
