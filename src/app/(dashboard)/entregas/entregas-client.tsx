@@ -545,6 +545,12 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               // Esperar a que carguen las imágenes antes de imprimir
               win.onload = () => { win.focus(); setTimeout(() => { win.print(); win.close(); }, 200); };
               setTimeout(() => { if (!win.closed) { win.focus(); win.print(); win.close(); } }, 1500);
+              // Marcar como entregado por QR al imprimir
+              setTicketOrder(null);
+              markAsDelivered(ticketOrder.id, 'QR').then((res) => {
+                if (res.success) { toast.success('Marcado como entregado (QR) ✓'); loadData(); }
+                else toast.error('Error al marcar como entregado');
+              });
             }} className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase italic rounded-xl shadow-md text-lg">Imprimir Ticket</Button>
           </div>
         </DialogContent>
