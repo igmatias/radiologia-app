@@ -79,6 +79,15 @@ export function getCanonicalTooth(tooth: number): number {
   return tooth
 }
 
+/** Devuelve el diente opuesto en el otro arco (para bite-wing). */
+export function getOppositeTooth(tooth: number): number {
+  if (tooth >= 11 && tooth <= 18) return tooth + 30  // sup-der → inf-der  (11→41 … 18→48)
+  if (tooth >= 21 && tooth <= 28) return tooth + 10  // sup-izq → inf-izq  (21→31 … 28→38)
+  if (tooth >= 31 && tooth <= 38) return tooth - 10  // inf-izq → sup-izq  (31→21 … 38→28)
+  if (tooth >= 41 && tooth <= 48) return tooth - 30  // inf-der → sup-der  (41→11 … 48→18)
+  return tooth
+}
+
 /**
  * Cuenta placas bite-wing: primero colapsa cada par diente/opuesto
  * en un único canónico y luego aplica el mismo algoritmo greedy
@@ -97,8 +106,18 @@ export function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any
   const isSelected = selected.includes(t);
   const isPeri = isPeriapicalLike(procedureName)
   const isBW   = isBitewingLike(procedureName)
+  // Bite-wing: el diente opuesto está seleccionado → este está "cubierto" en el mismo film
+  const isPaired = isBW && !isSelected && selected.includes(getOppositeTooth(t))
+
+  const cls = isSelected
+    ? "bg-brand-600 text-white border-brand-500 scale-110"
+    : isPaired
+    ? "bg-amber-900/70 text-amber-300 border-amber-600/70 scale-105"
+    : "bg-slate-800 text-slate-300 border-slate-700"
+
   return (
-    <button type="button" onClick={() => {
+    <button type="button" title={isPaired ? `Cubierto con ${getOppositeTooth(t)}` : undefined}
+      onClick={() => {
         const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
         const count = isPeri ? countPeriapicalFilms(next)
                     : isBW  ? countBitewingFilms(next)
@@ -109,7 +128,7 @@ export function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any
         form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
         form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
         recalculate();
-      }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${isSelected ? "bg-brand-600 text-white border-brand-500 scale-110" : "bg-slate-800 text-slate-300 border-slate-700"}`}>{t}</button>
+      }} className={`h-12 w-10 text-sm font-black rounded-lg border-2 transition-all shadow-sm ${cls}`}>{t}</button>
   );
 }
 

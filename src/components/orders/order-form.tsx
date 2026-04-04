@@ -442,13 +442,23 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
             const proc = procedures.find((p: any) => p.id === it.procedureId);
             const name = it.customName || proc?.name;
             const photoList: string[] = it.metadata?.photos || [];
-            const info = photoList.length > 0
-              ? `${photoList.length} foto${photoList.length !== 1 ? 's' : ''}: ${photoList.join(', ')}`
-              : it.teeth?.length > 0
-              ? `P: ${it.teeth.join(', ')}`
-              : it.locations?.length > 0
-              ? `POS: ${it.locations.join(', ')}`
-              : '';
+            const teeth: number[] = it.teeth || [];
+            let info = '';
+            if (photoList.length > 0) {
+              info = `${photoList.length} foto${photoList.length !== 1 ? 's' : ''}: ${photoList.join(', ')}`;
+            } else if (teeth.length > 0) {
+              if (isPeriapicalLike(name)) {
+                const films = countPeriapicalFilms(teeth);
+                info = `${films} placa${films !== 1 ? 's' : ''} (${teeth.join(', ')})`;
+              } else if (isBitewingLike(name)) {
+                const films = countBitewingFilms(teeth);
+                info = `${films} placa${films !== 1 ? 's' : ''} (${teeth.join(', ')})`;
+              } else {
+                info = `P: ${teeth.join(', ')}`;
+              }
+            } else if (it.locations?.length > 0) {
+              info = `POS: ${it.locations.join(', ')}`;
+            }
             return { name, info };
           });
           setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
@@ -646,7 +656,21 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     const dentistName = orden.dentist ? `${orden.dentist.lastName}, ${orden.dentist.firstName}` : "PARTICULAR";
     const itemsFormatted = orden.items.map((it: any) => {
       const procName = it.procedure?.name || procedures.find((p:any) => p.id === it.procedureId)?.name || "ESTUDIO";
-      const info = it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '');
+      const teeth: number[] = it.teeth || [];
+      let info = '';
+      if (teeth.length > 0) {
+        if (isPeriapicalLike(procName)) {
+          const films = countPeriapicalFilms(teeth);
+          info = `${films} placa${films !== 1 ? 's' : ''} (${teeth.join(', ')})`;
+        } else if (isBitewingLike(procName)) {
+          const films = countBitewingFilms(teeth);
+          info = `${films} placa${films !== 1 ? 's' : ''} (${teeth.join(', ')})`;
+        } else {
+          info = `P: ${teeth.join(', ')}`;
+        }
+      } else if (it.locations?.length > 0) {
+        info = `POS: ${it.locations.join(', ')}`;
+      }
       return { name: procName, info };
     });
     
