@@ -1,6 +1,6 @@
 "use client"
 import { deleteImageFromOrder, uploadDelayedImage, saveExternalLinkToOrder } from "@/actions/storage" 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
   
   const [externalLinks, setExternalLinks] = useState<Record<string, string>>({})
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const pendingDeliveries = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   useEffect(() => {
     async function initSession() {
@@ -68,9 +69,15 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     setLoading(false);
   };
 
-  useEffect(() => { 
-    if(activeTab === "HOY" || activeTab === "DEMORADAS") loadData(); 
+  useEffect(() => {
+    if(activeTab === "HOY" || activeTab === "DEMORADAS") loadData();
   }, [session?.branchId, date, activeTab]);
+
+  useEffect(() => {
+    if (!session?.branchId || activeTab === 'BUSCADOR') return
+    const interval = setInterval(loadData, 30000)
+    return () => clearInterval(interval)
+  }, [session?.branchId, date, activeTab])
 
   const executeSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -109,10 +116,42 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     }
   };
 
-  const copyLink = (accessCode: string) => {
-    const link = `${window.location.origin}/resultados/${accessCode}`;
+  const deliverWithUndo = (orderId: string, method: string) => {
+    const existing = pendingDeliveries.current.get(orderId)
+    if (existing) clearTimeout(existing)
+
+    toast(`Marcado como entregado (${method}) ✓`, {
+      action: {
+        label: 'Deshacer',
+        onClick: () => {
+          const timer = pendingDeliveries.current.get(orderId)
+          if (timer) {
+            clearTimeout(timer)
+            pendingDeliveries.current.delete(orderId)
+          }
+        },
+      },
+      duration: 5000,
+    })
+
+    const timer = setTimeout(async () => {
+      pendingDeliveries.current.delete(orderId)
+      const res = await markAsDelivered(orderId, method)
+      if (!res.success) toast.error('Error al marcar como entregado')
+      else loadData()
+    }, 5000)
+
+    pendingDeliveries.current.set(orderId, timer)
+  }
+
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+  const copyLink = (order: any) => {
+    const link = `${window.location.origin}/resultados/${order.accessCode}`;
     navigator.clipboard.writeText(link);
-    toast.success("Link copiado ✓");
+    toast.success('Link copiado ✓');
+    deliverWithUndo(order.id, 'LINK');
   }
 
   const getDebt = (order: any) => {
@@ -140,9 +179,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
       text += `\n\n¡Que tengas un excelente día!`;
       window.open(`https://wa.me/549${cleanPhone.replace(/^0/, '')}?text=${encodeURIComponent(text)}`, '_blank');
 
-      const res = await markAsDelivered(order.id, method);
-      if (res.success) { toast.success(`Marcado como entregado (${method}) ✓`); loadData(); }
-      else toast.error("Error al marcar como entregado");
+      deliverWithUndo(order.id, method);
       return;
     }
 
@@ -162,19 +199,11 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         '_blank'
       );
 
-      const res = await markAsDelivered(order.id, method);
-      if (res.success) { toast.success(`Marcado como entregado (EMAIL) ✓`); loadData(); }
-      else toast.error("Error al marcar como entregado");
+      deliverWithUndo(order.id, method);
       return;
     }
 
-    const res = await markAsDelivered(order.id, method);
-    if (res.success) {
-      toast.success(`Marcado como entregado (${method}) ✓`);
-      loadData();
-    } else {
-      toast.error("Error al marcar como entregado");
-    }
+    deliverWithUndo(order.id, method);
   }
 
   // 👉 ACCIÓN PARA PAUSAR/DEMORAR LA ORDEN
@@ -246,7 +275,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
           )}
 
           <div className="grid grid-cols-6 gap-2 mt-2">
-            <Button onClick={() => copyLink(order.accessCode)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Copiar Link"><LinkIcon size={18}/></Button>
+            <Button onClick={() => copyLink(order)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Copiar Link"><LinkIcon size={18}/></Button>
             <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Imprimir Ticket QR"><QrCode size={18}/></Button>
             <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-12 border-2 px-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={18}/></Button>
             
@@ -348,7 +377,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                     </div>
 
                     <div className="grid grid-cols-5 gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
-                      <Button onClick={() => copyLink(order.accessCode)} variant="outline" className="h-9 border bg-white px-0"><LinkIcon size={14}/></Button>
+                      <Button onClick={() => copyLink(order)} variant="outline" className="h-9 border bg-white px-0"><LinkIcon size={14}/></Button>
                       <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-9 border bg-white px-0"><QrCode size={14}/></Button>
                       <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-9 border bg-white px-0" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={14}/></Button>
                       <Button onClick={() => handleDeliver(order, 'WHATSAPP')} variant="outline" className="h-9 border border-emerald-200 bg-emerald-50 text-emerald-700 px-0"><Smartphone size={14}/></Button>
@@ -454,7 +483,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                           )}
                         </div>
                         <div className="flex gap-1.5 flex-col md:flex-row">
-                          <Button onClick={() => copyLink(order.accessCode)} variant="outline" size="sm" className="h-10 border-2 bg-white" title="Copiar Link"><Copy size={16}/></Button>
+                          <Button onClick={() => copyLink(order)} variant="outline" size="sm" className="h-10 border-2 bg-white" title="Copiar Link"><Copy size={16}/></Button>
                           <Button onClick={() => handleDeliver(order, 'WHATSAPP')} variant="outline" size="sm" className="h-10 border-2 border-emerald-500 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white" title="Enviar WhatsApp"><Smartphone size={16}/></Button>
                           <Button onClick={() => setTicketOrder(order)} variant="outline" size="sm" className="h-10 border-2 bg-slate-900 text-white hover:bg-slate-800 hover:text-white" title="Imprimir Ticket"><Printer size={16}/></Button>
                         </div>
@@ -505,9 +534,9 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               const url = `${origin}/resultados/${ticketOrder.accessCode}`;
               const svgEl = document.querySelector('[data-qr-ticket] svg');
               const svgHTML = svgEl ? svgEl.outerHTML : '';
-              const paciente = `${ticketOrder?.patient?.lastName ?? ''}, ${ticketOrder?.patient?.firstName ?? ''}`;
-              const dni = ticketOrder?.patient?.dni ?? '';
-              const orderId = ticketOrder?.code || ticketOrder?.dailyId || 'S/N';
+              const paciente = escapeHtml(`${ticketOrder?.patient?.lastName ?? ''}, ${ticketOrder?.patient?.firstName ?? ''}`);
+              const dni = escapeHtml(ticketOrder?.patient?.dni ?? '');
+              const orderCode = escapeHtml(String(ticketOrder?.code || ticketOrder?.dailyId || 'S/N'));
               const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
               <style>
                 @page { size: 80mm auto; margin: 0; }
@@ -546,11 +575,9 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               win.onload = () => { win.focus(); setTimeout(() => { win.print(); win.close(); }, 200); };
               setTimeout(() => { if (!win.closed) { win.focus(); win.print(); win.close(); } }, 1500);
               // Marcar como entregado por QR al imprimir
+              const orderId = ticketOrder.id;
               setTicketOrder(null);
-              markAsDelivered(ticketOrder.id, 'QR').then((res) => {
-                if (res.success) { toast.success('Marcado como entregado (QR) ✓'); loadData(); }
-                else toast.error('Error al marcar como entregado');
-              });
+              deliverWithUndo(orderId, 'QR');
             }} className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase italic rounded-xl shadow-md text-lg">Imprimir Ticket</Button>
           </div>
         </DialogContent>

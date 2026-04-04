@@ -49,6 +49,17 @@ const CreateOrderSchema = z.object({
   paymentsList: z.array(PaymentSchema).optional(),
 })
 
+const UpdateOrderSchema = z.object({
+  dentistId: z.string().optional().nullable(),
+  osVariantId: z.string().optional().nullable(),
+  items: z.array(OrderItemSchema).min(1, "Debe agregar al menos una práctica"),
+  total: z.number().min(0),
+  patientAmount: z.number().min(0),
+  insuranceAmount: z.number().min(0),
+  notes: z.string().optional(),
+  paymentsList: z.array(PaymentSchema).optional(),
+})
+
 // Helper para audit log
 async function logOrderHistory(orderId: string, action: string, details?: string, oldStatus?: OrderStatus, newStatus?: OrderStatus, userId?: string) {
   try {
@@ -199,8 +210,15 @@ export async function createOrder(data: any) {
 export async function updateOrder(orderId: string, data: any) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+
+  const parsed = UpdateOrderSchema.safeParse(data);
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return { success: false, error: firstError.message };
+  }
+
   try {
-    const { dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList, branchId } = data
+    const { dentistId, items, total, patientAmount, insuranceAmount, notes, paymentsList } = parsed.data
 
     await prisma.$transaction(async (tx) => {
       const order = await tx.order.update({
