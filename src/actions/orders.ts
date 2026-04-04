@@ -29,6 +29,11 @@ const OrderItemSchema = z.object({
   teeth: z.array(z.number()).optional(),
   locations: z.array(z.string()).optional(),
   customName: z.string().optional().nullable(),
+  metadata: z.object({
+    photos: z.array(z.string()).optional(),
+    basePhotoCount: z.number().optional(),
+    extraPricePerPhoto: z.number().optional(),
+  }).optional(),
 })
 
 const PaymentSchema = z.object({
