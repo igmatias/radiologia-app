@@ -173,7 +173,14 @@ export async function createOrder(data: any) {
               patientCopay: item.patientCopay || 0,
               insuranceCoverage: item.insuranceCoverage || 0,
               status: "CREADA",
-              metadata: { teeth: item.teeth || [], locations: item.locations || [], customName: item.customName || null }
+              metadata: {
+                teeth: item.teeth || [],
+                locations: item.locations || [],
+                customName: item.customName || null,
+                photos: item.metadata?.photos || [],
+                basePhotoCount: item.metadata?.basePhotoCount ?? 5,
+                extraPricePerPhoto: item.metadata?.extraPricePerPhoto ?? 0,
+              }
             }))
           },
           payments: {
@@ -241,7 +248,14 @@ export async function updateOrder(orderId: string, data: any) {
           patientCopay: item.patientCopay || 0,
           insuranceCoverage: item.insuranceCoverage || 0,
           status: "CREADA",
-          metadata: { teeth: item.teeth || [], locations: item.locations || [], customName: item.customName || null }
+          metadata: {
+            teeth: item.teeth || [],
+            locations: item.locations || [],
+            customName: item.customName || null,
+            photos: item.metadata?.photos || [],
+            basePhotoCount: item.metadata?.basePhotoCount ?? 5,
+            extraPricePerPhoto: item.metadata?.extraPricePerPhoto ?? 0,
+          }
         }))
       })
 

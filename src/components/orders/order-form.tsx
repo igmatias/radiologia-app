@@ -240,11 +240,16 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       iframe.style.top = '-9999px';
       document.body.appendChild(iframe);
 
-      const itemsHtml = printData.items.map((item: any) => `
-        <div style="font-weight: 900; font-size: 12px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          • ${item.name} ${item.info ? `<span style="font-weight: 700; font-size: 10px;">(${item.info})</span>` : ''}
-        </div>
-      `).join('');
+      const itemsHtml = printData.items.map((item: any) => {
+        // Si info contiene lista de fotos, mostrarlas en líneas separadas
+        const isPhotoInfo = item.info?.startsWith('foto') || item.info?.includes('fotos:')
+        const infoHtml = isPhotoInfo
+          ? `<div style="font-weight:700;font-size:9px;margin-top:1px;color:#444">${item.info}</div>`
+          : item.info
+          ? `<span style="font-weight:700;font-size:10px;"> (${item.info})</span>`
+          : ''
+        return `<div style="font-weight:900;font-size:12px;text-transform:uppercase;margin-bottom:2px;">• ${item.name}${isPhotoInfo ? '' : infoHtml}</div>${isPhotoInfo ? infoHtml : ''}`
+      }).join('');
 
       const htmlContent = `<html><head><style>@page { size: 90mm 50mm; margin: 0; } body { margin: 0; padding: 2mm; width: 90mm; height: 50mm; box-sizing: border-box; font-family: sans-serif; display: flex; flex-direction: column; }</style></head><body><div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 2px; margin-bottom: 3px;"><span style="font-weight: 900; font-size: 13px;">Nº ${printData.code}</span><span style="font-weight: 700; font-size: 11px;">${printData.date}</span></div><div style="margin-bottom: 3px;"><div style="font-weight: 900; font-size: 17px; text-transform: uppercase;">${printData.patient}</div><div style="font-weight: 700; font-size: 11px; margin-top: 2px;">F. Nac: ${printData.dob}</div></div><div style="flex: 1; border-top: 2px solid black; padding-top: 4px;">${itemsHtml}</div><div style="border-top: 2px solid black; padding-top: 2px; margin-top: auto;"><div style="font-weight: 900; font-size: 9px;">Prof. Solicitante</div><div style="font-weight: 900; font-size: 14px; text-transform: uppercase;">${printData.dentist}</div></div></body></html>`;
 
