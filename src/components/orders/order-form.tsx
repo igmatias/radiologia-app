@@ -359,6 +359,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     return null;
   })();
 
+  const isPhotos = (name?: string) => name?.toLowerCase().includes('fotograf') ?? false
+
   const toggleProcedure = async (pId: string) => {
     const osId = form.getValues("patient.obrasocialId")
     if (!osId) return toast.error("Seleccione Obra Social primero")
@@ -387,9 +389,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           insuranceCoverage: priceData.insuranceCoverage, baseInsurance: priceData.insuranceCoverage,
           patientCopay: priceData.patientCopay, basePatient: priceData.patientCopay,
           teeth: [], locations: [], quantity: 1,
-          customName: undefined
+          customName: undefined,
+          metadata: isPhotos(procedure?.name)
+            ? { photos: ['FRENTE', 'PERFIL', 'OCLUSION FRENTE', 'OCLUSION IZQUIERDA', 'OCLUSION DERECHA'], basePhotoCount: 5, extraPricePerPhoto: procedure?.extraPhotoPrice || 0 }
+            : {}
         }])
-        if (procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
+        if (isPhotos(procedure?.name) || procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
       }
     }
     recalculateTotal()
@@ -1065,7 +1070,85 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
             <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
                <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-brand-700 p-10">
                   <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
-                  {p?.requiresTooth ? (
+                  {isPhotos(p?.name) ? (() => {
+                    const meta = form.watch(`items.${itemIndex}.metadata`) || {}
+                    const photos: string[] = meta.photos || []
+                    const baseCount: number = meta.basePhotoCount ?? 5
+                    const extraPrice: number = meta.extraPricePerPhoto ?? 0
+                    const extraCount = Math.max(0, photos.length - baseCount)
+
+                    const setMeta = (newMeta: any) => {
+                      form.setValue(`items.${itemIndex}.metadata`, newMeta)
+                      const newExtras = Math.max(0, (newMeta.photos?.length || 0) - (newMeta.basePhotoCount ?? 5))
+                      const basePat = form.getValues(`items.${itemIndex}.basePatient`)
+                      const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`)
+                      form.setValue(`items.${itemIndex}.patientCopay`, basePat + newExtras * (newMeta.extraPricePerPhoto ?? 0))
+                      form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns)
+                      recalculateTotal()
+                    }
+
+                    return (
+                      <div className="space-y-6 py-4">
+                        {/* Config: fotos base + precio extra */}
+                        <div className="flex flex-wrap gap-6 items-end">
+                          <div>
+                            <label className="text-xs font-black uppercase text-slate-400 block mb-2">Fotos incluidas (base)</label>
+                            <input type="number" min="1" value={baseCount}
+                              onChange={e => setMeta({ ...meta, basePhotoCount: parseInt(e.target.value) || 1 })}
+                              className="w-24 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-black uppercase text-slate-400 block mb-2">Precio foto adicional ($)</label>
+                            <input type="number" min="0" value={extraPrice}
+                              onChange={e => setMeta({ ...meta, extraPricePerPhoto: parseFloat(e.target.value) || 0 })}
+                              className="w-40 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none" />
+                          </div>
+                          {extraCount > 0 && (
+                            <div className="ml-auto bg-brand-900/40 border border-brand-700/60 rounded-xl px-5 py-2 text-right">
+                              <p className="text-brand-300 text-xs font-black uppercase">{extraCount} foto{extraCount > 1 ? 's' : ''} adicional{extraCount > 1 ? 'es' : ''}</p>
+                              <p className="text-white text-xl font-black">+ ${(extraCount * extraPrice).toLocaleString('es-AR')}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Lista de fotos */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-black uppercase text-slate-300">
+                              {photos.length} foto{photos.length !== 1 ? 's' : ''}{' '}
+                              <span className="text-slate-500 font-bold text-xs">({Math.min(photos.length, baseCount)} base{extraCount > 0 ? ` + ${extraCount} extra` : ''})</span>
+                            </p>
+                            <Button type="button" onClick={() => setMeta({ ...meta, photos: [...photos, `Foto ${photos.length + 1}`] })}
+                              className="bg-brand-700 hover:bg-brand-600 text-white font-black text-sm rounded-xl h-9 px-4">
+                              + Agregar Foto
+                            </Button>
+                          </div>
+
+                          {photos.length === 0 && (
+                            <div className="text-center py-8 text-slate-600 border-2 border-dashed border-slate-700 rounded-2xl">
+                              <p className="text-sm font-bold">Sin fotos cargadas</p>
+                              <p className="text-xs mt-1 text-slate-700">Presioná "+ Agregar Foto" para comenzar</p>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                            {photos.map((photo: string, i: number) => (
+                              <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-900/20 border-brand-700/40' : 'bg-slate-800 border-slate-700'}`}>
+                                <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-400' : 'text-slate-500'}`}>{i + 1}</span>
+                                {i >= baseCount && <span className="text-[9px] font-black uppercase text-brand-400 bg-brand-900/60 px-1.5 py-0.5 rounded shrink-0">+$</span>}
+                                <input type="text" value={photo}
+                                  onChange={e => { const np = [...photos]; np[i] = e.target.value; setMeta({ ...meta, photos: np }) }}
+                                  placeholder={`Descripción foto ${i + 1}`}
+                                  className="flex-1 bg-transparent text-white text-sm font-bold placeholder-slate-600 outline-none min-w-0" />
+                                <button type="button" onClick={() => setMeta({ ...meta, photos: photos.filter((_: string, j: number) => j !== i) })}
+                                  className="text-slate-600 hover:text-red-400 font-black text-xl leading-none shrink-0 transition-colors">×</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })() : p?.requiresTooth ? (
                     <div className="py-6 flex flex-col items-center">
                       <div className="flex flex-col gap-4">
                         <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
