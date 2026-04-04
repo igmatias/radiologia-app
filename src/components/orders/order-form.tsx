@@ -399,7 +399,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           teeth: [], locations: [], quantity: 1,
           customName: undefined,
           metadata: isPhotos(procedure?.name)
-            ? { photos: ['FRENTE', 'PERFIL', 'OCLUSION FRENTE', 'OCLUSION IZQUIERDA', 'OCLUSION DERECHA'], basePhotoCount: 5, extraPricePerPhoto: procedure?.extraPhotoPrice || 0 }
+            ? { photos: ['FRENTE REPOSO', 'FRENTE SONRISA', 'PERFIL DERECHO', 'OCLUSION FRENTE', 'OCLUSION DERECHA'], basePhotoCount: 5, extraPricePerPhoto: procedure?.extraPhotoPrice || 0 }
             : {}
         }])
         if (isPhotos(procedure?.name) || procedure?.requiresTooth || (procedure?.options && procedure.options.length > 0)) setActiveConfigId(pId);
@@ -436,7 +436,15 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           const itemsFormatted = data.items.map((it: any) => {
             const proc = procedures.find((p: any) => p.id === it.procedureId);
             const name = it.customName || proc?.name;
-            return { name, info: it.teeth?.length > 0 ? `P: ${it.teeth.join(', ')}` : (it.locations?.length > 0 ? `POS: ${it.locations.join(', ')}` : '') }
+            const photoList: string[] = it.metadata?.photos || [];
+            const info = photoList.length > 0
+              ? `${photoList.length} foto${photoList.length !== 1 ? 's' : ''}: ${photoList.join(', ')}`
+              : it.teeth?.length > 0
+              ? `P: ${it.teeth.join(', ')}`
+              : it.locations?.length > 0
+              ? `POS: ${it.locations.join(', ')}`
+              : '';
+            return { name, info };
           });
           setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
           toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
@@ -1139,21 +1147,28 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                             </div>
                           )}
 
-                          <datalist id="foto-names-list">
-                            {FOTO_NAMES.map(n => <option key={n} value={n} />)}
-                          </datalist>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
                             {photos.map((photo: string, i: number) => (
                               <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-900/20 border-brand-700/40' : 'bg-slate-800 border-slate-700'}`}>
                                 <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-400' : 'text-slate-500'}`}>{i + 1}</span>
                                 {i >= baseCount && <span className="text-[9px] font-black uppercase text-brand-400 bg-brand-900/60 px-1.5 py-0.5 rounded shrink-0">+$</span>}
-                                <input
-                                  type="text"
-                                  list="foto-names-list"
-                                  value={photo}
-                                  onChange={e => { const np = [...photos]; np[i] = e.target.value.toUpperCase(); setMeta({ ...meta, photos: np }) }}
-                                  placeholder={`Elegir o escribir nombre...`}
-                                  className="flex-1 bg-transparent text-white text-sm font-bold placeholder-slate-600 outline-none min-w-0 uppercase" />
+                                <select
+                                  value={FOTO_NAMES.includes(photo) ? photo : '__custom__'}
+                                  onChange={e => { const np = [...photos]; np[i] = e.target.value === '__custom__' ? '' : e.target.value; setMeta({ ...meta, photos: np }) }}
+                                  className="flex-1 bg-transparent text-white text-xs font-bold outline-none cursor-pointer min-w-0 truncate"
+                                >
+                                  {FOTO_NAMES.map(n => <option key={n} value={n} className="bg-slate-900 text-white">{n}</option>)}
+                                  <option value="__custom__" className="bg-slate-900 text-slate-400">— Personalizada —</option>
+                                </select>
+                                {!FOTO_NAMES.includes(photo) && (
+                                  <input
+                                    type="text"
+                                    value={photo}
+                                    onChange={e => { const np = [...photos]; np[i] = e.target.value.toUpperCase(); setMeta({ ...meta, photos: np }) }}
+                                    placeholder="Escribir nombre..."
+                                    className="w-32 bg-slate-700 text-white text-xs font-bold px-2 py-1 rounded-lg outline-none placeholder-slate-500 uppercase"
+                                  />
+                                )}
                                 <button type="button" onClick={() => setMeta({ ...meta, photos: photos.filter((_: string, j: number) => j !== i) })}
                                   className="text-slate-600 hover:text-red-400 font-black text-xl leading-none shrink-0 transition-colors">×</button>
                               </div>
@@ -1262,7 +1277,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         const nombre = meta?.customName || it.procedure?.name;
                         const teeth: number[] = meta?.teeth || [];
                         const locations: string[] = meta?.locations || [];
-                        const detalle = teeth.length > 0
+                        const photoList: string[] = meta?.photos || [];
+                        const detalle = photoList.length > 0
+                          ? `${photoList.length} foto${photoList.length !== 1 ? 's' : ''}: ${photoList.join(', ')}`
+                          : teeth.length > 0
                           ? `Pieza${teeth.length > 1 ? 's' : ''}: ${teeth.join(', ')}`
                           : locations.length > 0
                           ? locations.join(', ')
