@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import QRCode from "react-qr-code"
 import { useRouter } from "next/navigation"
 import { 
-  FileCheck, Clock, CheckCircle2, User, Mail, 
+  FileCheck, Clock, CheckCircle2, Mail,
   Smartphone, UserCheck, RefreshCw, Send, Printer, QrCode, Search, 
   UploadCloud, Link as LinkIcon, Copy, XCircle, FileText, ExternalLink,
   ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Package, PauseCircle
@@ -44,7 +44,6 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
   
   const [externalLinks, setExternalLinks] = useState<Record<string, string>>({})
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
-  const [emailModal, setEmailModal] = useState<{ order: any } | null>(null)
 
   useEffect(() => {
     async function initSession() {
@@ -123,50 +122,6 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     return Math.max(0, totalPaciente - totalAbonado);
   };
 
-  const openGmail = (toEmails: string[], order: any) => {
-    const debt = getDebt(order);
-    const linkPortal = `${window.location.origin}/resultados/${order.accessCode}`;
-    const patientName = `${order.patient?.firstName || ''} ${order.patient?.lastName || ''}`.trim();
-    const subject = encodeURIComponent(`Estudios listos - ${patientName} | i-R Dental`);
-    let body = `Estimado/a ${patientName},\n\nLe informamos que sus estudios ya se encuentran disponibles.`;
-    if (order.accessCode) body += `\n\nPuede verlos y descargarlos desde el siguiente enlace:\n${linkPortal}`;
-    if (debt > 0) body += `\n\nRecordamos que existe un saldo pendiente de $${debt.toLocaleString('es-AR')}.`;
-    body += `\n\nSaludos,\ni-R Dental`;
-    window.open(
-      `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(toEmails.join(','))}&su=${subject}&body=${encodeURIComponent(body)}`,
-      '_blank'
-    );
-  }
-
-  const handleEmailChoice = async (choice: 'PACIENTE' | 'ODONTOLOGO' | 'AMBOS') => {
-    const order = emailModal!.order;
-    setEmailModal(null);
-
-    const patientEmail = order.patient?.email;
-    const dentistEmail = order.dentist?.email;
-
-    const emails: string[] = [];
-    if (choice === 'PACIENTE' || choice === 'AMBOS') {
-      if (!patientEmail) { toast.error("El paciente no tiene email registrado."); if (choice === 'PACIENTE') return; }
-      else emails.push(patientEmail);
-    }
-    if (choice === 'ODONTOLOGO' || choice === 'AMBOS') {
-      if (!dentistEmail) { toast.error("El odontólogo no tiene email registrado."); if (choice === 'ODONTOLOGO') return; }
-      else emails.push(dentistEmail);
-    }
-    if (emails.length === 0) return;
-
-    openGmail(emails, order);
-
-    const res = await markAsDelivered(order.id, 'EMAIL');
-    if (res.success) {
-      toast.success('Marcado como entregado (EMAIL) ✓');
-      loadData();
-    } else {
-      toast.error('Error al marcar como entregado');
-    }
-  }
-
   const handleDeliver = async (order: any, method: string) => {
     if (!order.accessCode && (method === "WHATSAPP" || method === "EMAIL" || method === "QR")) {
       return toast.error("La orden no tiene placas o links cargados aún.");
@@ -192,8 +147,25 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     }
 
     if (method === "EMAIL") {
-      setEmailModal({ order });
-      return; // el marcado se hace desde handleEmailChoice
+      const patientEmail = order.patient?.email;
+      if (!patientEmail) return toast.error("El paciente no tiene email registrado.");
+
+      const patientName = `${order.patient?.firstName || ''} ${order.patient?.lastName || ''}`.trim();
+      const subject = encodeURIComponent(`Estudios listos - ${patientName} | i-R Dental`);
+      let body = `Estimado/a ${patientName},\n\nLe informamos que sus estudios ya se encuentran disponibles.`;
+      if (order.accessCode) body += `\n\nPuede verlos y descargarlos desde el siguiente enlace:\n${linkPortal}`;
+      if (debt > 0) body += `\n\nRecordamos que existe un saldo pendiente de $${debt.toLocaleString('es-AR')}.`;
+      body += `\n\nSaludos,\ni-R Dental`;
+
+      window.open(
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(patientEmail)}&su=${subject}&body=${encodeURIComponent(body)}`,
+        '_blank'
+      );
+
+      const res = await markAsDelivered(order.id, method);
+      if (res.success) { toast.success(`Marcado como entregado (EMAIL) ✓`); loadData(); }
+      else toast.error("Error al marcar como entregado");
+      return;
     }
 
     const res = await markAsDelivered(order.id, method);
@@ -578,78 +550,6 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de selección de destinatario de email */}
-      <Dialog open={!!emailModal} onOpenChange={(open) => !open && setEmailModal(null)}>
-        <DialogContent className="max-w-sm rounded-2xl p-0 overflow-hidden">
-          <div className="bg-blue-600 px-6 py-5">
-            <DialogTitle className="text-white font-black uppercase text-lg flex items-center gap-2">
-              <Mail size={20} /> Enviar por Email
-            </DialogTitle>
-            <p className="text-blue-100 text-xs font-semibold mt-1 uppercase tracking-wide">
-              {emailModal?.order.patient?.lastName}, {emailModal?.order.patient?.firstName}
-            </p>
-          </div>
-
-          <div className="p-5 space-y-3">
-            <p className="text-[11px] font-bold uppercase text-slate-500 tracking-widest mb-4">¿A quién enviamos los estudios?</p>
-
-            {/* A PACIENTE */}
-            <button
-              onClick={() => handleEmailChoice('PACIENTE')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all group text-left"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center shrink-0">
-                <User size={20} className="text-slate-600 group-hover:text-blue-600" />
-              </div>
-              <div>
-                <p className="font-black uppercase text-sm text-slate-800">Al Paciente</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                  {emailModal?.order.patient?.email || <span className="text-red-400 italic">Sin email registrado</span>}
-                </p>
-              </div>
-            </button>
-
-            {/* A ODONTÓLOGO */}
-            <button
-              onClick={() => handleEmailChoice('ODONTOLOGO')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all group text-left"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center shrink-0">
-                <UserCheck size={20} className="text-slate-600 group-hover:text-blue-600" />
-              </div>
-              <div>
-                <p className="font-black uppercase text-sm text-slate-800">Al Odontólogo</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">
-                  {emailModal?.order.dentist
-                    ? (emailModal.order.dentist.email || <span className="text-red-400 italic">Sin email registrado</span>)
-                    : <span className="text-slate-300 italic">Sin odontólogo asignado</span>}
-                </p>
-              </div>
-            </button>
-
-            {/* A AMBOS */}
-            <button
-              onClick={() => handleEmailChoice('AMBOS')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all group text-left"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center shrink-0">
-                <Send size={20} className="text-slate-600 group-hover:text-blue-600" />
-              </div>
-              <div>
-                <p className="font-black uppercase text-sm text-slate-800">A Ambos</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Se envía a paciente y odontólogo</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setEmailModal(null)}
-              className="w-full mt-1 py-2.5 text-[11px] font-black uppercase text-slate-400 hover:text-slate-600 tracking-widest transition-colors"
-            >
-              Cancelar
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
