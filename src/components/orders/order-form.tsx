@@ -361,6 +361,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
   const isPhotos = (name?: string) => name?.toLowerCase().includes('fotograf') ?? false
 
+  const FOTO_NAMES = [
+    'FRENTE REPOSO', 'FRENTE SONRISA', 'PERFIL DERECHO', 'PERFIL IZQUIERDO',
+    'OCLUSION FRENTE', 'OCLUSION DERECHA', 'OCLUSION IZQUIERDA',
+    'OCLUSAL SUPERIOR', 'OCLUSAL INFERIOR',
+    'INTRAORAL FRENTE', 'INTRAORAL DERECHA', 'INTRAORAL IZQUIERDA',
+    'OVERJET', 'OVERBITE', 'SONRISA COMPLETA',
+  ]
+
   const toggleProcedure = async (pId: string) => {
     const osId = form.getValues("patient.obrasocialId")
     if (!osId) return toast.error("Seleccione Obra Social primero")
@@ -1131,15 +1139,21 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                             </div>
                           )}
 
+                          <datalist id="foto-names-list">
+                            {FOTO_NAMES.map(n => <option key={n} value={n} />)}
+                          </datalist>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
                             {photos.map((photo: string, i: number) => (
                               <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-900/20 border-brand-700/40' : 'bg-slate-800 border-slate-700'}`}>
                                 <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-400' : 'text-slate-500'}`}>{i + 1}</span>
                                 {i >= baseCount && <span className="text-[9px] font-black uppercase text-brand-400 bg-brand-900/60 px-1.5 py-0.5 rounded shrink-0">+$</span>}
-                                <input type="text" value={photo}
-                                  onChange={e => { const np = [...photos]; np[i] = e.target.value; setMeta({ ...meta, photos: np }) }}
-                                  placeholder={`Descripción foto ${i + 1}`}
-                                  className="flex-1 bg-transparent text-white text-sm font-bold placeholder-slate-600 outline-none min-w-0" />
+                                <input
+                                  type="text"
+                                  list="foto-names-list"
+                                  value={photo}
+                                  onChange={e => { const np = [...photos]; np[i] = e.target.value.toUpperCase(); setMeta({ ...meta, photos: np }) }}
+                                  placeholder={`Elegir o escribir nombre...`}
+                                  className="flex-1 bg-transparent text-white text-sm font-bold placeholder-slate-600 outline-none min-w-0 uppercase" />
                                 <button type="button" onClick={() => setMeta({ ...meta, photos: photos.filter((_: string, j: number) => j !== i) })}
                                   className="text-slate-600 hover:text-red-400 font-black text-xl leading-none shrink-0 transition-colors">×</button>
                               </div>
