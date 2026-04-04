@@ -59,7 +59,35 @@ export function countPeriapicalFilms(selectedTeeth: number[]): number {
 export function isPeriapicalLike(name?: string): boolean {
   if (!name) return false
   const n = name.toLowerCase()
-  return n.includes('periapical') || n.includes('bite wing') || n.includes('bite-wing') || n.includes('bitewing')
+  return n.includes('periapical')
+}
+
+export function isBitewingLike(name?: string): boolean {
+  if (!name) return false
+  const n = name.toLowerCase()
+  return n.includes('bite wing') || n.includes('bite-wing') || n.includes('bitewing')
+}
+
+/**
+ * Normaliza un diente al arco superior (canónico).
+ * Bite-wing: upper + lower opuestos comparten el mismo film,
+ * por lo que 37 → 27, 31 → 21, 41 → 11, etc.
+ */
+export function getCanonicalTooth(tooth: number): number {
+  if (tooth >= 31 && tooth <= 38) return tooth - 10  // inf-izq → sup-izq  (31→21 … 38→28)
+  if (tooth >= 41 && tooth <= 48) return tooth - 30  // inf-der → sup-der  (41→11 … 48→18)
+  return tooth
+}
+
+/**
+ * Cuenta placas bite-wing: primero colapsa cada par diente/opuesto
+ * en un único canónico y luego aplica el mismo algoritmo greedy
+ * de periapicales sobre los canónicos únicos.
+ */
+export function countBitewingFilms(selectedTeeth: number[]): number {
+  if (selectedTeeth.length === 0) return 1
+  const canonical = [...new Set(selectedTeeth.map(getCanonicalTooth))]
+  return countPeriapicalFilms(canonical)
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -68,10 +96,13 @@ export function ToothBtn({ t, itemIndex, form, recalculate, procedureName }: any
   const selected = form.watch(`items.${itemIndex}.teeth`) || [];
   const isSelected = selected.includes(t);
   const isPeri = isPeriapicalLike(procedureName)
+  const isBW   = isBitewingLike(procedureName)
   return (
     <button type="button" onClick={() => {
         const next = isSelected ? selected.filter((tooth: number) => tooth !== t) : [...selected, t];
-        const count = isPeri ? countPeriapicalFilms(next) : (next.length || 1)
+        const count = isPeri ? countPeriapicalFilms(next)
+                    : isBW  ? countBitewingFilms(next)
+                    : (next.length || 1)
         const baseIns = form.getValues(`items.${itemIndex}.baseInsurance`);
         const basePat = form.getValues(`items.${itemIndex}.basePatient`);
         form.setValue(`items.${itemIndex}.teeth`, next);

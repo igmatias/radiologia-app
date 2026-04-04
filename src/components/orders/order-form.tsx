@@ -18,7 +18,7 @@ import { ORTODONCIA_CODES } from "@/lib/constants"
 import { normalizeText } from "@/lib/normalize"
 import PersonalizadaInput from "@/components/orders/personalizada-input"
 import QuickDentistForm from "@/components/orders/quick-dentist-form"
-import { Step, Line, ToothBtn, StatCard, isPeriapicalLike, countPeriapicalFilms } from "@/components/orders/order-ui"
+import { Step, Line, ToothBtn, StatCard, isPeriapicalLike, isBitewingLike, countPeriapicalFilms, countBitewingFilms } from "@/components/orders/order-ui"
 import OrderesView from "@/components/orders/ordenes-view"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
@@ -1196,8 +1196,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       </div>
                       {(() => {
                         const selectedTeeth = form.watch(`items.${itemIndex}.teeth`) || []
-                        if (!isPeriapicalLike(p?.name) || selectedTeeth.length === 0) return null
-                        const films = countPeriapicalFilms(selectedTeeth)
+                        const isPeri = isPeriapicalLike(p?.name)
+                        const isBW   = isBitewingLike(p?.name)
+                        if ((!isPeri && !isBW) || selectedTeeth.length === 0) return null
+                        const films = isPeri ? countPeriapicalFilms(selectedTeeth) : countBitewingFilms(selectedTeeth)
                         const basePat = form.getValues(`items.${itemIndex}.basePatient`) || 0
                         return (
                           <div className="mt-4 flex items-center justify-center gap-3 bg-brand-900/40 border border-brand-700/60 rounded-2xl px-6 py-3">
