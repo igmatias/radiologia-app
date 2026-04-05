@@ -18,19 +18,20 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
   if (!session) return { success: false, error: "No autorizado" }
 
   const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return { success: false, error: "API de IA no configurada" }
+  if (!apiKey) return { success: false, error: "API de IA no configurada. Agregá GEMINI_API_KEY en las variables de entorno." }
 
   try {
     // Fetch the image and convert to base64
-    const response = await fetch(imageUrl)
-    if (!response.ok) throw new Error("No se pudo obtener la imagen")
+    const imgResponse = await fetch(imageUrl)
+    if (!imgResponse.ok) throw new Error(`No se pudo obtener la imagen (HTTP ${imgResponse.status})`)
 
-    const arrayBuffer = await response.arrayBuffer()
+    const arrayBuffer = await imgResponse.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString("base64")
-    const mimeType = response.headers.get("content-type") || "image/jpeg"
+    const mimeType = imgResponse.headers.get("content-type") || "image/jpeg"
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    // gemini-2.0-flash es el modelo gratuito más reciente
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
     const result = await model.generateContent([
       PROMPT,
@@ -40,7 +41,9 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
     const analysis = result.response.text()
     return { success: true, analysis }
   } catch (error: any) {
-    console.error("Gemini error:", error)
-    return { success: false, error: "No se pudo analizar la imagen. Intentá de nuevo." }
+    const msg = error?.message || String(error)
+    console.error("Gemini error:", msg)
+    // Devolvemos el mensaje real para facilitar el diagnóstico
+    return { success: false, error: msg }
   }
 }
