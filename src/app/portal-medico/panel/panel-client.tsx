@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { logoutDentist, updateDentistProfile, uploadDentistBannerAction } from "@/actions/dentist-auth"
+import { analyzeImageWithAI } from "@/actions/ai"
 import { ORTODONCIA_CODES } from "@/lib/constants"
 import { saveDerivacion } from "@/actions/derivaciones"
 import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
@@ -16,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   LogOut, Calendar, CheckCircle2, Image as ImageIcon,
   Search, Hash, FileText, ExternalLink, Settings, MessageSquarePlus, Download, ChevronRight, Clock, Bell, X,
-  FilePlus, Plus, Trash2, Printer, AlertTriangle, Stamp, Smartphone
+  FilePlus, Plus, Trash2, Printer, AlertTriangle, Stamp, Smartphone, Sparkles, Loader2
 } from "lucide-react"
 import Link from "next/link"
 
@@ -135,6 +136,25 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   }
   const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], options: string[] }>>({})
   const [toothModalProc, setToothModalProc] = useState<any>(null)
+  const [aiAnalysis, setAiAnalysis] = useState<Record<string, string>>({})
+  const [analyzingImg, setAnalyzingImg] = useState<string | null>(null)
+  const [aiModalImg, setAiModalImg] = useState<string | null>(null)
+
+  const handleAnalyzeImage = async (imgUrl: string) => {
+    if (analyzingImg) return
+    setAnalyzingImg(imgUrl)
+    try {
+      const res = await analyzeImageWithAI(imgUrl)
+      if (res.success && res.analysis) {
+        setAiAnalysis(prev => ({ ...prev, [imgUrl]: res.analysis! }))
+        setAiModalImg(imgUrl)
+      } else {
+        toast.error(res.error || "No se pudo analizar la imagen")
+      }
+    } finally {
+      setAnalyzingImg(null)
+    }
+  }
 
   const toggleTooth = (procId: string, tooth: number) => {
     setDerivacionConfig(prev => {
@@ -1150,22 +1170,44 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                           <div className="flex flex-wrap gap-2 pt-1">
                             {order.images.map((img: string, idx: number) => {
                               const isPDF = img.toLowerCase().includes('.pdf')
+                              const isAnalyzing = analyzingImg === img
+                              const hasAnalysis = !!aiAnalysis[img]
                               return (
-                                <a key={idx} href={img} target="_blank" rel="noreferrer"
-                                   className="relative group block rounded-xl overflow-hidden border border-neutral-200 shadow-sm bg-neutral-900 shrink-0"
-                                   style={{ width: '5.5rem', height: '5rem' }}>
-                                  {isPDF ? (
-                                    <div className="w-full h-full bg-neutral-800 text-neutral-300 flex flex-col items-center justify-center">
-                                      <FileText size={24} className="mb-1 text-brand-400"/>
-                                      <span className="text-[9px] font-bold uppercase">PDF</span>
+                                <div key={idx} className="flex flex-col gap-1 shrink-0">
+                                  <a href={img} target="_blank" rel="noreferrer"
+                                     className="relative group block rounded-xl overflow-hidden border border-neutral-200 shadow-sm bg-neutral-900"
+                                     style={{ width: '5.5rem', height: '5rem' }}>
+                                    {isPDF ? (
+                                      <div className="w-full h-full bg-neutral-800 text-neutral-300 flex flex-col items-center justify-center">
+                                        <FileText size={24} className="mb-1 text-brand-400"/>
+                                        <span className="text-[9px] font-bold uppercase">PDF</span>
+                                      </div>
+                                    ) : (
+                                      <img src={img} alt={`Imagen ${idx+1}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
+                                    )}
+                                    <div className="absolute inset-0 bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <Search size={16} className="text-white"/>
                                     </div>
-                                  ) : (
-                                    <img src={img} alt={`Imagen ${idx+1}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
+                                  </a>
+                                  {!isPDF && (
+                                    <button
+                                      onClick={() => hasAnalysis ? setAiModalImg(img) : handleAnalyzeImage(img)}
+                                      disabled={isAnalyzing}
+                                      className={`flex items-center justify-center gap-1 text-[9px] font-black uppercase rounded-lg px-1.5 py-1 transition-colors w-full ${
+                                        hasAnalysis
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                          : 'bg-brand-50 text-brand-700 border border-brand-200 hover:bg-brand-100 disabled:opacity-50'
+                                      }`}
+                                    >
+                                      {isAnalyzing
+                                        ? <><Loader2 size={9} className="animate-spin"/> Analizando...</>
+                                        : hasAnalysis
+                                          ? <><Sparkles size={9}/> Ver análisis</>
+                                          : <><Sparkles size={9}/> Analizar IA</>
+                                      }
+                                    </button>
                                   )}
-                                  <div className="absolute inset-0 bg-brand-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Search size={16} className="text-white"/>
-                                  </div>
-                                </a>
+                                </div>
                               )
                             })}
                           </div>
@@ -1181,6 +1223,36 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
         </div>
 
       </div>
+
+      {/* ── MODAL ANÁLISIS IA ── */}
+      <Dialog open={!!aiModalImg} onOpenChange={open => { if (!open) setAiModalImg(null) }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase">
+              <Sparkles size={16} className="text-brand-600"/> Análisis IA — Radiografía
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-400">
+              Descripción objetiva generada por inteligencia artificial
+            </DialogDescription>
+          </DialogHeader>
+          {aiModalImg && (
+            <div className="space-y-4">
+              <img src={aiModalImg} alt="Radiografía" className="w-full rounded-xl border border-neutral-200 object-contain max-h-48"/>
+              <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
+                <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">
+                  {aiAnalysis[aiModalImg]}
+                </p>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setAiModalImg(null)} className="font-black uppercase text-xs">
+                  <X size={13} className="mr-1.5"/> Cerrar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   )
 }
