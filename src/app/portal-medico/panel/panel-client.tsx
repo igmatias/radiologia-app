@@ -1086,7 +1086,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
                       <CheckCircle2 size={12} className="text-emerald-500"/> Prácticas realizadas
                     </p>
                     <div className="space-y-2">
-                      {order.items.map((item: any, i: number) => {
+                      {order.items.filter((item: any) => !item.hidden).map((item: any, i: number) => {
                         const teeth = item.metadata?.teeth || item.teeth || []
                         const locs  = item.metadata?.locations || item.locations || []
                         return (

@@ -11,7 +11,7 @@ import { toast } from "sonner"
 import { searchOrdersAdmin, adminUpdateOrder } from "@/actions/orders"
 import {
   Search, ClipboardList, Calendar, User, Building2,
-  CreditCard, Hash, Edit2, Save, X, ChevronDown, ChevronUp, Trash2, Plus
+  CreditCard, Hash, Edit2, Save, X, ChevronDown, ChevronUp, Trash2, Plus, Eye, EyeOff
 } from "lucide-react"
 
 const STATUS_LABELS: Record<string, string> = {
@@ -88,6 +88,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
         patientCopay: Number(i.patientCopay),
         teeth: i.metadata?.teeth || [],
         locations: i.metadata?.locations || [],
+        hidden: i.hidden ?? false,
       }))
     })
   }
@@ -112,6 +113,7 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
         patientCopay: Number(i.patientCopay),
         teeth: i.teeth || [],
         locations: i.locations || [],
+        hidden: i.hidden ?? false,
       }))
     }
     const res = await adminUpdateOrder(editingOrder.id, payload)
@@ -463,12 +465,24 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
                 {expandedItems && (
                   <div className="space-y-2">
                     {editData.items.map((item: any, index: number) => (
-                      <div key={index} className="bg-slate-50 rounded-xl border border-slate-200 p-3">
+                      <div key={index} className={`rounded-xl border p-3 transition-colors ${item.hidden ? 'bg-slate-100 border-slate-300 opacity-60' : 'bg-slate-50 border-slate-200'}`}>
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-black uppercase text-slate-700">{item.procedureName}</p>
-                          <button onClick={() => removeItem(index)} className="text-red-400 hover:text-red-600 transition-colors">
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <p className={`text-xs font-black uppercase ${item.hidden ? 'line-through text-slate-400' : 'text-slate-700'}`}>{item.procedureName}</p>
+                            {item.hidden && <span className="text-[9px] font-black uppercase bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded">Oculto</span>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateItem(index, 'hidden', !item.hidden)}
+                              title={item.hidden ? 'Mostrar al paciente/odontólogo' : 'Ocultar al paciente/odontólogo'}
+                              className={`transition-colors ${item.hidden ? 'text-slate-400 hover:text-slate-600' : 'text-slate-400 hover:text-brand-600'}`}
+                            >
+                              {item.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                            <button onClick={() => removeItem(index)} className="text-red-400 hover:text-red-600 transition-colors">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-0.5">

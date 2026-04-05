@@ -692,6 +692,7 @@ export async function adminUpdateOrder(orderId: string, data: {
             insuranceCoverage: i.insuranceCoverage,
             patientCopay: i.patientCopay,
             status: 'CREADA',
+            hidden: i.hidden ?? false,
             metadata: { teeth: i.teeth || [], locations: i.locations || [] }
           }))
         })

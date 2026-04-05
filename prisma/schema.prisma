@@ -354,10 +354,11 @@ model OrderItem {
   insuranceCoverage Decimal     @default(0)
   patientCopay      Decimal     @default(0)
   
-  metadata          Json?     
-  
+  metadata          Json?
+
   details           Json?
   status            OrderStatus @default(CREADA)
+  hidden            Boolean     @default(false)
 
   createdAt         DateTime    @default(now())
 }

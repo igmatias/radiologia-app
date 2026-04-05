@@ -290,7 +290,7 @@ export default function ResultadosClient() {
                 <div className="mb-6">
                   <p className="text-[10px] font-black uppercase text-slate-400 mb-2">Estudios Realizados</p>
                   <div className="flex flex-wrap gap-2">
-                    {order.items.map((item: any) => (
+                    {order.items.filter((item: any) => !item.hidden).map((item: any) => (
                       <span key={item.id} className="bg-slate-900 text-white text-xs font-black uppercase px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                         <CheckCircle2 size={11} className="text-emerald-400" /> {item.procedure?.name}
                       </span>
