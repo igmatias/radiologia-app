@@ -697,7 +697,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl h-full border-l-4 border-l-brand-700 relative">
           <CardContent className="p-6 flex justify-between items-center">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">
                 {editingOrderId ? "DIFERENCIA A COBRAR" : "A COBRAR EN CAJA"}
               </p>
               <p className={`text-3xl font-black italic uppercase ${editingOrderId && saldoDiferencia <= 0 ? 'text-emerald-600' : 'text-brand-700'}`}>
@@ -708,13 +708,13 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
         </Card>
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
           <CardContent className="p-6 flex justify-between items-start">
-            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
+            <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">OPERADOR</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-1">{session?.userName?.split(' ')[0] || "OPERADOR"}</p></div>
             <button onClick={handleLogout} className="bg-brand-100 text-brand-700 p-2 rounded-xl hover:bg-brand-200 shrink-0"><LogOut size={16} /></button>
           </CardContent>
         </Card>
         <Card className="border-none shadow-md bg-white/60 backdrop-blur-md rounded-2xl relative group">
           <CardContent className="p-6 flex justify-between items-start">
-            <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b:any) => b.id === session?.branchId)?.name || "---"}</p></div>
+            <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 italic">SEDE</p><p className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase truncate pr-2">{branches.find((b:any) => b.id === session?.branchId)?.name || "---"}</p></div>
             <button onClick={() => setShowSessionModal(true)} className="bg-slate-200 text-slate-700 p-2 rounded-xl hover:bg-slate-300 transition-colors shrink-0"><Building2 size={16} /></button>
           </CardContent>
         </Card>
@@ -937,7 +937,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                       </div>
                       {derivacionIndicacion && (
                         <div className="bg-white rounded-xl border border-indigo-200 px-3 py-2">
-                          <p className="text-[9px] font-black uppercase text-indigo-400 tracking-wider mb-0.5">Indicación clínica</p>
+                          <p className="text-[10px] font-black uppercase text-indigo-400 tracking-wider mb-0.5">Indicación clínica</p>
                           <p className="text-xs font-bold text-slate-700 uppercase">{derivacionIndicacion}</p>
                         </div>
                       )}
@@ -972,8 +972,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                                  )}
                                  {!isPersonalizada && isSelected && selectedItem && (
                                    <div className="mt-1.5 flex flex-wrap gap-1">
-                                     {selectedItem.teeth?.length > 0 && <span className="text-[9px] font-black bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-md uppercase border border-brand-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
-                                     {selectedItem.locations?.length > 0 && <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
+                                     {selectedItem.teeth?.length > 0 && <span className="text-[10px] font-black bg-brand-200 text-brand-800 px-1.5 py-0.5 rounded-md uppercase border border-brand-300 inline-flex items-center gap-1"><ScanLine size={9} /> {selectedItem.teeth.join(', ')}</span>}
+                                     {selectedItem.locations?.length > 0 && <span className="text-[10px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md uppercase border border-blue-200 inline-flex items-center gap-1"><MapPin size={9} /> {selectedItem.locations.join(', ')}</span>}
                                    </div>
                                  )}
                                </div>
@@ -1013,7 +1013,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 <div className="space-y-8 animate-in slide-in-from-right">
                   <div className="bg-white rounded-2xl shadow-md border-2 border-slate-200 overflow-hidden">
                     <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-100 text-[10px] font-black uppercase text-slate-500 italic">
+                      <thead className="bg-slate-100 text-[10px] font-bold uppercase text-slate-500 italic">
                         <tr><th className="p-4 border-b-2 border-slate-200">Estudio</th><th className="p-4 w-36 text-center border-b-2 border-slate-200">Mutual</th><th className="p-4 w-36 text-center border-b-2 bg-brand-50 text-brand-800">Paciente</th><th className="p-4 w-28 text-right border-b-2 border-slate-200">Total</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-bold">
@@ -1113,8 +1113,8 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
           const itemIndex = form.watch("items").findIndex(i => i.procedureId === activeConfigId);
           return (
             <div className="fixed inset-0 z-[500] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-               <div className="bg-slate-900 w-full max-w-5xl rounded-[3rem] border-t-[8px] border-brand-700 p-10">
-                  <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6"><h4 className="text-white text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
+               <div className="bg-white w-full max-w-5xl rounded-3xl border-t-[8px] border-brand-700 p-10">
+                  <div className="flex justify-between items-center mb-8 border-b border-slate-200 pb-6"><h4 className="text-slate-900 text-2xl font-black uppercase italic pr-4">{p?.name}</h4><Button size="lg" className="bg-brand-700 hover:bg-brand-800 text-white font-black uppercase rounded-2xl h-14 px-8 shadow-lg" onClick={() => setActiveConfigId(null)}>CONFIRMAR ✓</Button></div>
                   {isPhotos(p?.name) ? (() => {
                     const meta = form.watch(`items.${itemIndex}.metadata`) || {}
                     const photos: string[] = meta.photos || []
@@ -1137,21 +1137,21 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         {/* Config: fotos base + precio extra */}
                         <div className="flex flex-wrap gap-6 items-end">
                           <div>
-                            <label className="text-xs font-black uppercase text-slate-400 block mb-2">Fotos incluidas (base)</label>
+                            <label className="text-xs font-bold uppercase text-slate-500 block mb-2">Fotos incluidas (base)</label>
                             <input type="number" min="1" value={baseCount}
                               onChange={e => setMeta({ ...meta, basePhotoCount: parseInt(e.target.value) || 1 })}
-                              className="w-24 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none" />
+                              className="w-24 h-12 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-center font-black text-lg focus:border-brand-500 outline-none" />
                           </div>
                           <div>
-                            <label className="text-xs font-black uppercase text-slate-400 block mb-2">Precio foto adicional ($)</label>
+                            <label className="text-xs font-bold uppercase text-slate-500 block mb-2">Precio foto adicional ($)</label>
                             <input type="number" min="0" value={extraPrice}
                               onChange={e => setMeta({ ...meta, extraPricePerPhoto: parseFloat(e.target.value) || 0 })}
-                              className="w-40 h-12 bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-center font-black text-lg focus:border-brand-500 outline-none" />
+                              className="w-40 h-12 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-900 text-center font-black text-lg focus:border-brand-500 outline-none" />
                           </div>
                           {extraCount > 0 && (
-                            <div className="ml-auto bg-brand-900/40 border border-brand-700/60 rounded-xl px-5 py-2 text-right">
-                              <p className="text-brand-300 text-xs font-black uppercase">{extraCount} foto{extraCount > 1 ? 's' : ''} adicional{extraCount > 1 ? 'es' : ''}</p>
-                              <p className="text-white text-xl font-black">+ ${(extraCount * extraPrice).toLocaleString('es-AR')}</p>
+                            <div className="ml-auto bg-brand-50 border border-brand-200 rounded-xl px-5 py-2 text-right">
+                              <p className="text-brand-600 text-xs font-black uppercase">{extraCount} foto{extraCount > 1 ? 's' : ''} adicional{extraCount > 1 ? 'es' : ''}</p>
+                              <p className="text-slate-900 text-xl font-black">+ ${(extraCount * extraPrice).toLocaleString('es-AR')}</p>
                             </div>
                           )}
                         </div>
@@ -1159,7 +1159,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         {/* Lista de fotos */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <p className="text-sm font-black uppercase text-slate-300">
+                            <p className="text-sm font-black uppercase text-slate-700">
                               {photos.length} foto{photos.length !== 1 ? 's' : ''}{' '}
                               <span className="text-slate-500 font-bold text-xs">({Math.min(photos.length, baseCount)} base{extraCount > 0 ? ` + ${extraCount} extra` : ''})</span>
                             </p>
@@ -1170,24 +1170,24 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           </div>
 
                           {photos.length === 0 && (
-                            <div className="text-center py-8 text-slate-600 border-2 border-dashed border-slate-700 rounded-2xl">
+                            <div className="text-center py-8 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
                               <p className="text-sm font-bold">Sin fotos cargadas</p>
-                              <p className="text-xs mt-1 text-slate-700">Presioná "+ Agregar Foto" para comenzar</p>
+                              <p className="text-xs mt-1 text-slate-400">Presioná "+ Agregar Foto" para comenzar</p>
                             </div>
                           )}
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
                             {photos.map((photo: string, i: number) => (
-                              <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-900/20 border-brand-700/40' : 'bg-slate-800 border-slate-700'}`}>
-                                <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-400' : 'text-slate-500'}`}>{i + 1}</span>
-                                {i >= baseCount && <span className="text-[9px] font-black uppercase text-brand-400 bg-brand-900/60 px-1.5 py-0.5 rounded shrink-0">+$</span>}
+                              <div key={i} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${i >= baseCount ? 'bg-brand-50 border-brand-300' : 'bg-slate-50 border-slate-200'}`}>
+                                <span className={`text-xs font-black w-5 text-center shrink-0 ${i >= baseCount ? 'text-brand-600' : 'text-slate-400'}`}>{i + 1}</span>
+                                {i >= baseCount && <span className="text-[10px] font-black uppercase text-brand-600 bg-brand-100 px-1.5 py-0.5 rounded shrink-0">+$</span>}
                                 <select
                                   value={FOTO_NAMES.includes(photo) ? photo : '__custom__'}
                                   onChange={e => { const np = [...photos]; np[i] = e.target.value === '__custom__' ? '' : e.target.value; setMeta({ ...meta, photos: np }) }}
-                                  className="flex-1 bg-transparent text-white text-xs font-bold outline-none cursor-pointer min-w-0 truncate"
+                                  className="flex-1 bg-transparent text-slate-900 text-xs font-bold outline-none cursor-pointer min-w-0 truncate"
                                 >
-                                  {FOTO_NAMES.map(n => <option key={n} value={n} className="bg-slate-900 text-white">{n}</option>)}
-                                  <option value="__custom__" className="bg-slate-900 text-slate-400">— Personalizada —</option>
+                                  {FOTO_NAMES.map(n => <option key={n} value={n}>{n}</option>)}
+                                  <option value="__custom__" className="text-slate-400">— Personalizada —</option>
                                 </select>
                                 {!FOTO_NAMES.includes(photo) && (
                                   <input
@@ -1195,7 +1195,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                                     value={photo}
                                     onChange={e => { const np = [...photos]; np[i] = e.target.value.toUpperCase(); setMeta({ ...meta, photos: np }) }}
                                     placeholder="Escribir nombre..."
-                                    className="w-32 bg-slate-700 text-white text-xs font-bold px-2 py-1 rounded-lg outline-none placeholder-slate-500 uppercase"
+                                    className="w-32 bg-slate-100 text-slate-900 text-xs font-bold px-2 py-1 rounded-lg outline-none placeholder-slate-400 uppercase"
                                   />
                                 )}
                                 <button type="button" onClick={() => setMeta({ ...meta, photos: photos.filter((_: string, j: number) => j !== i) })}
@@ -1209,12 +1209,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                   })() : p?.requiresTooth ? (
                     <div className="py-6 flex flex-col items-center">
                       <div className="flex flex-col gap-4">
-                        <div className="flex gap-4 border-b-2 border-slate-700 pb-4">
-                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                        <div className="flex gap-4 border-b-2 border-slate-200 pb-4">
+                          <div className="flex gap-1 border-r-2 border-slate-200 pr-4">{[18,17,16,15,14,13,12,11].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                           <div className="flex gap-1 pl-4">{[21,22,23,24,25,26,27,28].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                         </div>
                         <div className="flex gap-4 pt-2">
-                          <div className="flex gap-1 border-r-2 border-slate-700 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
+                          <div className="flex gap-1 border-r-2 border-slate-200 pr-4">{[48,47,46,45,44,43,42,41].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                           <div className="flex gap-1 pl-4">{[31,32,33,34,35,36,37,38].map(t => <ToothBtn key={t} t={t} itemIndex={itemIndex} form={form} recalculate={recalculateTotal} procedureName={p?.name} />)}</div>
                         </div>
                       </div>
@@ -1226,10 +1226,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                         const films = isPeri ? countPeriapicalFilms(selectedTeeth) : countBitewingFilms(selectedTeeth)
                         const basePat = form.getValues(`items.${itemIndex}.basePatient`) || 0
                         return (
-                          <div className="mt-4 flex items-center justify-center gap-3 bg-brand-900/40 border border-brand-700/60 rounded-2xl px-6 py-3">
-                            <span className="text-brand-300 text-sm font-black uppercase tracking-wider">{films} placa{films !== 1 ? 's' : ''}</span>
-                            <span className="text-slate-500">·</span>
-                            <span className="text-white font-black text-lg">${(basePat * films).toLocaleString('es-AR')}</span>
+                          <div className="mt-4 flex items-center justify-center gap-3 bg-brand-50 border border-brand-200 rounded-2xl px-6 py-3">
+                            <span className="text-brand-700 text-sm font-black uppercase tracking-wider">{films} placa{films !== 1 ? 's' : ''}</span>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-slate-900 font-black text-lg">${(basePat * films).toLocaleString('es-AR')}</span>
                           </div>
                         )
                       })()}
@@ -1249,7 +1249,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                               form.setValue(`items.${itemIndex}.insuranceCoverage`, baseIns * count);
                               form.setValue(`items.${itemIndex}.patientCopay`, basePat * count);
                               recalculateTotal();
-                            }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-brand-700 text-white border-brand-500 shadow-lg scale-105' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}`}>{opt}</Button>
+                            }} className={`h-16 px-8 text-lg font-black uppercase rounded-2xl border-2 ${isSelected ? 'bg-brand-700 text-white border-brand-500 shadow-lg scale-105' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}`}>{opt}</Button>
                         )
                       })}
                     </div>
@@ -1297,7 +1297,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       )}
 
       <Dialog open={showHistoryModal} onOpenChange={setShowHistoryModal}>
-        <DialogContent className="sm:max-w-[700px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] bg-white rounded-3xl border-t-8 border-slate-900 p-8 max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3"><History className="text-brand-700" size={28} /> Historia Clínica</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">{patientHistory.map((order: any) => {
             const paymentMethodLabel: Record<string, string> = {
@@ -1309,12 +1309,12 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 {/* Encabezado: fecha + sede */}
                 <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-2"><Calendar size={16} className="text-slate-500" /><span className="text-lg font-black italic uppercase leading-none mt-1">{new Date(order.createdAt).toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'})}</span></div>
-                  <span className="text-[11px] font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
+                  <span className="text-xs font-black uppercase text-slate-600 bg-white border px-3 py-1 rounded-md">{order.branch?.name}</span>
                 </div>
                 {/* Prestaciones */}
                 {order.items?.length > 0 && (
                   <div>
-                    <span className="font-bold text-slate-500 uppercase text-[11px] block mb-1.5">Prestaciones</span>
+                    <span className="font-bold text-slate-500 uppercase text-xs block mb-1.5">Prestaciones</span>
                     <div className="flex flex-wrap gap-1.5">
                       {order.items.map((it: any) => {
                         const meta = it.metadata as any;
@@ -1330,7 +1330,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           ? locations.join(', ')
                           : null;
                         return (
-                          <span key={it.id} className="text-[11px] font-bold bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
+                          <span key={it.id} className="text-xs font-bold bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
                             {nombre}{detalle ? <span className="text-brand-600 ml-1">· {detalle}</span> : null}
                           </span>
                         );
@@ -1340,18 +1340,18 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                 )}
                 {/* Fila inferior: odontólogo, monto, forma de pago */}
                 <div className="grid grid-cols-3 gap-3 pt-1">
-                  <div className="flex items-start gap-2"><GraduationCap size={13} className="text-brand-700 mt-0.5 shrink-0" /><div><span className="font-bold text-slate-500 uppercase text-[11px]">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
-                  <div><span className="font-bold text-slate-500 uppercase text-[11px]">Abonado</span><p className="font-black text-emerald-700 text-sm">${Number(order.patientAmount || order.totalAmount).toLocaleString('es-AR')}</p></div>
+                  <div className="flex items-start gap-2"><GraduationCap size={13} className="text-brand-700 mt-0.5 shrink-0" /><div><span className="font-bold text-slate-500 uppercase text-xs">Odontólogo</span><p className="font-black text-slate-800 uppercase text-xs">{order.dentist ? `${order.dentist.lastName}` : 'PARTICULAR'}</p></div></div>
+                  <div><span className="font-bold text-slate-500 uppercase text-xs">Abonado</span><p className="font-black text-emerald-700 text-sm">${Number(order.patientAmount || order.totalAmount).toLocaleString('es-AR')}</p></div>
                   <div>
-                    <span className="font-bold text-slate-500 uppercase text-[11px]">Forma de pago</span>
+                    <span className="font-bold text-slate-500 uppercase text-xs">Forma de pago</span>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {order.payments?.length > 0
                         ? order.payments.map((p: any) => (
-                            <span key={p.id} className="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                            <span key={p.id} className="text-xs font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
                               {paymentMethodLabel[p.method] || p.method}
                             </span>
                           ))
-                        : <span className="text-[11px] text-slate-400 font-bold">—</span>
+                        : <span className="text-xs text-slate-400 font-bold">—</span>
                       }
                     </div>
                   </div>

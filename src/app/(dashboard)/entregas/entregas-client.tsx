@@ -11,12 +11,13 @@ import { getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import QRCode from "react-qr-code"
 import { useRouter } from "next/navigation"
-import { 
+import {
   FileCheck, Clock, CheckCircle2, Mail,
-  Smartphone, UserCheck, RefreshCw, Send, Printer, QrCode, Search, 
+  Smartphone, UserCheck, RefreshCw, Send, Printer, QrCode, Search,
   UploadCloud, Link as LinkIcon, Copy, XCircle, FileText, ExternalLink,
   ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Package, PauseCircle
 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ToothIcon from "@/components/icons/tooth-icon"
 
 export default function EntregasClient({ branches }: { branches: any[] }) {
@@ -236,14 +237,14 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     const pref = getDeliveryPreference(order);
 
     return (
-      <Card className={`border-none shadow-lg rounded-[2rem] border-t-8 transition-all ${isDelayed ? 'border-t-amber-500 bg-amber-50/20' : debt > 0 ? 'border-t-brand-600 bg-brand-50/30' : 'border-t-emerald-500 bg-white'}`}>
+      <Card className={`border-none shadow-lg rounded-3xl border-t-8 transition-all ${isDelayed ? 'border-t-amber-500 bg-amber-50/20' : debt > 0 ? 'border-t-brand-600 bg-brand-50/30' : 'border-t-emerald-500 bg-white'}`}>
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-3">
-            <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Orden #{order.code || order.dailyId}</p>
+            <p className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Orden #{order.code || order.dailyId}</p>
             
             <div className="flex gap-2 items-center">
-              {isDelayed && <span className="text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm border bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1"><PauseCircle size={10}/> DEMORADA</span>}
-              <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md shadow-sm border ${pref.type === 'FISICO' ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
+              {isDelayed && <span className="text-[10px] font-black uppercase px-2 py-1 rounded-md shadow-sm border bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1"><PauseCircle size={10}/> DEMORADA</span>}
+              <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md shadow-sm border ${pref.type === 'FISICO' ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
                 {pref.label}
               </span>
             </div>
@@ -270,26 +271,26 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
           {order.notes && (
             <div className="bg-amber-50 p-3 rounded-xl border-l-4 border-amber-500 flex items-start gap-2 mb-3">
               <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-[11px] font-bold text-amber-900 uppercase leading-tight">{order.notes}</p>
+              <p className="text-xs font-bold text-amber-900 uppercase leading-tight">{order.notes}</p>
             </div>
           )}
 
           <div className="grid grid-cols-6 gap-2 mt-2">
-            <Button onClick={() => copyLink(order)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Copiar Link"><LinkIcon size={18}/></Button>
-            <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-12 border-2 px-0 hover:bg-slate-100" title="Imprimir Ticket QR"><QrCode size={18}/></Button>
-            <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-12 border-2 px-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={18}/></Button>
+            <Button onClick={() => copyLink(order)} variant="outline" className="h-11 border-2 px-0 hover:bg-slate-100" title="Copiar Link"><LinkIcon size={18}/></Button>
+            <Button onClick={() => setTicketOrder(order)} variant="outline" className="h-11 border-2 px-0 hover:bg-slate-100" title="Imprimir Ticket QR"><QrCode size={18}/></Button>
+            <Button onClick={() => handleDeliver(order, 'EMAIL')} variant="outline" className="h-11 border-2 px-0 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200" title={`Enviar por Email${order.patient?.email ? ` → ${order.patient.email}` : ''}`}><Mail size={18}/></Button>
             
-            <Button onClick={() => handleDeliver(order, 'WHATSAPP')} className="h-12 bg-emerald-600 hover:bg-emerald-700 text-white px-0 border-b-[3px] border-emerald-800 active:border-b-0 active:translate-y-px transition-all" title="Enviar WhatsApp al Paciente">
+            <Button onClick={() => handleDeliver(order, 'WHATSAPP')} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white px-0 border-b-[3px] border-emerald-800 active:border-b-0 active:translate-y-px transition-all" title="Enviar WhatsApp al Paciente">
               <Smartphone size={18}/>
             </Button>
 
-            <Button onClick={() => handleDeliver(order, 'FÍSICO')} className={`h-12 text-white px-0 border-b-[3px] active:border-b-0 active:translate-y-px transition-all ${pref.type === 'FISICO' ? 'bg-orange-600 hover:bg-orange-700 border-orange-800 shadow-md' : 'bg-slate-900 hover:bg-slate-800 border-slate-950'}`} title="Entregar Sobre en Mano">
+            <Button onClick={() => handleDeliver(order, 'FÍSICO')} className={`h-11 text-white px-0 border-b-[3px] active:border-b-0 active:translate-y-px transition-all ${pref.type === 'FISICO' ? 'bg-orange-600 hover:bg-orange-700 border-orange-800 shadow-md' : 'bg-slate-900 hover:bg-slate-800 border-slate-950'}`} title="Entregar Sobre en Mano">
               <UserCheck size={18}/>
             </Button>
 
             {/* BOTÓN DEMORAR / PAUSAR */}
             {!isDelayed && (
-              <Button onClick={() => handleDelayOrder(order.id)} className="h-12 border-2 border-amber-500 text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white px-0 transition-all" title="Marcar como Demorada">
+              <Button onClick={() => handleDelayOrder(order.id)} className="h-11 border-2 border-amber-500 text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white px-0 transition-all" title="Marcar como Demorada">
                 <PauseCircle size={18}/>
               </Button>
             )}
@@ -312,27 +313,25 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               <Send className="text-brand-700" size={28} /> Logística y Entregas
             </h1>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <select
-                value={session.branchId}
-                onChange={e => {
-                  localStorage.setItem("radiologia-branch", e.target.value)
-                  window.location.reload()
-                }}
-                className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm border-none outline-none cursor-pointer"
-              >
-                {branches.map((b: any) => (
-                  <option key={b.id} value={b.id} className="bg-slate-900">{b.name}</option>
-                ))}
-              </select>
-              <span className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">• {session.userName}</span>
+              <Select value={session.branchId} onValueChange={val => { localStorage.setItem("radiologia-branch", val); window.location.reload() }}>
+                <SelectTrigger className="h-auto py-1 px-3 text-[10px] font-black uppercase bg-brand-700 text-white border-none rounded-md tracking-widest italic shadow-sm w-auto gap-1 focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id} className="text-[10px] font-black uppercase">{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-widest ml-1">• {session.userName}</span>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <Button onClick={() => router.push('/recepcion')} className="flex-1 md:flex-none h-10 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px transition-all">
+            <Button onClick={() => router.push('/recepcion')} className="flex-1 md:flex-none h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px transition-all">
               <ArrowLeft size={14} className="mr-2"/> Recepción
             </Button>
-            <Button onClick={() => router.push('/tecnico')} className="flex-1 md:flex-none h-10 px-4 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
+            <Button onClick={() => router.push('/tecnico')} className="flex-1 md:flex-none h-9 px-4 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
               <ArrowLeft size={14} className="mr-2"/> Sala de Rayos
             </Button>
           </div>
@@ -340,9 +339,9 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
 
         {/* TABS */}
         <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-full max-w-2xl">
-          <button onClick={() => setActiveTab("HOY")} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "HOY" ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Hoy</button>
-          <button onClick={() => setActiveTab("DEMORADAS")} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "DEMORADAS" ? 'bg-amber-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Demoradas {delayed.length > 0 && `(${delayed.length})`}</button>
-          <button onClick={() => setActiveTab("BUSCADOR")} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "BUSCADOR" ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Buscador</button>
+          <button onClick={() => setActiveTab("HOY")} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "HOY" ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Hoy</button>
+          <button onClick={() => setActiveTab("DEMORADAS")} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "DEMORADAS" ? 'bg-amber-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Demoradas {delayed.length > 0 && `(${delayed.length})`}</button>
+          <button onClick={() => setActiveTab("BUSCADOR")} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeTab === "BUSCADOR" ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Buscador</button>
         </div>
 
         {(activeTab === "HOY" || activeTab === "DEMORADAS") && (
@@ -367,18 +366,18 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
             <div className="space-y-4">
               <h2 className="text-xl font-black italic uppercase text-slate-800 border-b-2 border-slate-200 pb-2 flex items-center gap-2"><CheckCircle2 className="text-emerald-600" size={24}/> Entregados Hoy</h2>
               {delivered.map(order => (
-                <Card key={order.id} className="shadow-sm rounded-[2rem] border-t-8 border-t-slate-300 bg-slate-50 opacity-80 hover:opacity-100 transition-opacity">
+                <Card key={order.id} className="shadow-sm rounded-3xl border-t-8 border-t-slate-300 bg-slate-50 opacity-80 hover:opacity-100 transition-opacity">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[9px] font-black uppercase text-slate-500 leading-none mb-1">Orden #{order.code || order.dailyId}</p>
+                        <p className="text-[10px] font-bold uppercase text-slate-500 leading-none mb-1">Orden #{order.code || order.dailyId}</p>
                         <h4 className="text-sm font-black uppercase text-slate-800">{order.patient?.lastName}, {order.patient?.firstName}</h4>
                       </div>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)} 
-                        className={`text-[9px] font-black uppercase h-8 px-3 rounded-lg border ${expandedOrder === order.id ? 'bg-white text-slate-900 border-slate-300 shadow-sm' : 'text-slate-500 bg-transparent border-slate-200'}`}
+                        className={`text-[10px] font-black uppercase h-8 px-3 rounded-lg border ${expandedOrder === order.id ? 'bg-white text-slate-900 border-slate-300 shadow-sm' : 'text-slate-500 bg-transparent border-slate-200'}`}
                       >
                         {expandedOrder === order.id ? <ChevronUp size={14} className="mr-1"/> : <ChevronDown size={14} className="mr-1"/>}
                         Archivos
@@ -412,15 +411,15 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                           </div>
                         )}
                         <div className="bg-blue-50/80 rounded-xl p-3 border border-blue-200 flex flex-col gap-2">
-                          <p className="text-[9px] font-black uppercase text-blue-800 flex items-center gap-1.5"><ExternalLink size={12}/> Link Externo (Drive / WeTransfer)</p>
+                          <p className="text-[10px] font-black uppercase text-blue-800 flex items-center gap-1.5"><ExternalLink size={12}/> Link Externo (Drive / WeTransfer)</p>
                           <div className="flex gap-2">
                             <input type="url" placeholder="https://..." className="flex-1 text-[10px] px-2 py-1.5 rounded-lg border border-blue-300 bg-white shadow-inner focus:outline-none focus:border-blue-500" value={externalLinks[order.id] !== undefined ? externalLinks[order.id] : (order.externalLink || '')} onChange={(e) => setExternalLinks({ ...externalLinks, [order.id]: e.target.value })} />
-                            <Button size="sm" onClick={() => handleSaveLink(order.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[9px] h-auto py-1.5 shadow-sm">Guardar</Button>
+                            <Button size="sm" onClick={() => handleSaveLink(order.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] h-auto py-1.5 shadow-sm">Guardar</Button>
                           </div>
                         </div>
                         <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 flex justify-between items-center shadow-sm">
-                          <p className="text-[9px] font-black uppercase text-amber-800">Cargar Archivo Diferido</p>
-                          <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-black uppercase px-3 py-1.5 rounded-lg transition-colors"><UploadCloud size={12} className="inline mr-1"/> Adjuntar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleDelayedUpload(order.id, e)}/></label>
+                          <p className="text-[10px] font-black uppercase text-amber-800">Cargar Archivo Diferido</p>
+                          <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-lg transition-colors"><UploadCloud size={12} className="inline mr-1"/> Adjuntar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleDelayedUpload(order.id, e)}/></label>
                         </div>
                       </div>
                     )}
@@ -442,7 +441,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
               </div>
             </div>
 
-            {loading ? <p className="text-center py-10 font-bold uppercase text-slate-400 animate-pulse">Cargando...</p> : delayed.length === 0 ? <p className="text-center py-10 font-black uppercase text-slate-400 italic text-xl">No hay órdenes demoradas.</p> : (
+            {loading ? <p className="text-center py-10 font-bold uppercase text-slate-400 animate-pulse">Cargando...</p> : delayed.length === 0 ? <p className="text-center py-10 font-bold uppercase text-slate-500 italic text-xl">No hay órdenes demoradas.</p> : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {delayed.map(order => (
                   <OrderCard key={order.id} order={order} isDelayed={true} />
@@ -455,7 +454,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
         {/* --- BUSCADOR --- */}
         {activeTab === "BUSCADOR" && (
           <div className="max-w-3xl mx-auto space-y-6 animate-in slide-in-from-bottom-4">
-            <form onSubmit={executeSearch} className="bg-white p-2 pl-4 rounded-[2rem] shadow-lg border-2 border-slate-200 flex items-center gap-3">
+            <form onSubmit={executeSearch} className="bg-white p-2 pl-4 rounded-3xl shadow-lg border-2 border-slate-200 flex items-center gap-3">
                <Search size={24} className="text-brand-700"/>
                <Input placeholder="DNI, Apellido o Nº de Orden..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="border-none shadow-none focus-visible:ring-0 text-lg font-bold h-14 bg-transparent uppercase" autoFocus />
                <Button type="submit" disabled={isSearching} className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black uppercase italic shadow-md transition-all active:scale-95">Buscar</Button>
@@ -470,15 +469,15 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                 const pref = getDeliveryPreference(order);
 
                 return (
-                  <Card key={order.id} className={`shadow-md rounded-[2rem] border-t-8 overflow-hidden hover:shadow-lg transition-all ${debt > 0 ? 'border-t-brand-600' : 'border-t-emerald-500'}`}>
+                  <Card key={order.id} className={`shadow-md rounded-3xl border-t-8 overflow-hidden hover:shadow-lg transition-all ${debt > 0 ? 'border-t-brand-600' : 'border-t-emerald-500'}`}>
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-4">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-sm">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-sm">
                               {new Date(order.createdAt).toLocaleDateString('es-AR')}
                             </span>
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-sm ${pref.type === 'FISICO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-sm ${pref.type === 'FISICO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
                               {pref.label}
                             </span>
                           </div>
@@ -526,7 +525,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
       {/* DIALOGO QR (TICKET) - SIN CAMBIOS */}
       <Dialog open={!!ticketOrder} onOpenChange={(open) => !open && setTicketOrder(null)}>
         <DialogTitle className="sr-only">Detalle</DialogTitle>
-        <DialogContent className="sm:max-w-[350px] bg-white rounded-[2rem] border-t-8 border-slate-900 p-8">
+        <DialogContent className="sm:max-w-[350px] bg-white rounded-3xl border-t-8 border-slate-900 p-8">
           <div className="text-center space-y-4">
             <div className="bg-white p-4 rounded-2xl border-2 border-slate-300 border-dashed inline-block shadow-inner" data-qr-ticket>
               {ticketOrder?.accessCode && <QRCode value={`${window.location.origin}/resultados/${ticketOrder.accessCode}`} size={160} />}
