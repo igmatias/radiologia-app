@@ -212,7 +212,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       localStorage.setItem("radiologia-branch", session.branchId);
       form.setValue("branchId", session.branchId);
       setShowSessionModal(false);
-      toast.success(`Sede configurada`);
+      window.location.reload();
     } else toast.error("Por favor, seleccioná una sede para trabajar");
   };
 

@@ -311,10 +311,19 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
             <h1 className="text-3xl font-black italic uppercase text-slate-900 tracking-tighter flex items-center gap-2">
               <Send className="text-brand-700" size={28} /> Logística y Entregas
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
-                SEDE: {branches.find((b:any) => b.id === session.branchId)?.name || "---"}
-              </span>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <select
+                value={session.branchId}
+                onChange={e => {
+                  localStorage.setItem("radiologia-branch", e.target.value)
+                  window.location.reload()
+                }}
+                className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm border-none outline-none cursor-pointer"
+              >
+                {branches.map((b: any) => (
+                  <option key={b.id} value={b.id} className="bg-slate-900">{b.name}</option>
+                ))}
+              </select>
               <span className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">• {session.userName}</span>
             </div>
           </div>

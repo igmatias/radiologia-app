@@ -118,9 +118,8 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
 
   const handleSelectBranch = (branchId: string) => {
     localStorage.setItem("radiologia-branch", branchId);
-    setSession(prev => prev ? { ...prev, branchId } : null);
     setShowBranchModal(false);
-    router.refresh();
+    window.location.reload();
   };
 
   const handleLogout = async () => {
