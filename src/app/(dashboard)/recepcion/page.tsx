@@ -1,17 +1,22 @@
 import { prisma } from "@/lib/prisma"
+import { getCurrentSession } from "@/actions/auth"
+import { redirect } from "next/navigation"
 import RecepcionClient from "./recepcion-client"
 
 export const dynamic = 'force-dynamic'
 
 export default async function RecepcionPage() {
-  // Buscamos TODOS los datos de una sola vez, incluyendo los saldos pendientes
+  const session = await getCurrentSession()
+  if (!session) redirect('/login')
+  if (session.role === 'TECHNICIAN') redirect('/tecnico')
+
   const [branches, dentists, obrasSociales, procedures, saldos] = await Promise.all([
     prisma.branch.findMany({ where: { isActive: true } }),
     prisma.dentist.findMany({ where: { isActive: true } }),
     prisma.obraSocial.findMany({ where: { isActive: true }, include: { variants: { orderBy: { name: 'asc' } } } }),
-    prisma.procedure.findMany({ 
+    prisma.procedure.findMany({
       where: { isActive: true },
-      orderBy: { code: 'asc' } 
+      orderBy: { code: 'asc' }
     }),
     prisma.payment.findMany({
       where: { method: 'SALDO' },
@@ -20,7 +25,8 @@ export default async function RecepcionPage() {
           include: { patient: true, items: { include: { procedure: true } } }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 200
     })
   ])
 

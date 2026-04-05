@@ -12,14 +12,15 @@ export async function getDentistStats(dentistId: string, startDate: string, endD
     const orders = await prisma.order.findMany({
       where: {
         dentistId: dentistId,
-        status: { not: 'ANULADA' }, // 🔥 CRUCIAL: No contamos las anuladas en las métricas
+        status: { not: 'ANULADA' },
         createdAt: { gte: start, lte: end }
       },
       include: {
         patient: true,
         items: { include: { procedure: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 2000
     });
 
     // Armamos el recuento de estudios para el gráfico
@@ -59,6 +60,12 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
     const start = startOfDateAR(startDate);
     const end = endOfDateAR(endDate);
 
+    // Cap: máximo 366 días por consulta para evitar queries sin límite
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs > 366 * 24 * 60 * 60 * 1000 || diffMs < 0) {
+      return { success: false, items: [], error: "El rango de fechas no puede superar los 12 meses." };
+    }
+
     // Armamos el filtro base
     const whereClause: any = {
       order: {
@@ -88,7 +95,8 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
       },
       orderBy: {
         order: { createdAt: 'asc' }
-      }
+      },
+      take: 5000
     });
 
     // Cargar el mapa de códigos personalizados para esta OS

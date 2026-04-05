@@ -3,8 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { getCurrentSession } from "@/actions/auth"
-// Si usás bcrypt para encriptar contraseñas, descomentá la línea de abajo:
-// import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs"
 
 export async function upsertUser(data: { id?: string, name: string, username: string, role: string, branchId?: string, password?: string }) {
   const session = await getCurrentSession();
@@ -17,10 +16,9 @@ export async function upsertUser(data: { id?: string, name: string, username: st
       branchId: data.branchId || null,
     };
 
-    // Si el administrador escribió una contraseña nueva, la actualizamos
+    // Si el administrador escribió una contraseña nueva, la hasheamos con bcrypt
     if (data.password && data.password.trim() !== "") {
-      // userData.password = await bcrypt.hash(data.password, 10); // <-- Usá esto si encriptás
-      userData.password = data.password; // <-- Usá esto si guardás en texto plano
+      userData.password = await bcrypt.hash(data.password, 12);
     }
 
     if (data.id && data.id !== "") {
