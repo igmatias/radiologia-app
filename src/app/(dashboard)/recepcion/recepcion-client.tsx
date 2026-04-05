@@ -15,6 +15,7 @@ import {
   eliminarMovimientoRecepcion,
   cerrarCajaDiaria,
   registrarArqueoParcial,
+  configurarSaldoInicial,
 } from "@/actions/caja"
 import { getCurrentSession } from "@/actions/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -69,6 +70,7 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const [notasCierre, setNotasCierre] = useState("")
   const [expandedMethod, setExpandedMethod] = useState<string | null>(null)
   const [guardandoParcial, setGuardandoParcial] = useState(false)
+  const [saldoInicialInput, setSaldoInicialInput] = useState("")
 
   useEffect(() => {
     async function init() {
@@ -627,17 +629,42 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
         <div className="animate-in fade-in duration-300">
           {cargandoCaja && !estadoCaja ? (
             <div className="text-center py-20 font-black uppercase text-slate-500 italic tracking-widest animate-pulse">Iniciando Bóveda...</div>
-          ) : !estadoCaja?.cajaAbierta ? (
+          ) : estadoCaja?.primeraVez ? (
             <div className="flex justify-center mt-10">
-              <Card className="border-none shadow-2xl rounded-[3rem] bg-white border border-slate-100 overflow-hidden text-center py-20 px-10 max-w-lg w-full relative">
-                <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-emerald-400 to-blue-500"></div>
-                <Lock size={80} className="mx-auto text-slate-200 mb-8" />
-                <h2 className="text-4xl font-black uppercase tracking-tighter mb-4 text-slate-800">Caja Inactiva</h2>
-                <p className="text-slate-500 font-bold uppercase text-xs tracking-widest mb-10">Sede: {nombreSedeActual}</p>
-                <Button onClick={handleAbrirCaja} disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase h-16 rounded-full shadow-xl">Abrir Turno de Hoy</Button>
+              <Card className="border-none shadow-2xl rounded-[3rem] bg-white overflow-hidden text-center py-16 px-10 max-w-lg w-full relative">
+                <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-brand-400 to-emerald-500"></div>
+                <Banknote size={72} className="mx-auto text-slate-200 mb-6" />
+                <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 text-slate-800">Primera Apertura</h2>
+                <p className="text-slate-500 font-bold uppercase text-xs tracking-widest mb-8">Ingresá el efectivo que hay actualmente en la caja</p>
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="text-3xl font-black text-slate-400">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={saldoInicialInput}
+                    onChange={e => setSaldoInicialInput(e.target.value)}
+                    className="flex-1 h-16 bg-slate-100 rounded-2xl text-3xl font-black text-center text-slate-900 border-2 border-slate-200 focus:border-brand-500 outline-none"
+                  />
+                </div>
+                <Button
+                  onClick={async () => {
+                    if (!branchId) return
+                    setLoading(true)
+                    const monto = parseFloat(saldoInicialInput) || 0
+                    const res = await configurarSaldoInicial(branchId, monto)
+                    if (res.success) { toast.success("¡Saldo inicial configurado!"); cargarCaja(branchId) }
+                    else toast.error(res.error)
+                    setLoading(false)
+                  }}
+                  disabled={loading}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase h-14 rounded-full shadow-xl"
+                >
+                  Confirmar y Activar Caja
+                </Button>
               </Card>
             </div>
-          ) : estadoCaja.caja.status === 'CERRADA' ? (
+          ) : estadoCaja?.caja?.status === 'CERRADA' ? (
             <div className="flex justify-center mt-10 text-center">
               <Card className="border-none shadow-xl rounded-[3rem] bg-emerald-950 text-white p-16 max-w-xl w-full">
                 <ShieldCheck size={96} className="mx-auto text-emerald-500 mb-6 opacity-80" />

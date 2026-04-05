@@ -13,17 +13,32 @@ export async function getEstadoCaja(branchId: string) {
   const finHoy = endOfDay(hoy);
 
   try {
-    // Buscamos si ya abrieron la caja hoy
-    const cajaDiaria = await prisma.dailyRegister.findFirst({
-      where: { 
-        branchId, 
-        date: { gte: inicioHoy, lte: finHoy } 
-      }
+    // Buscamos si ya existe la caja de hoy
+    let cajaDiaria = await prisma.dailyRegister.findFirst({
+      where: { branchId, date: { gte: inicioHoy, lte: finHoy } }
     });
 
-    // Si la caja no existe, cortamos acá para no gastar recursos
+    // AUTO-APERTURA: si no hay caja hoy, la creamos automáticamente
     if (!cajaDiaria) {
-      return { success: true, cajaAbierta: false };
+      const session = await getCurrentSession();
+      const ultimaCaja = await prisma.dailyRegister.findFirst({
+        where: { branchId },
+        orderBy: { date: 'desc' }
+      });
+
+      // Primera vez: nunca hubo historial → pedimos saldo inicial al usuario
+      if (!ultimaCaja) {
+        return { success: true, cajaAbierta: false, primeraVez: true };
+      }
+
+      cajaDiaria = await prisma.dailyRegister.create({
+        data: {
+          branchId,
+          openedBy: session?.name || 'Sistema',
+          startBalance: ultimaCaja.endBalance || 0,
+          date: inicioHoy,
+        }
+      });
     }
 
     // Sumamos todo el efectivo que cobraron HOY en esta sede
@@ -258,5 +273,36 @@ export async function cerrarCajaDiaria(branchId: string, userName: string, endBa
   } catch (error) {
     console.error("⛔ ERROR AL CERRAR CAJA:", error);
     return { success: false, error: "No se pudo cerrar la caja." };
+  }
+}
+
+// 6. CONFIGURAR SALDO INICIAL (primera puesta en marcha del sistema)
+// Crea un registro "cerrado" de ayer con el saldo que el admin ingresa.
+// A partir de ahí, el auto-open de hoy toma ese monto como startBalance.
+export async function configurarSaldoInicial(branchId: string, monto: number) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
+  try {
+    const ayer = startOfDay(new Date());
+    ayer.setDate(ayer.getDate() - 1);
+
+    await prisma.dailyRegister.create({
+      data: {
+        branchId,
+        openedBy: session.name || 'Admin',
+        startBalance: monto,
+        endBalance: monto,
+        status: 'CERRADA',
+        closedBy: session.name || 'Admin',
+        date: ayer,
+        notes: 'Saldo inicial configurado al activar el sistema',
+      }
+    });
+
+    revalidatePath("/recepcion");
+    return { success: true };
+  } catch (error) {
+    console.error("⛔ ERROR AL CONFIGURAR SALDO INICIAL:", error);
+    return { success: false, error: "No se pudo configurar el saldo inicial." };
   }
 }
