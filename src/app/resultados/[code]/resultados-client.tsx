@@ -35,13 +35,17 @@ export default function ResultadosClient() {
 
   useEffect(() => {
     if (!lightbox) return
+    document.body.style.overflow = 'hidden'
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeLightbox()
       if (e.key === 'ArrowLeft') prevImg()
       if (e.key === 'ArrowRight') nextImg()
     }
     window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handler)
+    }
   }, [lightbox, closeLightbox, prevImg, nextImg])
 
   const handleVerify = async (e: React.FormEvent) => {

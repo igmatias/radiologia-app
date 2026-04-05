@@ -10,7 +10,6 @@ import { toast } from "sonner"
 import { cobrarSaldoPendiente } from "@/actions/admin-stats"
 import {
   getEstadoCaja,
-  abrirCajaDiaria,
   registrarMovimientoRecepcion,
   eliminarMovimientoRecepcion,
   cerrarCajaDiaria,
@@ -279,15 +278,6 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
   const saldosFiltrados = branchId ? saldos.filter((s: any) => s.order?.branchId === branchId) : []
   const nombreSedeActual = branches.find((b: any) => b.id === branchId)?.name || "Sin sede"
-
-  const handleAbrirCaja = async () => {
-    if (!branchId) return toast.error("Seleccioná una sede primero")
-    setLoading(true)
-    const res = await abrirCajaDiaria(branchId, userName)
-    if (res.success) { toast.success("¡Caja Abierta!"); cargarCaja(branchId); } 
-    else toast.error(res.error)
-    setLoading(false)
-  }
 
   const handleGuardarMovimiento = async () => {
     if (!nuevoMovimiento.amount || !nuevoMovimiento.description || !branchId) return toast.error("Completá todos los campos")

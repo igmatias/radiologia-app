@@ -17,7 +17,7 @@ import {
 
 export default function CajaClient({ branches }: any) {
   const [session, setSession] = useState<{ branchId: string, userName: string } | null>(null)
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' }))
   const [payments, setPayments] = useState<any[]>([])
   const [movements, setMovements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
