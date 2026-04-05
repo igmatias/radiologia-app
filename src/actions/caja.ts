@@ -51,25 +51,32 @@ export async function getEstadoCaja(branchId: string) {
       });
     }
 
-    const pagosHoy = await prisma.payment.aggregate({
-      where: {
-        method: 'EFECTIVO',
-        createdAt: { gte: inicioHoy, lte: finHoy },
-        order: { branchId }
-      },
-      _sum: { amount: true }
-    });
-    const ingresosEfectivo = toNum(pagosHoy._sum.amount);
+    // Perf fix: 2 queries en paralelo (el aggregate de EFECTIVO es redundante —
+    // se puede derivar de pagosDetalleHoy filtrando en JS)
+    const [pagosDetalleHoy, movimientos] = await Promise.all([
+      prisma.payment.findMany({
+        where: {
+          method: { not: 'SALDO' },
+          createdAt: { gte: inicioHoy, lte: finHoy },
+          order: { branchId }
+        },
+        include: { order: { include: { patient: true } } },
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.cashMovement.findMany({
+        where: {
+          branchId,
+          createdAt: { gte: inicioHoy, lte: finHoy },
+          method: 'EFECTIVO'
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+    ]);
 
-    const pagosDetalleHoy = await prisma.payment.findMany({
-      where: {
-        method: { not: 'SALDO' },
-        createdAt: { gte: inicioHoy, lte: finHoy },
-        order: { branchId }
-      },
-      include: { order: { include: { patient: true } } },
-      orderBy: { createdAt: 'asc' }
-    });
+    // ingresosEfectivo derivado de pagosDetalleHoy (elimina un round-trip extra a la DB)
+    const ingresosEfectivo = pagosDetalleHoy
+      .filter((p: any) => p.method === 'EFECTIVO')
+      .reduce((acc: number, p: any) => acc + toNum(p.amount), 0);
 
     const pagosPorMetodo: Record<string, { patient: string; amount: number; time: Date }[]> = {};
     const totalesPorMetodo: Record<string, number> = {};
@@ -82,15 +89,6 @@ export async function getEstadoCaja(branchId: string) {
         time: p.createdAt
       });
       totalesPorMetodo[method] = (totalesPorMetodo[method] || 0) + toNum(p.amount);
-    });
-
-    const movimientos = await prisma.cashMovement.findMany({
-      where: {
-        branchId,
-        createdAt: { gte: inicioHoy, lte: finHoy },
-        method: 'EFECTIVO'
-      },
-      orderBy: { createdAt: 'desc' }
     });
 
     let salidasEfectivo = 0;

@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/prisma"
 import ReportesClient from "./reportes-client"
+import { getCurrentSession } from "@/actions/auth"
+import { redirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
 export default async function ReportesPage() {
+  // Fix — verificar sesion y rol antes de consultar la DB
+  const session = await getCurrentSession()
+  if (!session) redirect('/login')
+  if (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN') redirect('/recepcion')
+
   // Traemos los datos básicos para que funcionen los selectores del cliente
-  const dentists = await prisma.dentist.findMany({ 
+  const dentists = await prisma.dentist.findMany({
     where: { isActive: true },
     orderBy: { lastName: 'asc' }
   })

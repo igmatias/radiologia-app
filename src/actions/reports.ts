@@ -25,38 +25,58 @@ export async function getDentistStats(dentistId: string, startDate: string, endD
     const rangeError = dateCap(start, end, "El rango de fechas")
     if (rangeError) return { success: false, orders: [], chartData: [], totalProcedures: 0, totalPatients: 0, error: rangeError }
 
-    const orders = await prisma.order.findMany({
-      where: {
-        dentistId: dentistId,
-        status: { not: 'ANULADA' },
-        createdAt: { gte: start, lte: end }
-      },
-      include: {
-        patient: true,
-        items: { include: { procedure: true } }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 2000
-    })
+    const orderWhere = {
+      dentistId,
+      status: { not: 'ANULADA' as const },
+      createdAt: { gte: start, lte: end }
+    }
 
-    const procedureCounts: Record<string, number> = {}
-    let totalProcedures = 0
-    const uniquePatients = new Set()
+    // Perf fix: 3 queries en paralelo — chart y pacientes se agregan en la DB, no en JS
+    const [orders, procedureGroups, uniquePatients] = await Promise.all([
+      // Lista de órdenes para la tabla
+      prisma.order.findMany({
+        where: orderWhere,
+        include: {
+          patient: true,
+          items: { include: { procedure: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 2000
+      }),
+      // Conteo por práctica — groupBy en la DB
+      prisma.orderItem.groupBy({
+        by: ['procedureId'],
+        where: { order: orderWhere },
+        _count: { id: true },
+      }),
+      // Pacientes únicos — distinct en la DB
+      prisma.order.findMany({
+        where: orderWhere,
+        select: { patientId: true },
+        distinct: ['patientId'],
+      }),
+    ])
 
-    orders.forEach(order => {
-      uniquePatients.add(order.patientId)
-      order.items.forEach(item => {
-        const procName = item.procedure?.name || 'Desconocido'
-        procedureCounts[procName] = (procedureCounts[procName] || 0) + 1
-        totalProcedures++
-      })
-    })
+    // Resolver nombres de procedimientos para el chart (query pequeña)
+    const procedureIds = procedureGroups.map(g => g.procedureId)
+    const procedures = procedureIds.length > 0
+      ? await prisma.procedure.findMany({
+          where: { id: { in: procedureIds } },
+          select: { id: true, name: true }
+        })
+      : []
+    const procMap = Object.fromEntries(procedures.map(p => [p.id, p.name]))
 
-    const chartData = Object.entries(procedureCounts)
-      .map(([name, count]) => ({ name, count, percentage: Math.round((count / totalProcedures) * 100) || 0 }))
+    const totalProcedures = procedureGroups.reduce((acc, g) => acc + g._count.id, 0)
+    const chartData = procedureGroups
+      .map(g => ({
+        name: procMap[g.procedureId] || 'Desconocido',
+        count: g._count.id,
+        percentage: totalProcedures > 0 ? Math.round((g._count.id / totalProcedures) * 100) : 0
+      }))
       .sort((a, b) => b.count - a.count)
 
-    return { success: true, orders, chartData, totalProcedures, totalPatients: uniquePatients.size }
+    return { success: true, orders, chartData, totalProcedures, totalPatients: uniquePatients.length }
   } catch (error) {
     console.error("Error obteniendo stats:", error)
     return { success: false, orders: [], chartData: [], totalProcedures: 0, totalPatients: 0 }
@@ -92,11 +112,26 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
       whereClause.order.osVariantId = variantId
     }
 
+    // Perf fix: select explicito — no traer campos no usados en facturacion
     const items = await prisma.orderItem.findMany({
       where: whereClause,
-      include: {
-        procedure: true,
-        order: { include: { patient: true, branch: true, osVariant: true } }
+      select: {
+        id: true,
+        procedureId: true,
+        price: true,
+        insuranceCoverage: true,
+        patientCopay: true,
+        procedure: { select: { id: true, name: true, code: true } },
+        order: {
+          select: {
+            id: true,
+            code: true,
+            createdAt: true,
+            patient: { select: { firstName: true, lastName: true, affiliateNumber: true, plan: true, dni: true } },
+            branch: { select: { id: true, name: true } },
+            osVariant: { select: { id: true, name: true } },
+          }
+        }
       },
       orderBy: { order: { createdAt: 'asc' } },
       take: 5000

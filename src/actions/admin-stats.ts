@@ -13,13 +13,35 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
   const branchQuery = filtros.branchId !== "ALL" ? { branchId: filtros.branchId } : {};
 
   try {
-    // A. FACTURACIÓN Y PORCENTAJES
-    const pagos = await prisma.payment.findMany({
-      where: {
-        createdAt: { gte: inicio, lte: fin },
-        order: branchQuery
-      }
-    });
+    // Perf fix: 4 queries en paralelo en vez de secuenciales
+    const [pagos, movimientos, cajasDiarias, bovedas] = await Promise.all([
+      prisma.payment.findMany({
+        where: {
+          createdAt: { gte: inicio, lte: fin },
+          order: branchQuery
+        }
+      }),
+      prisma.cashMovement.findMany({
+        where: {
+          createdAt: { gte: inicio, lte: fin },
+          ...branchQuery
+        },
+        orderBy: { createdAt: 'desc' },
+        include: { branch: true }
+      }),
+      prisma.dailyRegister.findMany({
+        where: {
+          date: { gte: inicio, lte: fin },
+          ...branchQuery
+        },
+        include: { branch: true },
+        orderBy: { date: 'desc' }
+      }),
+      prisma.safeVault.findMany({
+        where: branchQuery,
+        include: { branch: true }
+      }),
+    ]);
 
     let totalFacturado = 0;
     const desglose: Record<string, number> = { EFECTIVO: 0, MERCADOPAGO: 0, TARJETA_DEBITO: 0, TARJETA_CREDITO: 0, TRANSFERENCIA: 0, SALDO: 0 };
@@ -31,40 +53,13 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
       else desglose[p.method] = monto;
     });
 
-    // Calculamos los porcentajes automáticos
     const porcentajes = Object.keys(desglose).map(key => ({
       metodo: key,
       monto: desglose[key],
       porcentaje: totalFacturado > 0 ? Math.round((desglose[key] / totalFacturado) * 100) : 0
     })).filter(m => m.monto > 0).sort((a, b) => b.monto - a.monto);
 
-    // B. GASTOS Y MOVIMIENTOS
-    const movimientos = await prisma.cashMovement.findMany({
-      where: {
-        createdAt: { gte: inicio, lte: fin },
-        ...branchQuery
-      },
-      orderBy: { createdAt: 'desc' },
-      include: { branch: true }
-    });
-
     const totalGastos = movimientos.filter(m => m.type === 'GASTO').reduce((acc, m) => acc + toNum(m.amount), 0);
-
-    // C. CAJAS DIARIAS EN VIVO (Mostradores)
-    const cajasDiarias = await prisma.dailyRegister.findMany({
-      where: {
-        date: { gte: inicio, lte: fin },
-        ...branchQuery
-      },
-      include: { branch: true },
-      orderBy: { date: 'desc' }
-    });
-
-    // D. CAJAS FUERTES (Bóvedas) - Esto es histórico, no importa la fecha
-    const bovedas = await prisma.safeVault.findMany({
-      where: branchQuery,
-      include: { branch: true }
-    });
 
     return {
       success: true,
@@ -92,13 +87,11 @@ export async function retirarDeBoveda(branchId: string, amount: number, descript
       return { success: false, error: "No hay suficiente dinero en esta Caja Fuerte." };
     }
 
-    // 1. Restamos de la Caja Fuerte
     await prisma.safeVault.update({
       where: { branchId },
       data: { balance: { decrement: amount } }
     });
 
-    // 2. Anotamos el movimiento para que quede el registro contable
     await prisma.cashMovement.create({
       data: {
         branchId,
@@ -112,12 +105,11 @@ export async function retirarDeBoveda(branchId: string, amount: number, descript
     revalidatePath("/admin");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL RETIRAR DE BOVEDA:", error);
+    console.error("Error al retirar de boveda:", error);
     return { success: false, error: "No se pudo completar el retiro." };
   }
 }
 
-// (Mantenemos la función de cobro de saldos por las dudas que la necesites)
 export async function cobrarSaldoPendiente(paymentId: string, nuevoMetodo: any) {
   try {
     await prisma.payment.update({ where: { id: paymentId }, data: { method: nuevoMetodo, createdAt: new Date() } });
@@ -127,6 +119,7 @@ export async function cobrarSaldoPendiente(paymentId: string, nuevoMetodo: any) 
     return { success: false };
   }
 }
+
 // ESTADÍSTICAS DEL PERSONAL TÉCNICO
 export async function getTechnicianStats(filtros: { fechaInicio: Date, fechaFin: Date, branchId: string }) {
   const inicio = startOfDay(new Date(filtros.fechaInicio))
@@ -134,27 +127,31 @@ export async function getTechnicianStats(filtros: { fechaInicio: Date, fechaFin:
   const branchQuery = filtros.branchId !== "ALL" ? { branchId: filtros.branchId } : {}
 
   try {
+    // Perf fix: select en vez de include — solo campos necesarios, _count para items
     const orders = await prisma.order.findMany({
       where: {
         createdAt: { gte: inicio, lte: fin },
         technicianId: { not: null },
         ...branchQuery,
       },
-      include: {
-        technician: true,
-        items: true,
+      select: {
+        technicianId: true,
+        createdAt: true,
+        attendedAt: true,
+        completedAt: true,
+        technician: { select: { name: true } },
         branch: { select: { name: true } },
+        _count: { select: { items: true } },
       },
     })
 
-    // Agrupar por técnico
     const byTech: Record<string, {
       name: string
       branchName: string
       totalOrdenes: number
       totalEstudios: number
-      tiemposAtencion: number[]   // minutos createdAt -> attendedAt
-      tiemposProceso: number[]    // minutos attendedAt -> completedAt
+      tiemposAtencion: number[]
+      tiemposProceso: number[]
     }> = {}
 
     for (const order of orders) {
@@ -171,7 +168,8 @@ export async function getTechnicianStats(filtros: { fechaInicio: Date, fechaFin:
         }
       }
       byTech[id].totalOrdenes++
-      byTech[id].totalEstudios += order.items.length
+      // Perf fix: usa _count.items en vez de order.items.length
+      byTech[id].totalEstudios += order._count.items
 
       if (order.attendedAt) {
         const mins = (new Date(order.attendedAt).getTime() - new Date(order.createdAt).getTime()) / 60000

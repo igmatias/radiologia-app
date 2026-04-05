@@ -4,8 +4,22 @@ import DentistasClient from "./dentistas-client"
 // Este archivo NO lleva "use client" porque corre en el servidor
 export default async function AdminDentistasPage() {
   
-  // 1. Buscamos TODOS los odontólogos en la base de datos
+  // 1. Buscamos todos los odontólogos — select explícito para no exponer password al cliente
   const allDentists = await prisma.dentist.findMany({
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      matriculaProv: true,
+      matriculaNac: true,
+      email: true,
+      phone: true,
+      resultPreference: true,
+      deliveryMethod: true,
+      isActive: true,
+      createdAt: true,
+      mustChangePassword: true,
+    },
     orderBy: { lastName: 'asc' }
   })
 

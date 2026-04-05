@@ -7,79 +7,97 @@ export async function getDashboardMetrics(startDateStr: string, endDateStr: stri
     const start = new Date(`${startDateStr}T00:00:00.000-03:00`);
     const end = new Date(`${endDateStr}T23:59:59.999-03:00`);
 
-    const whereClause: any = {
+    const orderWhere: any = {
       createdAt: { gte: start, lte: end },
-      status: { not: "ANULADA" } 
+      status: { not: "ANULADA" }
     };
-
-    // 🔥 CORRECCIÓN: Ahora ignora el filtro si le mandamos "TODAS" o "ALL"
     if (branchId && branchId !== "TODAS" && branchId !== "ALL") {
-      whereClause.branchId = branchId;
+      orderWhere.branchId = branchId;
     }
 
-    const orders = await prisma.order.findMany({
-      where: whereClause,
-      include: {
-        payments: true,
-        items: true,
-        dentist: true 
-      }
-    });
+    // Perf fix: todas las consultas en paralelo, aggregaciones en la DB (no en JS)
+    const [
+      pagosPorMetodo,
+      orderStats,
+      totalEstudios,
+      pacientesUnicos,
+      topDentistsRaw,
+    ] = await Promise.all([
+      // Ingresos agrupados por método en la DB (sin SALDO)
+      prisma.payment.groupBy({
+        by: ['method'],
+        where: { method: { not: 'SALDO' }, order: orderWhere },
+        _sum: { amount: true },
+      }),
+      // Total OS + total órdenes en un solo aggregate
+      prisma.order.aggregate({
+        where: orderWhere,
+        _sum: { insuranceAmount: true },
+        _count: { id: true },
+      }),
+      // Total estudios — count en DB sin traer registros
+      prisma.orderItem.count({ where: { order: orderWhere } }),
+      // Pacientes únicos — distinct en DB
+      prisma.order.findMany({
+        where: orderWhere,
+        select: { patientId: true },
+        distinct: ['patientId'],
+      }),
+      // Top dentistas por cantidad de órdenes — groupBy en DB
+      prisma.order.groupBy({
+        by: ['dentistId'],
+        where: orderWhere,
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 6,
+      }),
+    ]);
 
-    let totalCaja = 0;
-    let totalObrasSociales = 0;
-    let totalEstudios = 0;
-    const pacientesUnicos = new Set();
-    
+    // Construir mapa de ingresos por método
     const ingresosPorMetodo: Record<string, number> = {
-      "EFECTIVO": 0,
-      "MERCADOPAGO": 0,
-      "TARJETA_DEBITO": 0,
-      "TARJETA_CREDITO": 0,
-      "TRANSFERENCIA": 0,
+      EFECTIVO: 0, MERCADOPAGO: 0, TARJETA_DEBITO: 0, TARJETA_CREDITO: 0, TRANSFERENCIA: 0
     };
+    let totalCaja = 0;
+    for (const p of pagosPorMetodo) {
+      const amount = Number(p._sum.amount ?? 0);
+      totalCaja += amount;
+      ingresosPorMetodo[p.method] = (ingresosPorMetodo[p.method] ?? 0) + amount;
+    }
 
-    const dentistTally: Record<string, { name: string, count: number }> = {};
+    // Resolver nombres de dentistas (solo para los top 6)
+    const dentistIds = topDentistsRaw
+      .map(d => d.dentistId)
+      .filter((id): id is string => id !== null);
 
-    orders.forEach(order => {
-      totalObrasSociales += Number(order.insuranceAmount || 0);
-      totalEstudios += order.items.length;
-      pacientesUnicos.add(order.patientId);
+    const dentistNames = dentistIds.length > 0
+      ? await prisma.dentist.findMany({
+          where: { id: { in: dentistIds } },
+          select: { id: true, firstName: true, lastName: true },
+        })
+      : [];
+    const dentistMap = Object.fromEntries(
+      dentistNames.map(d => [d.id, `Dr. ${d.lastName}, ${d.firstName}`])
+    );
 
-      order.payments.forEach((p: any) => {
-        if (p.method !== "SALDO") {
-          const amount = Number(p.amount || 0);
-          totalCaja += amount;
-          if (ingresosPorMetodo[p.method] !== undefined) {
-            ingresosPorMetodo[p.method] += amount;
-          } else {
-            ingresosPorMetodo[p.method] = amount;
-          }
-        }
-      });
-
-      const docName = order.dentist ? `Dr. ${order.dentist.lastName}, ${order.dentist.firstName}` : 'PARTICULAR';
-      if (!dentistTally[docName]) {
-        dentistTally[docName] = { name: docName, count: 0 };
-      }
-      dentistTally[docName].count += 1;
-    });
-
-    const topDentists = Object.values(dentistTally)
+    const topDentists = topDentistsRaw
+      .map(d => ({
+        name: d.dentistId ? (dentistMap[d.dentistId] ?? 'Desconocido') : 'PARTICULAR',
+        count: d._count.id,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       data: {
         totalCaja,
-        totalObrasSociales,
+        totalObrasSociales: Number(orderStats._sum.insuranceAmount ?? 0),
         totalEstudios,
-        totalPacientes: pacientesUnicos.size,
-        totalOrdenes: orders.length,
+        totalPacientes: pacientesUnicos.length,
+        totalOrdenes: orderStats._count.id,
         ingresosPorMetodo,
-        topDentists 
-      } 
+        topDentists,
+      }
     };
   } catch (error) {
     console.error("Error obteniendo métricas:", error);

@@ -22,7 +22,7 @@ export async function getComparativeStats(branchId?: string) {
     const lastMonthEnd   = utc(endOfMonth(subMonths(now, 1)))
     const endOfToday     = endOfTodayAR()
 
-    const [semanaActual, semanaAnterior, mesActual, mesAnterior, topProcedures, porSede] = await Promise.all([
+    const [semanaActual, semanaAnterior, mesActual, mesAnterior, topProcedures, porSedeRaw] = await Promise.all([
       prisma.order.aggregate({
         where: { ...branchFilter, ...notAnulada, createdAt: { gte: thisWeekStart, lte: endOfToday } },
         _sum: { patientAmount: true }, _count: true
@@ -47,25 +47,40 @@ export async function getComparativeStats(branchId?: string) {
         orderBy: { _count: { id: 'desc' } },
         take: 10
       }),
-      prisma.branch.findMany({
-        where: { isActive: true },
-        select: {
-          id: true, name: true,
-          orders: {
-            where: { ...notAnulada, createdAt: { gte: thisMonthStart } },
-            select: { patientAmount: true }
-          }
-        }
-      })
+      // Perf fix: groupBy en DB en vez de cargar todas las órdenes por sede
+      prisma.order.groupBy({
+        by: ['branchId'],
+        where: { ...notAnulada, createdAt: { gte: thisMonthStart } },
+        _sum: { patientAmount: true },
+        _count: { id: true },
+      }),
     ])
 
-    const procedureIds = topProcedures.map(p => p.procedureId)
-    const procedures = await prisma.procedure.findMany({
-      where: { id: { in: procedureIds } }, select: { id: true, name: true }
-    })
-    const procMap = Object.fromEntries(procedures.map(p => [p.id, p.name]))
+    // Resolver nombres de procedimientos y sedes en paralelo
+    const [procedures, branches] = await Promise.all([
+      prisma.procedure.findMany({
+        where: { id: { in: topProcedures.map(p => p.procedureId) } },
+        select: { id: true, name: true }
+      }),
+      // Todas las sedes activas para mostrar incluso las que no tienen ordenes este mes
+      prisma.branch.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true }
+      }),
+    ])
 
+    const procMap = Object.fromEntries(procedures.map(p => [p.id, p.name]))
     const maxProcQty = topProcedures[0]?._count.id || 1
+
+    // Combinar sedes con sus totales del mes
+    const sedeMap = Object.fromEntries(
+      porSedeRaw.map(r => [r.branchId, { monto: Number(r._sum.patientAmount ?? 0), ordenes: r._count.id }])
+    )
+    const porSede = branches.map(b => ({
+      nombre: b.name,
+      monto: sedeMap[b.id]?.monto ?? 0,
+      ordenes: sedeMap[b.id]?.ordenes ?? 0,
+    }))
 
     return {
       success: true,
@@ -84,11 +99,7 @@ export async function getComparativeStats(branchId?: string) {
           monto: Number(p._sum.price ?? 0),
           porcentaje: Math.round((p._count.id / maxProcQty) * 100)
         })),
-        porSede: porSede.map(b => ({
-          nombre: b.name,
-          monto: b.orders.reduce((s, o) => s + Number(o.patientAmount), 0),
-          ordenes: b.orders.length
-        }))
+        porSede,
       }
     }
   } catch (e) {

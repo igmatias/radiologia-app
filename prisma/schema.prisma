@@ -141,6 +141,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Equipment {
@@ -204,6 +206,8 @@ model Dentist {
 
   tickets            Ticket[]
   derivaciones       Derivacion[]
+
+  @@index([isActive, lastName])
 }
 
 model ObraSocial {
@@ -328,7 +332,7 @@ model Order {
   updatedAt       DateTime       @updatedAt
 
   @@index([branchId, status])
-  @@index([patientId])
+  @@index([patientId, createdAt])
   @@index([createdAt])
 }
 
@@ -360,12 +364,16 @@ model Payment {
   id        String        @id @default(cuid())
   orderId   String
   order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
+
   amount    Decimal
   method    PaymentMethod
   notes     String?
 
   createdAt DateTime      @default(now())
+
+  @@index([orderId])
+  @@index([method, createdAt])
+  @@index([createdAt])
 }
 
 model OrderHistory {

@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getCurrentSession } from "@/actions/auth"
 
 // Conectamos nuestra app con Cloudflare R2
 const s3 = new S3Client({
@@ -16,6 +17,10 @@ const s3 = new S3Client({
 })
 
 export async function getPresignedUrl(fileName: string, contentType: string, orderId: string) {
+  // Fix — verificar sesion antes de generar firma S3
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
   try {
     if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !process.env.R2_BUCKET_NAME) {
       console.error("[R2] Variables de entorno faltantes:", {
@@ -27,9 +32,9 @@ export async function getPresignedUrl(fileName: string, contentType: string, ord
       })
       return { success: false, error: "Almacenamiento no configurado. Contactá al administrador." }
     }
-    // Limpiamos el nombre del archivo y armamos una ruta ordenada: Ej: ID_ORDEN/169000-panoramica.jpg
+    // Fix — crypto.randomUUID() en vez de Date.now() para evitar colisiones
     const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const uniqueFileName = `${orderId}/${Date.now()}-${cleanFileName}`
+    const uniqueFileName = `${orderId}/${crypto.randomUUID()}-${cleanFileName}`
 
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
@@ -39,7 +44,7 @@ export async function getPresignedUrl(fileName: string, contentType: string, ord
 
     // Generamos un link temporal (válido por 1 hora) para subir el archivo
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 })
-    
+
     // Armamos la URL pública final donde se va a poder ver la placa
     let baseUrl = process.env.R2_PUBLIC_URL!
     if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1)
@@ -54,6 +59,10 @@ export async function getPresignedUrl(fileName: string, contentType: string, ord
 
 // Esta función anota el link público en la historia clínica (la Orden)
 export async function saveImageToOrder(orderId: string, publicUrl: string) {
+  // Fix — verificar sesion
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
   try {
     await prisma.order.update({
       where: { id: orderId },
@@ -70,11 +79,11 @@ export async function saveImageToOrder(orderId: string, publicUrl: string) {
   }
 }
 
-
-
-
-
 export async function deleteImageFromOrder(orderId: string, imageUrl: string) {
+  // Fix — verificar sesion
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
   try {
     // 1. Buscamos la orden actual
     const order = await prisma.order.findUnique({
@@ -107,6 +116,10 @@ export async function deleteImageFromOrder(orderId: string, imageUrl: string) {
 // Esta función recibe el archivo directamente desde el cliente (FormData)
 // Lo sube a Cloudflare R2 y guarda el link en la orden de Prisma
 export async function uploadDelayedImage(formData: FormData) {
+  // Fix — verificar sesion
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
   try {
     const file = formData.get("file") as File;
     const orderId = formData.get("orderId") as string;
@@ -119,9 +132,9 @@ export async function uploadDelayedImage(formData: FormData) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // 2. Limpiamos el nombre y armamos la ruta (le agregamos "diferido-" para identificarlo)
+    // 2. Fix — crypto.randomUUID() en vez de Date.now()
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const uniqueFileName = `${orderId}/diferido-${Date.now()}-${cleanFileName}`;
+    const uniqueFileName = `${orderId}/diferido-${crypto.randomUUID()}-${cleanFileName}`;
 
     // 3. Subimos directamente a R2
     const command = new PutObjectCommand({
@@ -158,10 +171,21 @@ export async function uploadDelayedImage(formData: FormData) {
   }
 }
 
-
-// 👉 AGREGAR AL FINAL DE src/actions/storage.ts
-
 export async function saveExternalLinkToOrder(orderId: string, link: string) {
+  // Fix — verificar sesion
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
+  // Fix — validacion de URL: solo se aceptan URLs https://
+  try {
+    const parsed = new URL(link)
+    if (parsed.protocol !== 'https:') {
+      return { success: false, error: "Solo se permiten enlaces HTTPS." }
+    }
+  } catch {
+    return { success: false, error: "El enlace no es una URL válida." }
+  }
+
   try {
     await prisma.order.update({
       where: { id: orderId },
@@ -175,4 +199,3 @@ export async function saveExternalLinkToOrder(orderId: string, link: string) {
     return { success: false, error: "No se pudo guardar el enlace." }
   }
 }
-
