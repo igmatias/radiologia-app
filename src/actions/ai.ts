@@ -30,8 +30,7 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
     const mimeType = imgResponse.headers.get("content-type") || "image/jpeg"
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    // gemini-2.0-flash es el modelo gratuito más reciente
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     const result = await model.generateContent([
       PROMPT,
