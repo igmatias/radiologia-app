@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import IRDentalLogo from "@/components/icons/irdental-logo"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,10 +11,12 @@ import { usePathname } from "next/navigation"
 import {
   ShieldCheck, Image as ImageIcon, Download,
   Calendar, MapPin, Hash, CheckCircle2, History,
-  FileText, ExternalLink, Lock
+  FileText, ExternalLink, Lock, X, ChevronLeft, ChevronRight, ZoomIn
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import Link from "next/link"
+
+type Lightbox = { images: string[]; idx: number }
 
 export default function ResultadosClient() {
   const pathname = usePathname()
@@ -25,6 +27,22 @@ export default function ResultadosClient() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [patient, setPatient] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
+  const [lightbox, setLightbox] = useState<Lightbox | null>(null)
+
+  const closeLightbox = useCallback(() => setLightbox(null), [])
+  const prevImg = useCallback(() => setLightbox(lb => lb && lb.idx > 0 ? { ...lb, idx: lb.idx - 1 } : lb), [])
+  const nextImg = useCallback(() => setLightbox(lb => lb && lb.idx < lb.images.length - 1 ? { ...lb, idx: lb.idx + 1 } : lb), [])
+
+  useEffect(() => {
+    if (!lightbox) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowLeft') prevImg()
+      if (e.key === 'ArrowRight') nextImg()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [lightbox, closeLightbox, prevImg, nextImg])
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,6 +136,7 @@ export default function ResultadosClient() {
 
   // --- PANTALLA 2: HISTORIAL ---
   return (
+    <>
     <div className="min-h-screen bg-neutral-50 pb-16">
 
       {/* HEADER */}
@@ -259,6 +278,8 @@ export default function ResultadosClient() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {order.images?.map((img: string, idx: number) => {
                       const isPDF = img.toLowerCase().includes('.pdf')
+                      const orderImages = order.images.filter((i: string) => !i.toLowerCase().includes('.pdf'))
+                      const imgIndexInOrder = orderImages.indexOf(img)
                       return (
                         <div key={idx} className="bg-slate-100 rounded-2xl overflow-hidden border-2 border-slate-200 group flex flex-col">
                           {isPDF ? (
@@ -270,12 +291,15 @@ export default function ResultadosClient() {
                               </div>
                             </a>
                           ) : (
-                            <a href={img} target="_blank" rel="noreferrer" className="flex-1 aspect-[4/3] bg-black relative block">
+                            <button
+                              onClick={() => setLightbox({ images: orderImages, idx: imgIndexInOrder })}
+                              className="flex-1 aspect-[4/3] bg-black relative block w-full cursor-zoom-in"
+                            >
                               <img src={img} alt={`Estudio ${idx + 1}`} className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                <span className="bg-brand-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg">Ver completo</span>
+                                <ZoomIn size={32} className="text-white drop-shadow-lg" />
                               </div>
-                            </a>
+                            </button>
                           )}
                           <div className="p-3 bg-white flex justify-between items-center border-t border-slate-100">
                             <span className="text-[10px] font-black uppercase text-slate-400">
@@ -299,5 +323,66 @@ export default function ResultadosClient() {
         ))}
       </div>
     </div>
+
+    {/* ── LIGHTBOX ── */}
+    {lightbox && (
+      <div
+        className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+        onClick={closeLightbox}
+      >
+        {/* Contador */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-widest border border-white/10">
+          {lightbox.idx + 1} / {lightbox.images.length}
+        </div>
+
+        {/* Cerrar */}
+        <button onClick={closeLightbox} className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-black/40 rounded-full p-2">
+          <X size={22} />
+        </button>
+
+        {/* Flecha izquierda */}
+        {lightbox.idx > 0 && (
+          <button
+            onClick={e => { e.stopPropagation(); prevImg() }}
+            className="absolute left-3 md:left-6 text-white/70 hover:text-white transition-colors bg-black/40 hover:bg-black/70 rounded-full p-3"
+          >
+            <ChevronLeft size={28} />
+          </button>
+        )}
+
+        {/* Imagen */}
+        <img
+          src={lightbox.images[lightbox.idx]}
+          alt={`Imagen ${lightbox.idx + 1}`}
+          className="max-h-[90vh] max-w-[90vw] object-contain select-none"
+          onClick={e => e.stopPropagation()}
+        />
+
+        {/* Descargar */}
+        <a
+          href={lightbox.images[lightbox.idx]}
+          download
+          target="_blank"
+          rel="noreferrer"
+          onClick={e => e.stopPropagation()}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        >
+          <Button size="sm" className="bg-brand-700 hover:bg-brand-600 text-white font-black uppercase text-xs rounded-full px-5 shadow-xl">
+            <Download size={13} className="mr-2" /> Descargar
+          </Button>
+        </a>
+
+        {/* Flecha derecha */}
+        {lightbox.idx < lightbox.images.length - 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); nextImg() }}
+            className="absolute right-3 md:right-6 text-white/70 hover:text-white transition-colors bg-black/40 hover:bg-black/70 rounded-full p-3"
+          >
+            <ChevronRight size={28} />
+          </button>
+        )}
+      </div>
+    )}
+    </>
   )
 }
