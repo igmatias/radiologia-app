@@ -126,14 +126,16 @@ model SafeVault {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique 
-  pin       String   
-  firstName String
-  lastName  String
-  role      UserRole @default(RECEPTIONIST)
-  isActive  Boolean  @default(true)
-  
+  id                String   @id @default(cuid())
+  username          String   @unique
+  pin               String                      // Legacy - kept for backward compat during migration
+  password          String?                     // New field - replaces pin gradually
+  mustResetPassword Boolean  @default(false)    // true = force password change on next login
+  firstName         String
+  lastName          String
+  role              UserRole @default(RECEPTIONIST)
+  isActive          Boolean  @default(true)
+
   branchId  String?
   branch    Branch?  @relation(fields: [branchId], references: [id])
 

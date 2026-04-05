@@ -33,7 +33,7 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
   // --- LÓGICA PERSONAL ---
   const openUserModal = (user: any = null) => {
     if (user) {
-      setEditingUser(user)
+      setEditingUser({ ...user, pin: "" }) // no pre-cargamos la contraseña por seguridad
     } else {
       setEditingUser({ firstName: "", lastName: "", username: "", pin: "", role: "RECEPTIONIST", branchId: "", isActive: true })
     }
@@ -41,8 +41,11 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
   }
 
   const handleSaveUser = async () => {
-    if (!editingUser.firstName || !editingUser.username || !editingUser.pin) {
-      return toast.error("Completá los campos obligatorios")
+    if (!editingUser.firstName || !editingUser.username) {
+      return toast.error("Completá nombre y usuario")
+    }
+    if (!editingUser.id && !editingUser.pin) {
+      return toast.error("La contraseña inicial es obligatoria para usuarios nuevos")
     }
     setLoading(true)
     const res = await saveStaffUser(editingUser)
@@ -234,17 +237,30 @@ export default function UsuariosClient({ initialUsers, initialDentists, branches
               </div>
             </div>
 
-            {/* Usuario y PIN */}
+            {/* Usuario y Contraseña */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><AtSign size={10}/> Usuario</Label>
                 <Input placeholder="Ej: juan.p" value={editingUser.username || ""} onChange={e => setEditingUser({...editingUser, username: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Lock size={10}/> PIN</Label>
-                <Input placeholder="Ej: 1234" value={editingUser.pin || ""} onChange={e => setEditingUser({...editingUser, pin: e.target.value})} className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"/>
+                <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
+                  <Lock size={10}/> {editingUser.id ? "Nueva contraseña" : "Contraseña inicial"}
+                </Label>
+                <Input
+                  type="password"
+                  placeholder={editingUser.id ? "Dejar vacío = no cambiar" : "Mín. 6 caracteres"}
+                  value={editingUser.pin || ""}
+                  onChange={e => setEditingUser({...editingUser, pin: e.target.value})}
+                  className="h-11 border-2 bg-slate-50 font-bold focus-visible:ring-brand-600"
+                />
               </div>
             </div>
+            {editingUser.id && editingUser.pin && (
+              <p className="text-[10px] text-amber-600 font-bold bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                ⚠️ Al guardar, el usuario deberá elegir una nueva contraseña en su próximo login.
+              </p>
+            )}
 
             {/* Rol */}
             <div className="space-y-1.5">

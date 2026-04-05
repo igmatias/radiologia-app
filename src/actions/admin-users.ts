@@ -21,9 +21,12 @@ export async function saveStaffUser(data: any) {
         isActive: data.isActive,
       };
 
-      // Solo hashear si se proporcionó un nuevo PIN
-      if (data.pin) {
-        updateData.pin = await bcrypt.hash(data.pin, 12);
+      // Solo hashear si se proporcionó una nueva contraseña
+      if (data.pin && data.pin.trim() !== "") {
+        const hashed = await bcrypt.hash(data.pin, 12);
+        updateData.password = hashed;  // Guardamos en el campo nuevo
+        updateData.pin = hashed;       // Mantenemos pin en sync para compat
+        updateData.mustResetPassword = true; // Forzar cambio en próximo login
       }
 
       await prisma.user.update({
@@ -31,13 +34,22 @@ export async function saveStaffUser(data: any) {
         data: updateData,
       });
     } else {
-      // Crear usuario nuevo
+      // Crear usuario nuevo — siempre requiere contraseña
+      if (!data.pin || data.pin.trim() === "") {
+        return { success: false, error: "La contraseña inicial es obligatoria." };
+      }
+      if (data.pin.trim().length < 6) {
+        return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+      }
+      const hashed = await bcrypt.hash(data.pin, 12);
       await prisma.user.create({
         data: {
           firstName: data.firstName,
           lastName: data.lastName,
           username: data.username,
-          pin: await bcrypt.hash(data.pin, 12),
+          pin: hashed,              // Legacy field — mantenemos en sync
+          password: hashed,         // Nuevo campo
+          mustResetPassword: true,  // Primer login requiere cambio de contraseña
           role: data.role,
           branchId: data.branchId || null,
           isActive: true,
