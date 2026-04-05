@@ -1,6 +1,6 @@
 "use server"
 
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenAI } from "@google/genai"
 import { getDentistSession } from "@/lib/session"
 
 const PROMPT = `Sos un asistente especializado en descripción de imágenes radiológicas odontológicas.
@@ -29,20 +29,26 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
     const base64 = Buffer.from(arrayBuffer).toString("base64")
     const mimeType = imgResponse.headers.get("content-type") || "image/jpeg"
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const ai = new GoogleGenAI({ apiKey })
 
-    const result = await model.generateContent([
-      PROMPT,
-      { inlineData: { data: base64, mimeType } }
-    ])
+    const result = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: PROMPT },
+            { inlineData: { data: base64, mimeType } }
+          ]
+        }
+      ]
+    })
 
-    const analysis = result.response.text()
+    const analysis = result.text ?? ""
     return { success: true, analysis }
   } catch (error: any) {
     const msg = error?.message || String(error)
     console.error("Gemini error:", msg)
-    // Devolvemos el mensaje real para facilitar el diagnóstico
     return { success: false, error: msg }
   }
 }
