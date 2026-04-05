@@ -417,21 +417,28 @@ export async function getDailyOrders(branchId: string) {
   } catch (error) { return { success: false, error: "Error al cargar órdenes" } }
 }
 
+const FOUR_YEARS_MS = 4 * 366 * 24 * 60 * 60 * 1000
+
 // Control de recetas
 export async function getOrdersForRecipeCheck(branchId: string, startDate: string, endDate: string, obraSocialId?: string, osVariantId?: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado", data: [] };
   try {
     const start = startOfDateAR(startDate);
     const end = endOfDateAR(endDate);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0 || diffMs > FOUR_YEARS_MS) return { success: false, error: "El rango de fechas no puede superar los 4 años.", data: [] };
     const where: any = { branchId, status: { not: 'ANULADA' }, createdAt: { gte: start, lte: end } };
     if (obraSocialId && obraSocialId !== 'ALL') where.obraSocialId = obraSocialId;
     if (osVariantId) where.osVariantId = osVariantId;
     const ordenes = await prisma.order.findMany({
       where,
       include: { patient: true, dentist: true, obraSocial: true, osVariant: true, items: { include: { procedure: true } } },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
+      take: 5000
     });
     return { success: true, data: ordenes };
-  } catch (error) { return { success: false, error: "Error al cargar órdenes" } }
+  } catch (error) { return { success: false, error: "Error al cargar órdenes", data: [] } }
 }
 
 export async function toggleRecipeCheck(orderId: string, checked: boolean, userName?: string) {
@@ -473,9 +480,15 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
 }
 
 export async function getAuditLog(startDate: string, endDate: string, search?: string) {
+  const session = await getCurrentSession();
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false, logs: [], error: "Sin permisos para ver el log de auditoría." };
+  }
   try {
     const start = startOfDateAR(startDate);
     const end = endOfDateAR(endDate);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0 || diffMs > FOUR_YEARS_MS) return { success: false, logs: [], error: "El rango de fechas no puede superar los 4 años." };
     const where: any = { createdAt: { gte: start, lte: end } };
     if (search?.trim()) {
       where.OR = [

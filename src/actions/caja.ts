@@ -6,13 +6,18 @@ import { toNum } from "@/lib/utils"
 import { getCurrentSession } from "@/actions/auth"
 import { startOfTodayAR, endOfTodayAR, startOfYesterdayAR } from "@/lib/dates"
 
+// Roles autorizados para operar la caja
+const CAJA_ROLES = ['RECEPTIONIST', 'ADMIN', 'SUPERADMIN'] as const
+function isCajaRole(role: string) {
+  return (CAJA_ROLES as readonly string[]).includes(role)
+}
+
 // 1. OBTENER EL ESTADO ACTUAL DE LA CAJA DEL DÍA
 export async function getEstadoCaja(branchId: string) {
   const inicioHoy = startOfTodayAR();
   const finHoy = endOfTodayAR();
 
   try {
-    // Buscamos si ya existe la caja de hoy
     let cajaDiaria = await prisma.dailyRegister.findFirst({
       where: { branchId, date: { gte: inicioHoy, lte: finHoy } }
     });
@@ -25,7 +30,6 @@ export async function getEstadoCaja(branchId: string) {
         orderBy: { date: 'desc' }
       });
 
-      // Primera vez: nunca hubo historial → pedimos saldo inicial al usuario
       if (!ultimaCaja) {
         return { success: true, cajaAbierta: false, primeraVez: true };
       }
@@ -40,31 +44,26 @@ export async function getEstadoCaja(branchId: string) {
       });
     }
 
-    // Sumamos todo el efectivo que cobraron HOY en esta sede
     const pagosHoy = await prisma.payment.aggregate({
       where: {
         method: 'EFECTIVO',
         createdAt: { gte: inicioHoy, lte: finHoy },
-        order: { branchId } // Solo los cobros de esta sede
+        order: { branchId }
       },
       _sum: { amount: true }
     });
     const ingresosEfectivo = toNum(pagosHoy._sum.amount);
 
-    // Traemos todos los pagos del día (excepto SALDO) con datos del paciente
     const pagosDetalleHoy = await prisma.payment.findMany({
       where: {
         method: { not: 'SALDO' },
         createdAt: { gte: inicioHoy, lte: finHoy },
         order: { branchId }
       },
-      include: {
-        order: { include: { patient: true } }
-      },
+      include: { order: { include: { patient: true } } },
       orderBy: { createdAt: 'asc' }
     });
 
-    // Agrupar por método y calcular totales
     const pagosPorMetodo: Record<string, { patient: string; amount: number; time: Date }[]> = {};
     const totalesPorMetodo: Record<string, number> = {};
     pagosDetalleHoy.forEach((p: any) => {
@@ -78,7 +77,6 @@ export async function getEstadoCaja(branchId: string) {
       totalesPorMetodo[method] = (totalesPorMetodo[method] || 0) + toNum(p.amount);
     });
 
-    // Buscamos los movimientos manuales (Gastos de farmacia, envíos a caja fuerte, etc)
     const movimientos = await prisma.cashMovement.findMany({
       where: {
         branchId,
@@ -95,7 +93,6 @@ export async function getEstadoCaja(branchId: string) {
       }
     });
 
-    // FÓRMULA DEL MOSTRADOR: Saldo Inicial + Cobros - Gastos/Envíos
     const saldoInicial = toNum(cajaDiaria.startBalance);
     const totalEnCajon = saldoInicial + ingresosEfectivo - salidasEfectivo;
 
@@ -120,8 +117,8 @@ export async function getEstadoCaja(branchId: string) {
 export async function abrirCajaDiaria(branchId: string, userName: string) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para operar la caja." };
   try {
-    // Buscamos la caja de ayer (la última registrada) para traer la plata que quedó
     const ultimaCaja = await prisma.dailyRegister.findFirst({
       where: { branchId },
       orderBy: { date: 'desc' }
@@ -131,19 +128,13 @@ export async function abrirCajaDiaria(branchId: string, userName: string) {
     const inicioHoy = startOfTodayAR();
 
     await prisma.dailyRegister.create({
-      data: {
-        branchId,
-        openedBy: userName,
-        startBalance,
-        date: inicioHoy
-        // No enviamos "status", Prisma lo pone en "ABIERTA" por defecto solito
-      }
+      data: { branchId, openedBy: userName, startBalance, date: inicioHoy }
     });
 
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL ABRIR CAJA:", error);
+    console.error("Error al abrir caja:", error);
     return { success: false, error: "No se pudo abrir la caja." };
   }
 }
@@ -152,19 +143,12 @@ export async function abrirCajaDiaria(branchId: string, userName: string) {
 export async function registrarMovimientoRecepcion(branchId: string, type: any, amount: number, description: string) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para registrar movimientos." };
   try {
-    // 1. Anotamos la salida de plata del mostrador
     await prisma.cashMovement.create({
-      data: {
-        branchId,
-        type,
-        amount,
-        description,
-        method: 'EFECTIVO'
-      }
+      data: { branchId, type, amount, description, method: 'EFECTIVO' }
     });
 
-    // 2. Si el destino es la Caja Fuerte, le sumamos el saldo allá
     if (type === 'A_CAJA_FUERTE') {
       await prisma.safeVault.upsert({
         where: { branchId },
@@ -176,7 +160,7 @@ export async function registrarMovimientoRecepcion(branchId: string, type: any, 
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL REGISTRAR MOVIMIENTO:", error);
+    console.error("Error al registrar movimiento:", error);
     return { success: false, error: "No se pudo registrar el movimiento." };
   }
 }
@@ -185,11 +169,11 @@ export async function registrarMovimientoRecepcion(branchId: string, type: any, 
 export async function eliminarMovimientoRecepcion(movimientoId: string, branchId: string) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para eliminar movimientos." };
   try {
     const mov = await prisma.cashMovement.findUnique({ where: { id: movimientoId } });
     if (!mov) return { success: false, error: "Movimiento no encontrado" };
 
-    // Si era plata enviada a la caja fuerte, la restamos de la bóveda para devolverla al cajón
     if (mov.type === 'A_CAJA_FUERTE') {
       await prisma.safeVault.update({
         where: { branchId },
@@ -197,21 +181,20 @@ export async function eliminarMovimientoRecepcion(movimientoId: string, branchId
       });
     }
 
-    // Borramos el registro
     await prisma.cashMovement.delete({ where: { id: movimientoId } });
-    
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error: any) {
-    console.error("⛔ ERROR AL ELIMINAR MOVIMIENTO:", error);
+    console.error("Error al eliminar movimiento:", error);
     return { success: false, error: "No se pudo eliminar el movimiento." };
   }
 }
 
-// 5b. GUARDADO PARCIAL (ARQUEO MID-TURNO)
+// 5. ARQUEO PARCIAL (MID-TURNO)
 export async function registrarArqueoParcial(branchId: string, montoContado: number, notas: string) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para registrar arqueos." };
   try {
     const cajaAbierta = await prisma.dailyRegister.findFirst({
       where: { branchId, date: { gte: startOfTodayAR(), lte: endOfTodayAR() }, status: 'ABIERTA' }
@@ -220,7 +203,7 @@ export async function registrarArqueoParcial(branchId: string, montoContado: num
     if (!cajaAbierta) return { success: false, error: "No se encontró una caja abierta." };
 
     const timestamp = new Date().toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit' });
-    const lineaNueva = `[Arqueo ${timestamp}] Contado: $${montoContado.toLocaleString('es-AR')}${notas ? ` — ${notas}` : ''}`;
+    const lineaNueva = `[Arqueo ${timestamp}] Contado: $${montoContado.toLocaleString('es-AR')}${notas ? ` - ${notas}` : ''}`;
     const notasActualizadas = cajaAbierta.notes
       ? `${cajaAbierta.notes}\n${lineaNueva}`
       : lineaNueva;
@@ -233,15 +216,16 @@ export async function registrarArqueoParcial(branchId: string, montoContado: num
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL GUARDAR ARQUEO PARCIAL:", error);
+    console.error("Error al guardar arqueo parcial:", error);
     return { success: false, error: "No se pudo guardar el arqueo parcial." };
   }
 }
 
-// 5. CERRAR LA CAJA (FINAL DEL DÍA)
+// 6. CERRAR LA CAJA (FINAL DEL DÍA)
 export async function cerrarCajaDiaria(branchId: string, userName: string, endBalance: number, notes: string) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para cerrar la caja." };
   try {
     const cajaAbierta = await prisma.dailyRegister.findFirst({
       where: { branchId, date: { gte: startOfTodayAR(), lte: endOfTodayAR() }, status: 'ABIERTA' }
@@ -251,28 +235,22 @@ export async function cerrarCajaDiaria(branchId: string, userName: string, endBa
 
     await prisma.dailyRegister.update({
       where: { id: cajaAbierta.id },
-      data: {
-        status: 'CERRADA',
-        endBalance,
-        closedBy: userName,
-        notes
-      }
+      data: { status: 'CERRADA', endBalance, closedBy: userName, notes }
     });
-    
+
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL CERRAR CAJA:", error);
+    console.error("Error al cerrar caja:", error);
     return { success: false, error: "No se pudo cerrar la caja." };
   }
 }
 
-// 6. CONFIGURAR SALDO INICIAL (primera puesta en marcha del sistema)
-// Crea un registro "cerrado" de ayer con el saldo que el admin ingresa.
-// A partir de ahí, el auto-open de hoy toma ese monto como startBalance.
+// 7. CONFIGURAR SALDO INICIAL (primera puesta en marcha del sistema)
 export async function configurarSaldoInicial(branchId: string, monto: number) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para configurar el saldo inicial." };
   try {
     const ayer = startOfYesterdayAR();
 
@@ -292,7 +270,7 @@ export async function configurarSaldoInicial(branchId: string, monto: number) {
     revalidatePath("/recepcion");
     return { success: true };
   } catch (error) {
-    console.error("⛔ ERROR AL CONFIGURAR SALDO INICIAL:", error);
+    console.error("Error al configurar saldo inicial:", error);
     return { success: false, error: "No se pudo configurar el saldo inicial." };
   }
 }
