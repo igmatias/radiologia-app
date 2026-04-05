@@ -393,12 +393,16 @@ export async function getPatientPendingDebt(dni: string) {
   } catch (error) { return { totalDebt: 0, payments: [] } }
 }
 
+// Fix #3 — requiere sesión activa
 export async function getPatientHistory(dni: string) {
+  const session = await getCurrentSession()
+  if (!session) return []
   try {
     return await prisma.order.findMany({
       where: { patient: { dni } },
       include: { branch: true, dentist: true, items: { include: { procedure: true } }, payments: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 100
     })
   } catch (error) { return [] }
 }
@@ -491,11 +495,12 @@ export async function getAuditLog(startDate: string, endDate: string, search?: s
     if (diffMs < 0 || diffMs > FOUR_YEARS_MS) return { success: false, logs: [], error: "El rango de fechas no puede superar los 4 años." };
     const where: any = { createdAt: { gte: start, lte: end } };
     if (search?.trim()) {
+      const term = search.trim().slice(0, 100) // Fix #7 — cap de longitud
       where.OR = [
-        { action: { contains: search.trim(), mode: 'insensitive' } },
-        { details: { contains: search.trim(), mode: 'insensitive' } },
-        { order: { code: { contains: search.trim(), mode: 'insensitive' } } },
-        { order: { patient: { lastName: { contains: search.trim(), mode: 'insensitive' } } } },
+        { action: { contains: term, mode: 'insensitive' } },
+        { details: { contains: term, mode: 'insensitive' } },
+        { order: { code: { contains: term, mode: 'insensitive' } } },
+        { order: { patient: { lastName: { contains: term, mode: 'insensitive' } } } },
       ];
     }
     const logs = await prisma.orderHistory.findMany({

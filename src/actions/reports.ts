@@ -13,7 +13,11 @@ function dateCap(start: Date, end: Date, label: string) {
   return null
 }
 
+// Fix #2 — getDentistStats ahora requiere sesión activa
 export async function getDentistStats(dentistId: string, startDate: string, endDate: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, orders: [], chartData: [], totalProcedures: 0, totalPatients: 0, error: "No autenticado" }
+
   try {
     const start = startOfDateAR(startDate)
     const end = endOfDateAR(endDate)
@@ -59,7 +63,13 @@ export async function getDentistStats(dentistId: string, startDate: string, endD
   }
 }
 
+// Fix #2 — getInsuranceBilling ahora requiere ADMIN o SUPERADMIN
 export async function getInsuranceBilling(obrasocialId: string, startDate: string, endDate: string, branchId: string, variantId?: string) {
+  const session = await getCurrentSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false, items: [], error: "Sin permisos para acceder a la facturación." }
+  }
+
   try {
     const start = startOfDateAR(startDate)
     const end = endOfDateAR(endDate)
@@ -113,11 +123,13 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
   }
 }
 
+// Fix #6 — validación de montos negativos
 export async function updateItemInsuranceAmount(itemId: string, newAmount: number) {
   const session = await getCurrentSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
     return { success: false, error: "Sin permisos para modificar montos." }
   }
+  if (newAmount < 0) return { success: false, error: "El monto no puede ser negativo." }
   try {
     await prisma.orderItem.update({
       where: { id: itemId },
@@ -130,11 +142,13 @@ export async function updateItemInsuranceAmount(itemId: string, newAmount: numbe
   }
 }
 
+// Fix #6 — validación de montos negativos
 export async function updateItemPatientCopay(itemId: string, amount: number) {
   const session = await getCurrentSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
     return { success: false, error: "Sin permisos para modificar copagos." }
   }
+  if (amount < 0) return { success: false, error: "El copago no puede ser negativo." }
   try {
     await prisma.orderItem.update({
       where: { id: itemId },
@@ -146,14 +160,25 @@ export async function updateItemPatientCopay(itemId: string, amount: number) {
   }
 }
 
+// Fix #4 — updateOrderDate ahora registra auditoría
 export async function updateOrderDate(orderId: string, newDate: string) {
   const session = await getCurrentSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
     return { success: false, error: "Sin permisos para modificar fechas de órdenes." }
   }
   try {
+    const prev = await prisma.order.findUnique({ where: { id: orderId }, select: { createdAt: true } })
     const date = new Date(newDate + "T12:00:00")
     await prisma.order.update({ where: { id: orderId }, data: { createdAt: date } })
+    // Registro de auditoría: quién cambió qué fecha
+    await prisma.orderHistory.create({
+      data: {
+        orderId,
+        action: "FECHA_MODIFICADA",
+        details: `${prev?.createdAt?.toISOString().split('T')[0] ?? '?'} -> ${newDate}`,
+        userId: session.id,
+      }
+    }).catch(() => {}) // no bloquear si falla el log
     return { success: true }
   } catch (error) {
     return { success: false, error: "Error al actualizar la fecha." }

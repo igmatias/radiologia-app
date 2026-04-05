@@ -14,6 +14,11 @@ function isCajaRole(role: string) {
 
 // 1. OBTENER EL ESTADO ACTUAL DE LA CAJA DEL DÍA
 export async function getEstadoCaja(branchId: string) {
+  // Fix #1 — verificar sesión y rol antes de leer datos financieros
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: "No autenticado" };
+  if (!isCajaRole(session.role)) return { success: false, error: "Sin permisos para acceder a la caja." };
+
   const inicioHoy = startOfTodayAR();
   const finHoy = endOfTodayAR();
 
@@ -24,7 +29,6 @@ export async function getEstadoCaja(branchId: string) {
 
     // AUTO-APERTURA: si no hay caja hoy, la creamos automáticamente
     if (!cajaDiaria) {
-      const session = await getCurrentSession();
       const ultimaCaja = await prisma.dailyRegister.findFirst({
         where: { branchId },
         orderBy: { date: 'desc' }
@@ -34,10 +38,13 @@ export async function getEstadoCaja(branchId: string) {
         return { success: true, cajaAbierta: false, primeraVez: true };
       }
 
-      cajaDiaria = await prisma.dailyRegister.create({
-        data: {
+      // Fix #5 — upsert evita race condition si dos requests llegan al mismo tiempo
+      cajaDiaria = await prisma.dailyRegister.upsert({
+        where: { branchId_date: { branchId, date: inicioHoy } },
+        update: {},
+        create: {
           branchId,
-          openedBy: session?.name || 'Sistema',
+          openedBy: session.name || 'Sistema',
           startBalance: ultimaCaja.endBalance || 0,
           date: inicioHoy,
         }
