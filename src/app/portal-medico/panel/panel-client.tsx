@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { logoutDentist, updateDentistProfile } from "@/actions/dentist-auth"
+import { logoutDentist, updateDentistProfile, uploadDentistBannerAction } from "@/actions/dentist-auth"
 import { ORTODONCIA_CODES } from "@/lib/constants"
 import { saveDerivacion } from "@/actions/derivaciones"
 import { createTicket, markRespondidosAsRead } from "@/actions/tickets"
@@ -87,6 +87,8 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   // Estados para Perfil
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [loadingProfile, setLoadingProfile] = useState(false)
+  const [bannerUrl, setBannerUrl] = useState<string | null>(dentist.bannerUrl || null)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
   const [profileData, setProfileData] = useState({
     firstName: dentist.firstName || "",
     lastName: dentist.lastName || "",
@@ -289,6 +291,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       <div class="footer-firma">
         <div class="firma-label">Firma y Sello</div>
+        ${bannerUrl ? `<img src="${bannerUrl}" style="max-height:72px;max-width:180px;object-fit:contain;border-radius:6px;align-self:flex-end" alt="Membrete profesional" />` : '<div></div>'}
         <div style="margin-left:auto">${selloHTML}</div>
       </div>
 
@@ -484,6 +487,44 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
               </div>
             </div>
             
+            {/* Membrete para PDFs */}
+            <div className="space-y-2 pt-4 border-t border-neutral-100">
+              <Label className="text-xs font-bold uppercase text-neutral-500 tracking-wider">Membrete / Sello para PDFs</Label>
+              <p className="text-xs text-neutral-400">Subí una imagen de tu sello o logo. Aparecerá en tus derivaciones impresas.</p>
+              {bannerUrl && (
+                <div className="border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50 p-3 flex items-center justify-center" style={{minHeight: 64}}>
+                  <img src={bannerUrl} alt="Membrete actual" className="max-h-14 max-w-full object-contain" />
+                </div>
+              )}
+              <label className="block cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploadingBanner}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    setUploadingBanner(true)
+                    const fd = new FormData()
+                    fd.append('file', file)
+                    const res = await uploadDentistBannerAction(dentist.id, fd)
+                    if (res.success && res.bannerUrl) {
+                      setBannerUrl(res.bannerUrl)
+                      toast.success("Imagen subida correctamente")
+                    } else {
+                      toast.error(res.error || "No se pudo subir la imagen")
+                    }
+                    setUploadingBanner(false)
+                    e.target.value = ''
+                  }}
+                />
+                <span className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border-2 border-dashed text-xs font-bold uppercase transition-colors ${uploadingBanner ? 'opacity-50 cursor-wait border-neutral-200 text-neutral-400' : 'border-neutral-300 text-neutral-500 hover:border-brand-400 hover:text-brand-600 cursor-pointer'}`}>
+                  {uploadingBanner ? "Subiendo..." : bannerUrl ? "Cambiar imagen" : "Subir imagen"}
+                </span>
+              </label>
+            </div>
+
             <Button onClick={handleSaveProfile} disabled={loadingProfile} className="w-full h-12 mt-6 bg-neutral-900 hover:bg-neutral-800 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg transition-all">
               {loadingProfile ? "Guardando..." : "Guardar Cambios"}
             </Button>

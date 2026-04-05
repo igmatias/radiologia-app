@@ -93,6 +93,49 @@ export async function logoutDentist() {
   return { success: true };
 }
 
+export async function uploadDentistBannerAction(dentistId: string, formData: FormData) {
+  try {
+    const file = formData.get('file') as File
+    if (!file || !file.size) return { success: false, error: 'No se recibió imagen' }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) return { success: false, error: 'Formato no permitido. Usá JPG, PNG o WebP.' }
+    if (file.size > 2 * 1024 * 1024) return { success: false, error: 'La imagen no puede superar 2 MB.' }
+
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const key = `banners/${dentistId}/${crypto.randomUUID()}-${cleanName}`
+
+    const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3')
+    const s3 = new S3Client({
+      region: 'auto',
+      endpoint: process.env.R2_ENDPOINT!,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+      }
+    })
+
+    await s3.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type,
+    }))
+
+    let baseUrl = process.env.R2_PUBLIC_URL!
+    if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1)
+    const bannerUrl = `${baseUrl}/${key}`
+
+    await prisma.dentist.update({ where: { id: dentistId }, data: { bannerUrl } })
+    return { success: true, bannerUrl }
+  } catch (error) {
+    console.error('Error subiendo banner:', error)
+    return { success: false, error: 'No se pudo subir la imagen' }
+  }
+}
+
 export async function updateDentistProfile(dentistId: string, data: any) {
   try {
     await prisma.dentist.update({

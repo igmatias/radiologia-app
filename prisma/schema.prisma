@@ -204,6 +204,8 @@ model Dentist {
   password           String?
   mustChangePassword Boolean  @default(true)
 
+  bannerUrl          String?  // Membrete/logo del profesional para PDFs de derivaciones
+
   tickets            Ticket[]
   derivaciones       Derivacion[]
 

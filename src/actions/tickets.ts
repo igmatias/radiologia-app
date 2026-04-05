@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { sendTicketReplyEmail } from "@/lib/email"
 
 export async function createTicket(dentistId: string, subject: string, message: string) {
   try {
@@ -31,11 +32,25 @@ export async function getTickets(status?: "ABIERTO" | "RESPONDIDO" | "CERRADO") 
 
 export async function replyTicket(ticketId: string, reply: string, repliedBy: string) {
   try {
-    await prisma.ticket.update({
+    const ticket = await prisma.ticket.update({
       where: { id: ticketId },
-      data: { reply, repliedBy, repliedAt: new Date(), status: "RESPONDIDO" }
+      data: { reply, repliedBy, repliedAt: new Date(), status: "RESPONDIDO" },
+      include: { dentist: { select: { firstName: true, lastName: true, email: true } } }
     })
     revalidatePath("/recepcion")
+
+    // Email al odontólogo (no-blocking — nunca frena la respuesta)
+    if (ticket.dentist?.email) {
+      sendTicketReplyEmail({
+        to: ticket.dentist.email,
+        dentistName: `${ticket.dentist.lastName}, ${ticket.dentist.firstName}`,
+        subject: ticket.subject,
+        originalMessage: ticket.message,
+        reply,
+        repliedBy,
+      }).catch(e => console.error('[Email] Error enviando respuesta de ticket:', e))
+    }
+
     return { success: true }
   } catch (e) {
     return { success: false, error: "Error al responder" }

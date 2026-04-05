@@ -8,6 +8,7 @@ import { startOfTodayAR, endOfTodayAR, startOfDateAR, endOfDateAR, currentYearAR
 import { toNum } from "@/lib/utils"
 import { getCurrentSession } from "@/actions/auth"
 import { z } from "zod"
+import { sendStudyReadyEmail } from "@/lib/email"
 
 // ─── Schemas de validación ────────────────────────────────────────────────────
 const PatientSchema = z.object({
@@ -474,12 +475,39 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
       }
     });
     await logOrderHistory(orderId, "CAMBIO_ESTADO", `${prev?.status} → ${newStatus}`, prev?.status, newStatus as OrderStatus, session.id);
+
+    // Email al odontólogo cuando el estudio está listo (no-blocking)
+    if (newStatus === 'LISTO_PARA_ENTREGA') {
+      prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          code: true,
+          dentist: { select: { firstName: true, lastName: true, email: true } },
+          patient: { select: { firstName: true, lastName: true, dni: true } },
+          branch: { select: { name: true } },
+          items: { select: { procedure: { select: { name: true } } } },
+        }
+      }).then(order => {
+        if (order?.dentist?.email) {
+          sendStudyReadyEmail({
+            to: order.dentist.email,
+            dentistName: `${order.dentist.lastName}, ${order.dentist.firstName}`,
+            patientName: `${order.patient?.lastName ?? ''}, ${order.patient?.firstName ?? ''}`,
+            patientDni: order.patient?.dni ?? '',
+            orderCode: order.code ?? orderId,
+            procedures: order.items.map(i => i.procedure.name),
+            branch: order.branch?.name ?? '',
+          }).catch(e => console.error('[Email] Error enviando notificacion estudio listo:', e))
+        }
+      }).catch(() => {})
+    }
+
     revalidatePath("/tecnico");
     revalidatePath("/recepcion");
     return { success: true };
-  } catch (error) { 
+  } catch (error) {
     console.error("Error al actualizar estado:", error);
-    return { success: false } 
+    return { success: false }
   }
 }
 
