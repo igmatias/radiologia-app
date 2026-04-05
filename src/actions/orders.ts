@@ -641,6 +641,7 @@ export async function adminUpdateOrder(orderId: string, data: {
     patientCopay: number
     teeth?: string[]
     locations?: string[]
+    hidden?: boolean
   }>
 }) {
   const session = await getCurrentSession();
