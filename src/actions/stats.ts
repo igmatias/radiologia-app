@@ -1,23 +1,30 @@
 "use server"
 import { prisma } from "@/lib/prisma"
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths, endOfDay } from "date-fns"
+import { subWeeks, subMonths, endOfWeek, endOfMonth, startOfWeek, startOfMonth } from "date-fns"
+import { nowAR, endOfTodayAR } from "@/lib/dates"
+import { toZonedTime, fromZonedTime } from "date-fns-tz"
+
+const TZ = "America/Argentina/Buenos_Aires"
+const ar = (d: Date) => toZonedTime(d, TZ)
+const utc = (d: Date) => fromZonedTime(d, TZ)
 
 export async function getComparativeStats(branchId?: string) {
   try {
-    const now = new Date()
+    const now = nowAR()
     const branchFilter = branchId && branchId !== "ALL" ? { branchId } : {}
     const notAnulada = { NOT: { status: 'ANULADA' as const } }
 
-    const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 })
-    const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 })
-    const lastWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 })
-    const thisMonthStart = startOfMonth(now)
-    const lastMonthStart = startOfMonth(subMonths(now, 1))
-    const lastMonthEnd = endOfMonth(subMonths(now, 1))
+    const thisWeekStart  = utc(startOfWeek(now, { weekStartsOn: 1 }))
+    const lastWeekStart  = utc(startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }))
+    const lastWeekEnd    = utc(endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 }))
+    const thisMonthStart = utc(startOfMonth(now))
+    const lastMonthStart = utc(startOfMonth(subMonths(now, 1)))
+    const lastMonthEnd   = utc(endOfMonth(subMonths(now, 1)))
+    const endOfToday     = endOfTodayAR()
 
     const [semanaActual, semanaAnterior, mesActual, mesAnterior, topProcedures, porSede] = await Promise.all([
       prisma.order.aggregate({
-        where: { ...branchFilter, ...notAnulada, createdAt: { gte: thisWeekStart, lte: endOfDay(now) } },
+        where: { ...branchFilter, ...notAnulada, createdAt: { gte: thisWeekStart, lte: endOfToday } },
         _sum: { patientAmount: true }, _count: true
       }),
       prisma.order.aggregate({
@@ -25,7 +32,7 @@ export async function getComparativeStats(branchId?: string) {
         _sum: { patientAmount: true }, _count: true
       }),
       prisma.order.aggregate({
-        where: { ...branchFilter, ...notAnulada, createdAt: { gte: thisMonthStart, lte: endOfDay(now) } },
+        where: { ...branchFilter, ...notAnulada, createdAt: { gte: thisMonthStart, lte: endOfToday } },
         _sum: { patientAmount: true }, _count: true
       }),
       prisma.order.aggregate({

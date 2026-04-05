@@ -1,16 +1,15 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { startOfDay, endOfDay } from "date-fns"
 import { revalidatePath } from "next/cache"
 import { toNum } from "@/lib/utils"
 import { getCurrentSession } from "@/actions/auth"
+import { startOfTodayAR, endOfTodayAR, startOfYesterdayAR } from "@/lib/dates"
 
 // 1. OBTENER EL ESTADO ACTUAL DE LA CAJA DEL DÍA
 export async function getEstadoCaja(branchId: string) {
-  const hoy = new Date();
-  const inicioHoy = startOfDay(hoy);
-  const finHoy = endOfDay(hoy);
+  const inicioHoy = startOfTodayAR();
+  const finHoy = endOfTodayAR();
 
   try {
     // Buscamos si ya existe la caja de hoy
@@ -129,7 +128,7 @@ export async function abrirCajaDiaria(branchId: string, userName: string) {
     });
 
     const startBalance = ultimaCaja?.endBalance || 0;
-    const inicioHoy = startOfDay(new Date()); // Forzamos la hora a las 00:00:00
+    const inicioHoy = startOfTodayAR();
 
     await prisma.dailyRegister.create({
       data: {
@@ -214,17 +213,13 @@ export async function registrarArqueoParcial(branchId: string, montoContado: num
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
   try {
-    const hoy = new Date();
-    const inicioHoy = startOfDay(hoy);
-    const finHoy = endOfDay(hoy);
-
     const cajaAbierta = await prisma.dailyRegister.findFirst({
-      where: { branchId, date: { gte: inicioHoy, lte: finHoy }, status: 'ABIERTA' }
+      where: { branchId, date: { gte: startOfTodayAR(), lte: endOfTodayAR() }, status: 'ABIERTA' }
     });
 
     if (!cajaAbierta) return { success: false, error: "No se encontró una caja abierta." };
 
-    const timestamp = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const timestamp = new Date().toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit' });
     const lineaNueva = `[Arqueo ${timestamp}] Contado: $${montoContado.toLocaleString('es-AR')}${notas ? ` — ${notas}` : ''}`;
     const notasActualizadas = cajaAbierta.notes
       ? `${cajaAbierta.notes}\n${lineaNueva}`
@@ -248,12 +243,8 @@ export async function cerrarCajaDiaria(branchId: string, userName: string, endBa
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
   try {
-    const hoy = new Date();
-    const inicioHoy = startOfDay(hoy);
-    const finHoy = endOfDay(hoy);
-
     const cajaAbierta = await prisma.dailyRegister.findFirst({
-      where: { branchId, date: { gte: inicioHoy, lte: finHoy }, status: 'ABIERTA' }
+      where: { branchId, date: { gte: startOfTodayAR(), lte: endOfTodayAR() }, status: 'ABIERTA' }
     });
 
     if (!cajaAbierta) return { success: false, error: "No se encontró una caja abierta para cerrar." };
@@ -283,8 +274,7 @@ export async function configurarSaldoInicial(branchId: string, monto: number) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
   try {
-    const ayer = startOfDay(new Date());
-    ayer.setDate(ayer.getDate() - 1);
+    const ayer = startOfYesterdayAR();
 
     await prisma.dailyRegister.create({
       data: {

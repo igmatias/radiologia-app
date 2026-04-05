@@ -1,13 +1,13 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { startOfDay, endOfDay } from "date-fns"
+import { startOfDateAR, endOfDateAR } from "@/lib/dates"
 
 export async function getDentistStats(dentistId: string, startDate: string, endDate: string) {
   try {
     // Manejo de fechas seguro para evitar saltos de zona horaria
-    const start = startOfDay(new Date(startDate + "T12:00:00"));
-    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const start = startOfDateAR(startDate);
+    const end = endOfDateAR(endDate);
 
     const orders = await prisma.order.findMany({
       where: {
@@ -56,8 +56,8 @@ export async function getDentistStats(dentistId: string, startDate: string, endD
 
 export async function getInsuranceBilling(obrasocialId: string, startDate: string, endDate: string, branchId: string, variantId?: string) {
   try {
-    const start = startOfDay(new Date(startDate + "T12:00:00"));
-    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const start = startOfDateAR(startDate);
+    const end = endOfDateAR(endDate);
 
     // Armamos el filtro base
     const whereClause: any = {

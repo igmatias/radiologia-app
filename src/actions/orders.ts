@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { OrderStatus } from "@prisma/client"
 import { startOfDay, endOfDay } from "date-fns"
+import { startOfTodayAR, endOfTodayAR, startOfDateAR, endOfDateAR, currentYearAR } from "@/lib/dates"
 import { toNum } from "@/lib/utils"
 import { getCurrentSession } from "@/actions/auth"
 import { z } from "zod"
@@ -88,7 +89,7 @@ export async function getNextOrderNumber(branchId: string) {
     if (!branch) return "---"
 
     const prefix = branch.name.charAt(0).toUpperCase()
-    const currentYear = new Date().getFullYear()
+    const currentYear = currentYearAR()
 
     // Tomamos el dailyId más alto de este año para estimar el siguiente
     const lastOrder = await prisma.order.findFirst({
@@ -130,7 +131,7 @@ export async function createOrder(data: any) {
 
     const branch = await prisma.branch.findUnique({ where: { id: branchId }, select: { name: true } })
     const prefix = branch?.name?.charAt(0)?.toUpperCase() || "X"
-    const currentYear = new Date().getFullYear()
+    const currentYear = currentYearAR()
 
     const newOrder = await prisma.$transaction(async (tx) => {
       const dbPatient = await tx.patient.upsert({
@@ -404,11 +405,10 @@ export async function getPatientHistory(dni: string) {
 
 export async function getDailyOrders(branchId: string) {
   try {
-    const hoy = new Date();
     const ordenes = await prisma.order.findMany({
       where: {
         branchId,
-        createdAt: { gte: startOfDay(hoy), lte: endOfDay(hoy) }
+        createdAt: { gte: startOfTodayAR(), lte: endOfTodayAR() }
       },
       include: { patient: true, dentist: true, items: { include: { procedure: true } }, payments: true },
       orderBy: { createdAt: 'desc' }
@@ -420,8 +420,8 @@ export async function getDailyOrders(branchId: string) {
 // Control de recetas
 export async function getOrdersForRecipeCheck(branchId: string, startDate: string, endDate: string, obraSocialId?: string, osVariantId?: string) {
   try {
-    const start = startOfDay(new Date(startDate + "T12:00:00"));
-    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const start = startOfDateAR(startDate);
+    const end = endOfDateAR(endDate);
     const where: any = { branchId, status: { not: 'ANULADA' }, createdAt: { gte: start, lte: end } };
     if (obraSocialId && obraSocialId !== 'ALL') where.obraSocialId = obraSocialId;
     if (osVariantId) where.osVariantId = osVariantId;
@@ -474,8 +474,8 @@ export async function updateOrderStatusAction(orderId: string, newStatus: OrderS
 
 export async function getAuditLog(startDate: string, endDate: string, search?: string) {
   try {
-    const start = startOfDay(new Date(startDate + "T12:00:00"));
-    const end = endOfDay(new Date(endDate + "T12:00:00"));
+    const start = startOfDateAR(startDate);
+    const end = endOfDateAR(endDate);
     const where: any = { createdAt: { gte: start, lte: end } };
     if (search?.trim()) {
       where.OR = [
@@ -497,12 +497,11 @@ export async function getAuditLog(startDate: string, endDate: string, search?: s
 
 export async function getOrders() {
   try {
-    const now = new Date()
     return await prisma.order.findMany({
       where: {
         createdAt: {
-          gte: startOfDay(now),
-          lte: endOfDay(now),
+          gte: startOfTodayAR(),
+          lte: endOfTodayAR(),
         },
       },
       include: { patient: true, dentist: true, items: { include: { procedure: true } } },
@@ -527,8 +526,8 @@ export async function searchOrdersAdmin(filters: {
 
     if (filters.startDate || filters.endDate) {
       where.createdAt = {}
-      if (filters.startDate) where.createdAt.gte = startOfDay(new Date(filters.startDate + "T12:00:00"))
-      if (filters.endDate) where.createdAt.lte = endOfDay(new Date(filters.endDate + "T12:00:00"))
+      if (filters.startDate) where.createdAt.gte = startOfDateAR(filters.startDate)
+      if (filters.endDate) where.createdAt.lte = endOfDateAR(filters.endDate)
     }
     if (filters.branchId && filters.branchId !== 'ALL') where.branchId = filters.branchId
     if (filters.obraSocialId && filters.obraSocialId !== 'ALL') where.obraSocialId = filters.obraSocialId
