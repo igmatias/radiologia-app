@@ -1,7 +1,7 @@
 "use server"
 
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { getDentistSession } from "@/lib/dentist-session"
+import { getDentistSession } from "@/lib/session"
 
 const PROMPT = `Sos un asistente especializado en descripción de imágenes radiológicas odontológicas.
 Analizá objetivamente la imagen y describí:
