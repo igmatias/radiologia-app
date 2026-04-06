@@ -193,9 +193,19 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
   }
   const [derivacionConfig, setDerivacionConfig] = useState<Record<string, { teeth: number[], options: string[] }>>({})
   const [toothModalProc, setToothModalProc] = useState<any>(null)
-  const [aiAnalysis, setAiAnalysis] = useState<Record<string, string>>({})
+  const LS_KEY = `ai_analysis_${dentist.id}`
+  const [aiAnalysis, setAiAnalysis] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {}
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") } catch { return {} }
+  })
   const [analyzingImg, setAnalyzingImg] = useState<string | null>(null)
   const [aiModalImg, setAiModalImg] = useState<string | null>(null)
+
+  const saveAnalysis = (imgUrl: string, text: string) => {
+    const updated = { ...aiAnalysis, [imgUrl]: text }
+    setAiAnalysis(updated)
+    try { localStorage.setItem(LS_KEY, JSON.stringify(updated)) } catch {}
+  }
 
   const handleAnalyzeImage = async (imgUrl: string) => {
     if (analyzingImg) return
@@ -203,7 +213,7 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
     try {
       const res = await analyzeImageWithAI(imgUrl)
       if (res.success && res.analysis) {
-        setAiAnalysis(prev => ({ ...prev, [imgUrl]: res.analysis! }))
+        saveAnalysis(imgUrl, res.analysis)
         setAiModalImg(imgUrl)
       } else {
         toast.error(res.error || "No se pudo analizar la imagen")
