@@ -21,6 +21,63 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+// Renderizador de markdown simple para análisis de IA
+function AiMarkdown({ text }: { text: string }) {
+  const lines = text.split("\n")
+  return (
+    <div className="space-y-3">
+      {lines.map((line, i) => {
+        const trimmed = line.trim()
+        if (!trimmed) return null
+
+        // H1
+        if (trimmed.startsWith("# ")) {
+          return (
+            <h2 key={i} className="text-sm font-black uppercase tracking-wide text-neutral-900 border-b border-neutral-200 pb-1">
+              {trimmed.slice(2)}
+            </h2>
+          )
+        }
+        // H2
+        if (trimmed.startsWith("## ")) {
+          return (
+            <h3 key={i} className="text-xs font-black uppercase tracking-widest text-brand-600 mt-4 mb-1">
+              {trimmed.slice(3)}
+            </h3>
+          )
+        }
+        // Bullet
+        if (trimmed.startsWith("- ")) {
+          const content = trimmed.slice(2).replace(/\*\*(.+?)\*\*/g, "|||$1|||")
+          const parts = content.split("|||")
+          return (
+            <div key={i} className="flex gap-2 items-start">
+              <span className="text-brand-400 font-black mt-0.5 shrink-0">·</span>
+              <p className="text-sm text-neutral-700 leading-relaxed">
+                {parts.map((p, j) => j % 2 === 1
+                  ? <strong key={j} className="font-bold text-neutral-900">{p}</strong>
+                  : p
+                )}
+              </p>
+            </div>
+          )
+        }
+        // Advertencia ⚠️
+        if (trimmed.startsWith("⚠️")) {
+          return (
+            <div key={i} className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 flex gap-2 items-start">
+              <span className="text-base shrink-0">⚠️</span>
+              <p className="text-xs text-amber-800 font-medium leading-relaxed">{trimmed.slice(2).trim()}</p>
+            </div>
+          )
+        }
+        // Párrafo normal
+        return <p key={i} className="text-sm text-neutral-700 leading-relaxed">{trimmed}</p>
+      })}
+    </div>
+  )
+}
+
 // Botón de instalación PWA — usa Dialog de shadcn para no romper el layout
 function InstallButton() {
   const [prompt, setPrompt] = useState<any>(null)
@@ -1226,25 +1283,38 @@ export default function PanelMedicoClient({ dentist, procedures = [] }: { dentis
 
       {/* ── MODAL ANÁLISIS IA ── */}
       <Dialog open={!!aiModalImg} onOpenChange={open => { if (!open) setAiModalImg(null) }}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase">
-              <Sparkles size={16} className="text-brand-600"/> Análisis IA — Radiografía
-            </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-400">
-              Descripción objetiva generada por inteligencia artificial
-            </DialogDescription>
-          </DialogHeader>
-          {aiModalImg && (
-            <div className="space-y-4">
-              <img src={aiModalImg} alt="Radiografía" className="w-full rounded-xl border border-neutral-200 object-contain max-h-48"/>
-              <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-4">
-                <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">
-                  {aiAnalysis[aiModalImg]}
-                </p>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-white border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center">
+                <Sparkles size={15} className="text-brand-600"/>
               </div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-tight text-neutral-900">Análisis IA</p>
+                <p className="text-[10px] text-neutral-400 font-medium">Descripción radiológica generada por IA</p>
+              </div>
+            </div>
+            <button onClick={() => setAiModalImg(null)} className="text-neutral-400 hover:text-neutral-700 transition-colors">
+              <X size={18}/>
+            </button>
+          </div>
+
+          {aiModalImg && (
+            <div className="p-6 space-y-5">
+              {/* Imagen */}
+              <div className="rounded-xl overflow-hidden border border-neutral-200 bg-neutral-900 flex items-center justify-center" style={{maxHeight: 200}}>
+                <img src={aiModalImg} alt="Radiografía" className="w-full object-contain max-h-[200px]"/>
+              </div>
+
+              {/* Análisis */}
+              <div className="bg-white border border-neutral-100 rounded-xl p-5 shadow-sm">
+                <AiMarkdown text={aiAnalysis[aiModalImg]}/>
+              </div>
+
+              {/* Footer */}
               <div className="flex justify-end">
-                <Button variant="outline" onClick={() => setAiModalImg(null)} className="font-black uppercase text-xs">
+                <Button variant="outline" onClick={() => setAiModalImg(null)} className="font-black uppercase text-xs border-2">
                   <X size={13} className="mr-1.5"/> Cerrar
                 </Button>
               </div>
