@@ -2,14 +2,18 @@
 
 import { getDentistSession } from "@/lib/session"
 
-const PROMPT = `Sos un asistente especializado en descripción de imágenes radiológicas odontológicas.
-Analizá objetivamente la imagen y describí:
-- Estructuras dentales y óseas visibles
-- Zonas de mayor o menor densidad radiológica
-- Tejidos blandos observables
-- Cualquier hallazgo o área de interés visible
+const PROMPT = `Sos un asistente de descripción de imágenes radiológicas odontológicas. Tu tarea es describir ÚNICAMENTE lo que es claramente visible en la imagen, sin inferir ni suponer estructuras que no estés seguro de ver.
 
-Sé conciso pero completo. Escribí en español. No emitas diagnóstico clínico ni recomendaciones de tratamiento.
+Reglas estrictas:
+- Describí solo lo que observás con certeza. Si algo no es claramente visible, no lo menciones.
+- No asumas la presencia de piezas dentarias, hueso u otras estructuras si no las ves con claridad.
+- Si la imagen es de baja calidad, angulada o incompleta, indicalo.
+- Describí zonas de alta densidad (blanco/gris claro) y baja densidad (gris oscuro/negro) con precisión.
+- Si observás alguna zona anómala, asimetría o área de densidad inusual, describila con detalle y ubicación.
+- Sé preciso con la ubicación: superior/inferior, izquierda/derecha, zona anterior/posterior.
+- Escribí en español, en tono técnico pero claro.
+- No emitas diagnóstico ni recomendación de tratamiento.
+
 Finalizá siempre con: "⚠️ Este análisis es orientativo y no reemplaza el criterio clínico del profesional."`
 
 export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: boolean; analysis?: string; error?: string }> {
@@ -39,7 +43,7 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5",
+        model: "claude-sonnet-4-5",
         max_tokens: 1024,
         messages: [
           {
