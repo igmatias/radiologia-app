@@ -210,7 +210,7 @@ export async function createOrder(data: any) {
     await logOrderHistory(newOrder.id, "ORDEN_CREADA", `Código: ${newOrder.code}. ${items.length} práctica(s). Total: $${total}`, undefined, "CREADA" as OrderStatus, session.id);
     revalidatePath("/recepcion")
     revalidatePath("/tecnico")
-    return { success: true, orderId: newOrder.id, orderCode: newOrder.code }
+    return { success: true, orderId: newOrder.id, orderCode: newOrder.code, accessCode: newOrder.accessCode }
   } catch (error: any) {
     console.error("Error creando orden:", error)
     const msg = error?.message || String(error)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const submitActionRef = useRef<'simple' | 'qr' | 'etiqueta'>('etiqueta')
 
   const [dailyOrders, setDailyOrders] = useState<any[]>([])
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null)
@@ -437,6 +438,7 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
         if (res.success) {
           const finalCode = (res as any).orderCode || orderNumber;
+          const accessCode = (res as any).accessCode;
           const dentist = dentists.find((d: any) => d.id === data.dentistId);
           const itemsFormatted = data.items.map((it: any) => {
             const proc = procedures.find((p: any) => p.id === it.procedureId);
@@ -461,8 +463,21 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
             }
             return { name, info };
           });
-          setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
-          toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
+
+          const action = editingOrderId ? 'etiqueta' : submitActionRef.current;
+
+          if (action === 'simple') {
+            toast.success("Orden Guardada ✓");
+            await resetFormToNew();
+          } else if (action === 'qr') {
+            toast.success("Orden Guardada ✓");
+            printQR(accessCode, finalCode, data);
+            await resetFormToNew();
+          } else {
+            // etiqueta (default)
+            setPrintData({ code: finalCode, patient: `${data.patient.lastName}, ${data.patient.firstName}`, dob: data.patient.birthDate ? new Date(data.patient.birthDate).toLocaleDateString('es-AR') : "S/D", dentist: dentist ? `${dentist.lastName}, ${dentist.firstName}` : "PARTICULAR", items: itemsFormatted, date: new Date().toLocaleDateString('es-AR') });
+            toast.success(editingOrderId ? "Orden Actualizada ✓" : "Orden Guardada ✓");
+          }
         } else {
           toast.error(res.error || "Error al procesar la orden");
         }
@@ -499,6 +514,46 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     toast.info(`Editando Orden Nº ${orden.code || orden.dailyId}`);
   }
 
+  // 👉 IMPRIMIR QR DEL PACIENTE
+  const printQR = (accessCode: string, orderCode: string, data: any) => {
+    const url = `${window.location.origin}/resultados/${accessCode}`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(url)}&color=000000&bgcolor=FFFFFF&margin=10`;
+    const patientName = `${data.patient.lastName}, ${data.patient.firstName}`.toUpperCase();
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Resultados</title>
+    <style>
+      @page{size:90mm 110mm;margin:0}
+      body{font-family:Arial,sans-serif;margin:0;padding:6mm;width:78mm;box-sizing:border-box;text-align:center}
+      .code{font-size:11px;font-weight:900;color:#BA2C66;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+      .name{font-size:15px;font-weight:900;text-transform:uppercase;margin:4px 0 2px}
+      .sub{font-size:10px;color:#555;margin-bottom:6px}
+      .qr{margin:6px auto;display:block}
+      .url{font-size:8px;color:#888;word-break:break-all;margin-top:4px}
+      .footer{margin-top:6px;font-size:9px;color:#aaa;border-top:1px dashed #ccc;padding-top:4px}
+      @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>
+    <div class="code">Orden Nº ${orderCode}</div>
+    <div class="name">${patientName}</div>
+    <div class="sub">Escaneá para ver tus estudios</div>
+    <img class="qr" src="${qrApiUrl}" width="180" height="180" />
+    <div class="url">${url}</div>
+    <div class="footer">I-R Dental · Portal de Resultados</div>
+    </body></html>`;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.top = '-9999px';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open(); doc.write(html); doc.close();
+      iframe.onload = () => setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1500);
+      }, 600);
+    }
+  };
+
   // 👉 COMPROBANTE — abre modal de selección de formato
   const handleImprimirComprobante = (orden: any) => setComprobanteOrden(orden);
 
@@ -532,16 +587,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
       const extra = it.teeth?.length > 0 ? ` (P: ${it.teeth.join(', ')})` : it.locations?.length > 0 ? ` (${it.locations.join(', ')})` : '';
       if (isRollo) {
         return `<div style="padding:4px 0;border-bottom:1px dashed #ccc;font-size:11px">
-          <div style="font-weight:700">${proc?.name || 'ESTUDIO'}${extra}</div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#555;margin-top:2px">
-            <span>OS: $${(Number(it.insuranceCoverage)||0).toLocaleString('es-AR')}</span>
-            <span style="font-weight:900;color:#BA2C66">Pac: $${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</span>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:700">${proc?.name || 'ESTUDIO'}${extra}</div>
+            <span style="font-weight:900;color:#BA2C66">$${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</span>
           </div>
         </div>`;
       }
       return `<tr>
         <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px">${proc?.name || 'ESTUDIO'}<span style="font-size:10px;color:#666">${extra}</span></td>
-        <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px">$${(Number(it.insuranceCoverage)||0).toLocaleString('es-AR')}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-size:13px;font-weight:900">$${(Number(it.patientCopay)||0).toLocaleString('es-AR')}</td>
       </tr>`;
     }).join('');
@@ -588,11 +641,10 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     </div>
     <div class="section-title" style="margin-bottom:8px">Estudios</div>
     <table style="margin-bottom:20px">
-      <thead><tr><th>Estudio</th><th style="text-align:right">O.S.</th><th style="text-align:right">Paciente</th></tr></thead>
+      <thead><tr><th>Estudio</th><th style="text-align:right">Paciente</th></tr></thead>
       <tbody>${itemsRows}</tbody>
       <tfoot>
-        ${orden.insuranceAmount > 0 ? `<tr class="totals-row" style="background:#f5f5f5"><td>Subtotal O.S.</td><td colspan="2" style="text-align:right">$${(orden.insuranceAmount||0).toLocaleString('es-AR')}</td></tr>` : ''}
-        <tr class="totals-row" style="background:#BA2C66;color:white"><td>TOTAL PACIENTE</td><td colspan="2" style="text-align:right">$${(orden.patientAmount||0).toLocaleString('es-AR')}</td></tr>
+        <tr class="totals-row" style="background:#BA2C66;color:white"><td>TOTAL PACIENTE</td><td style="text-align:right">$${(orden.patientAmount||0).toLocaleString('es-AR')}</td></tr>
       </tfoot>
     </table>
     ${pagosRows ? `<div class="section-title" style="margin-bottom:8px">Forma de Pago</div><table><tbody>${pagosRows}</tbody></table>` : ''}
@@ -1022,9 +1074,14 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
                           return (
                             <tr key={index} className="hover:bg-slate-50 transition-colors">
                               <td className="p-4">
-                                <p className="text-sm font-black uppercase text-slate-800">{item.customName || proc?.name}</p>
-                                {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-brand-600 uppercase italic">Piezas: {item.teeth.join(' - ')}</p>}
-                                {(item.locations?.length > 0) && <p className="text-[10px] font-bold text-blue-600 uppercase italic">Pos: {item.locations.join(' - ')}</p>}
+                                <Input
+                                  className="h-8 text-sm font-black uppercase border-2 border-slate-200 focus-visible:ring-brand-500 bg-white"
+                                  defaultValue={item.customName || proc?.name || ''}
+                                  onChange={(e) => form.setValue(`items.${index}.customName`, e.target.value)}
+                                  placeholder={proc?.name || 'Nombre del estudio'}
+                                />
+                                {(item.teeth?.length > 0) && <p className="text-[10px] font-bold text-brand-600 uppercase italic mt-1">Piezas: {item.teeth.join(' - ')}</p>}
+                                {(item.locations?.length > 0) && <p className="text-[10px] font-bold text-blue-600 uppercase italic mt-1">Pos: {item.locations.join(' - ')}</p>}
                               </td>
                               <td className="p-4"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-slate-400 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-bold text-slate-600 border-2" value={item.insuranceCoverage || 0} onChange={(e) => updateItemPrice(index, 'insuranceCoverage', Number(e.target.value))}/></div></td>
                               <td className="p-4 bg-brand-50/30"><div className="relative flex items-center justify-center"><span className="absolute left-3 text-brand-700 text-sm">$</span><Input type="number" className="pl-6 h-9 w-full text-center font-black text-brand-700 border-2 border-brand-200 focus-visible:ring-brand-700 bg-white" value={item.patientCopay || 0} onChange={(e) => updateItemPrice(index, 'patientCopay', Number(e.target.value))}/></div></td>
@@ -1084,7 +1141,40 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
 
               <div className="flex justify-between mt-16 border-t-2 border-slate-100 pt-8">
                 <Button variant="ghost" className="font-black uppercase italic h-14 px-8 text-slate-500 hover:text-slate-900" onClick={() => step > 1 ? setStep(step - 1) : router.back()}>{step === 1 ? "CANCELAR" : "← VOLVER"}</Button>
-                <Button className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-brand-700 hover:bg-brand-800 border-brand-900')}`} onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()} disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}>{step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : (editingOrderId ? "GUARDAR CAMBIOS ✓" : "FINALIZAR ✓"))}</Button>
+
+                {step < 3 || editingOrderId ? (
+                  <Button
+                    className={`px-24 h-16 text-white font-black italic uppercase text-xl rounded-2xl shadow-xl transition-all border-b-4 active:border-b-0 active:translate-y-1 ${remainingBalance !== 0 && step === 3 && targetAmount > 0 ? 'bg-slate-300 border-slate-400 cursor-not-allowed' : (editingOrderId ? 'bg-slate-900 hover:bg-slate-800 border-slate-950' : 'bg-brand-700 hover:bg-brand-800 border-brand-900')}`}
+                    onClick={() => step < 3 ? setStep(step + 1) : form.handleSubmit(onSubmit)()}
+                    disabled={loading || (remainingBalance !== 0 && step === 3 && targetAmount > 0)}
+                  >
+                    {step < 3 ? "SIGUIENTE →" : (loading ? "GUARDANDO..." : "GUARDAR CAMBIOS ✓")}
+                  </Button>
+                ) : (
+                  <div className="flex gap-3">
+                    <Button
+                      className="h-14 px-6 text-white font-black italic uppercase text-sm rounded-2xl shadow-lg transition-all border-b-4 active:border-b-0 active:translate-y-1 bg-slate-600 hover:bg-slate-700 border-slate-800"
+                      onClick={() => { submitActionRef.current = 'simple'; form.handleSubmit(onSubmit)(); }}
+                      disabled={loading || (remainingBalance !== 0 && targetAmount > 0)}
+                    >
+                      {loading && submitActionRef.current === 'simple' ? "GUARDANDO..." : "FINALIZAR"}
+                    </Button>
+                    <Button
+                      className="h-14 px-6 text-white font-black italic uppercase text-sm rounded-2xl shadow-lg transition-all border-b-4 active:border-b-0 active:translate-y-1 bg-blue-600 hover:bg-blue-700 border-blue-800"
+                      onClick={() => { submitActionRef.current = 'qr'; form.handleSubmit(onSubmit)(); }}
+                      disabled={loading || (remainingBalance !== 0 && targetAmount > 0)}
+                    >
+                      {loading && submitActionRef.current === 'qr' ? "GUARDANDO..." : "FINALIZAR + QR"}
+                    </Button>
+                    <Button
+                      className="h-14 px-6 text-white font-black italic uppercase text-sm rounded-2xl shadow-lg transition-all border-b-4 active:border-b-0 active:translate-y-1 bg-brand-700 hover:bg-brand-800 border-brand-900"
+                      onClick={() => { submitActionRef.current = 'etiqueta'; form.handleSubmit(onSubmit)(); }}
+                      disabled={loading || (remainingBalance !== 0 && targetAmount > 0)}
+                    >
+                      {loading && submitActionRef.current === 'etiqueta' ? "GUARDANDO..." : "FINALIZAR + ETIQUETA"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
