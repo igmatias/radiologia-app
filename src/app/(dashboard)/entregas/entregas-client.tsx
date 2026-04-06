@@ -584,7 +584,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                             <p className="text-xs font-black uppercase text-amber-800 flex items-center gap-2"><UploadCloud size={16}/> Adjuntar Placas / PDF Diferido</p>
                             <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase px-6 py-3 rounded-xl shadow-md transition-all active:scale-95">
                               Cargar Archivo
-                              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleDelayedUpload(order.id, e)}/>
+                              <input type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={(e) => handleFileSelect(order.id, e, order)}/>
                             </label>
                           </div>
                       </div>
