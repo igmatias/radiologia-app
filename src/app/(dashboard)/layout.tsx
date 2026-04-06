@@ -1,12 +1,15 @@
 import Link from "next/link"
-import { Monitor, Send, Settings } from "lucide-react"
+import { Monitor, Send, Settings, AlertTriangle } from "lucide-react"
 import RadiationIcon from "@/components/icons/radiation-icon"
+import { isMaintenanceModeEnabled } from "@/actions/settings"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const maintenance = await isMaintenanceModeEnabled()
+
   return (
     <div className="h-[100dvh] flex flex-col bg-slate-50">
       {/* HEADER SUPERIOR GLOBAL */}
@@ -42,6 +45,15 @@ export default function DashboardLayout({
           </Link>
         </nav>
       </header>
+
+      {/* Banner de mantenimiento */}
+      {maintenance && (
+        <div className="bg-amber-400 text-amber-950 px-4 py-2 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shrink-0">
+          <AlertTriangle size={13} />
+          Modo mantenimiento activo — el sistema puede presentar interrupciones temporales
+          <AlertTriangle size={13} />
+        </div>
+      )}
 
       {/* Contenido principal con scroll habilitado */}
       <main className="flex-1 overflow-y-auto">

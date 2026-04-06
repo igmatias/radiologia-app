@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { isEmailNotificationsEnabled } from '@/actions/settings'
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -29,6 +30,12 @@ export async function sendStudyReadyEmail({
 }) {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
     console.log('[Email] SMTP no configurado, omitiendo notificación')
+    return
+  }
+
+  const emailEnabled = await isEmailNotificationsEnabled()
+  if (!emailEnabled) {
+    console.log('[Email] Notificaciones desactivadas desde admin, omitiendo')
     return
   }
 
@@ -103,6 +110,12 @@ export async function sendTicketReplyEmail({
   }
 
   if (!to) return
+
+  const emailEnabled = await isEmailNotificationsEnabled()
+  if (!emailEnabled) {
+    console.log('[Email] Notificaciones desactivadas desde admin, omitiendo')
+    return
+  }
 
   await transporter.sendMail({
     from: `"I-R Dental" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,

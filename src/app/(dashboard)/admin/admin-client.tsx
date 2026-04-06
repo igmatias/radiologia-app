@@ -12,12 +12,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
   Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
-  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, UserCog, Timer, Layers, Sparkles
+  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, UserCog, Timer, Layers,
+  Sparkles, Mail, UserCircle, Globe, AlertTriangle
 } from "lucide-react"
 import { setSetting } from "@/actions/settings"
 
-export default function AdminClient({ branches, aiEnabled }: { branches: any[], aiEnabled: boolean }) {
-  const [aiAnalysisEnabled, setAiAnalysisEnabled] = useState(aiEnabled)
+export default function AdminClient({ branches, settings }: { branches: any[], settings: any }) {
+  const [aiAnalysisEnabled,       setAiAnalysisEnabled]       = useState(settings.aiAnalysis         === "true")
+  const [patientPortalEnabled,    setPatientPortalEnabled]    = useState(settings.patientPortal       === "true")
+  const [doctorPortalEnabled,     setDoctorPortalEnabled]     = useState(settings.doctorPortal        === "true")
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(settings.emailNotifications === "true")
+  const [maintenanceMode,         setMaintenanceMode]         = useState(settings.maintenanceMode     === "true")
   // 🔥 ESCUDO ANTI-ERRORES DE HIDRATACIÓN
   const [isMounted, setIsMounted] = useState(false)
 
@@ -497,38 +502,104 @@ export default function AdminClient({ branches, aiEnabled }: { branches: any[], 
       {/* ── CONFIGURACIÓN DEL SISTEMA ── */}
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <Sparkles size={22} className="text-brand-600"/>
+          <Lock size={22} className="text-brand-600"/>
           <div>
             <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">Configuración del Sistema</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase">Funciones globales</p>
+            <p className="text-xs font-bold text-slate-400 uppercase">Control global de funciones</p>
           </div>
         </div>
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${aiAnalysisEnabled ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-              <Sparkles size={18} className={aiAnalysisEnabled ? 'text-emerald-600' : 'text-slate-400'}/>
+
+        <div className="space-y-3">
+          {[
+            {
+              key: "maintenance_mode",
+              icon: <AlertTriangle size={18} className={maintenanceMode ? 'text-amber-600' : 'text-slate-400'}/>,
+              iconBg: maintenanceMode ? 'bg-amber-100' : 'bg-slate-100',
+              label: "Modo Mantenimiento",
+              desc: "Muestra un banner de aviso en todo el sistema interno",
+              enabled: maintenanceMode,
+              setEnabled: setMaintenanceMode,
+              onColor: "bg-amber-500",
+              onMsg: "Modo mantenimiento activado ⚠️",
+              offMsg: "Modo mantenimiento desactivado",
+            },
+            {
+              key: "patient_portal_enabled",
+              icon: <Globe size={18} className={patientPortalEnabled ? 'text-emerald-600' : 'text-slate-400'}/>,
+              iconBg: patientPortalEnabled ? 'bg-emerald-100' : 'bg-slate-100',
+              label: "Portal de Pacientes",
+              desc: "Acceso a /resultados — los pacientes pueden ver sus imágenes",
+              enabled: patientPortalEnabled,
+              setEnabled: setPatientPortalEnabled,
+              onColor: "bg-emerald-500",
+              onMsg: "Portal de pacientes activado ✓",
+              offMsg: "Portal de pacientes desactivado",
+            },
+            {
+              key: "doctor_portal_enabled",
+              icon: <UserCircle size={18} className={doctorPortalEnabled ? 'text-emerald-600' : 'text-slate-400'}/>,
+              iconBg: doctorPortalEnabled ? 'bg-emerald-100' : 'bg-slate-100',
+              label: "Portal Médico",
+              desc: "Acceso a /portal-medico — los odontólogos pueden ver sus pacientes",
+              enabled: doctorPortalEnabled,
+              setEnabled: setDoctorPortalEnabled,
+              onColor: "bg-emerald-500",
+              onMsg: "Portal médico activado ✓",
+              offMsg: "Portal médico desactivado",
+            },
+            {
+              key: "email_notifications_enabled",
+              icon: <Mail size={18} className={emailNotificationsEnabled ? 'text-emerald-600' : 'text-slate-400'}/>,
+              iconBg: emailNotificationsEnabled ? 'bg-emerald-100' : 'bg-slate-100',
+              label: "Notificaciones por Email",
+              desc: "Envío de emails al cambiar estado de estudios o responder tickets",
+              enabled: emailNotificationsEnabled,
+              setEnabled: setEmailNotificationsEnabled,
+              onColor: "bg-emerald-500",
+              onMsg: "Notificaciones activadas ✓",
+              offMsg: "Notificaciones desactivadas",
+            },
+            {
+              key: "ai_analysis_enabled",
+              icon: <Sparkles size={18} className={aiAnalysisEnabled ? 'text-emerald-600' : 'text-slate-400'}/>,
+              iconBg: aiAnalysisEnabled ? 'bg-emerald-100' : 'bg-slate-100',
+              label: "Análisis IA de Radiografías",
+              desc: "Portal médico — botón \"Analizar IA\" en cada imagen",
+              enabled: aiAnalysisEnabled,
+              setEnabled: setAiAnalysisEnabled,
+              onColor: "bg-emerald-500",
+              onMsg: "Análisis IA activado ✓",
+              offMsg: "Análisis IA desactivado",
+            },
+          ].map(item => (
+            <div key={item.key} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${item.enabled ? 'bg-slate-50 border-slate-200' : 'bg-red-50 border-red-100'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-black uppercase text-slate-800">{item.label}</p>
+                  <p className="text-xs text-slate-400 font-medium">{item.desc}</p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const next = !item.enabled
+                  item.setEnabled(next)
+                  const res = await setSetting(item.key, String(next))
+                  if (res.success) {
+                    toast.success(next ? item.onMsg : item.offMsg)
+                  } else {
+                    item.setEnabled(!next)
+                    toast.error("No se pudo guardar el cambio")
+                  }
+                }}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none shrink-0 ${item.enabled ? item.onColor : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${item.enabled ? 'translate-x-6' : 'translate-x-1'}`}/>
+              </button>
             </div>
-            <div>
-              <p className="text-sm font-black uppercase text-slate-800">Análisis IA de Radiografías</p>
-              <p className="text-xs text-slate-400 font-medium">Portal médico — botón "Analizar IA" en cada imagen</p>
-            </div>
-          </div>
-          <button
-            onClick={async () => {
-              const next = !aiAnalysisEnabled
-              setAiAnalysisEnabled(next)
-              const res = await setSetting("ai_analysis_enabled", String(next))
-              if (res.success) {
-                toast.success(next ? "Análisis IA activado ✓" : "Análisis IA desactivado")
-              } else {
-                setAiAnalysisEnabled(!next)
-                toast.error("No se pudo guardar el cambio")
-              }
-            }}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${aiAnalysisEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
-          >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${aiAnalysisEnabled ? 'translate-x-6' : 'translate-x-1'}`}/>
-          </button>
+          ))}
         </div>
       </div>
 
