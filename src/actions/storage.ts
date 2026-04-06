@@ -58,16 +58,20 @@ export async function getPresignedUrl(fileName: string, contentType: string, ord
 }
 
 // Esta función anota el link público en la historia clínica (la Orden)
-export async function saveImageToOrder(orderId: string, publicUrl: string) {
-  // Fix — verificar sesion
+export async function saveImageToOrder(orderId: string, publicUrl: string, label?: string) {
   const session = await getCurrentSession()
   if (!session) return { success: false, error: "No autenticado" }
 
   try {
+    const order = await prisma.order.findUnique({ where: { id: orderId }, select: { imageMetadata: true } })
+    const meta = (order?.imageMetadata as Record<string, string> | null) ?? {}
+    if (label) meta[publicUrl] = label
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        images: { push: publicUrl }
+        images: { push: publicUrl },
+        imageMetadata: meta
       }
     })
     revalidatePath("/tecnico")
@@ -76,6 +80,27 @@ export async function saveImageToOrder(orderId: string, publicUrl: string) {
   } catch (error) {
     console.error("Error al guardar imagen en DB:", error)
     return { success: false, error: "No se pudo guardar la placa en la base de datos" }
+  }
+}
+
+export async function updateImageLabel(orderId: string, imageUrl: string, label: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+
+  try {
+    const order = await prisma.order.findUnique({ where: { id: orderId }, select: { imageMetadata: true } })
+    const meta = (order?.imageMetadata as Record<string, string> | null) ?? {}
+    if (label.trim()) {
+      meta[imageUrl] = label.trim()
+    } else {
+      delete meta[imageUrl]
+    }
+    await prisma.order.update({ where: { id: orderId }, data: { imageMetadata: meta } })
+    revalidatePath("/tecnico")
+    revalidatePath("/entregas")
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "No se pudo actualizar la etiqueta" }
   }
 }
 
@@ -123,6 +148,7 @@ export async function uploadDelayedImage(formData: FormData) {
   try {
     const file = formData.get("file") as File;
     const orderId = formData.get("orderId") as string;
+    const label = formData.get("label") as string | null;
 
     if (!file || !orderId) {
       return { success: false, error: "Faltan datos del archivo o la orden." };
@@ -151,12 +177,14 @@ export async function uploadDelayedImage(formData: FormData) {
     if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
     const publicUrl = `${baseUrl}/${uniqueFileName}`;
 
-    // 5. Guardamos en la base de datos usando tu Prisma
+    // 5. Guardamos en la base de datos
+    const orderData = await prisma.order.findUnique({ where: { id: orderId }, select: { imageMetadata: true } })
+    const meta = (orderData?.imageMetadata as Record<string, string> | null) ?? {}
+    if (label) meta[publicUrl] = label
+
     await prisma.order.update({
       where: { id: orderId },
-      data: {
-        images: { push: publicUrl }
-      }
+      data: { images: { push: publicUrl }, imageMetadata: meta }
     });
 
     // 6. Refrescamos las vistas para que aparezca la imagen al instante

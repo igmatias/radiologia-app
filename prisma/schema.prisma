@@ -306,6 +306,7 @@ model Order {
   status          OrderStatus    @default(CREADA)
   accessCode      String?        @unique @default(uuid())
   images          String[]       @default([])
+  imageMetadata   Json?
   externalLink    String?
   
   equipmentName   String?     

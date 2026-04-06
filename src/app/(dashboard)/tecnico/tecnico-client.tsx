@@ -14,7 +14,7 @@ import RadiationIcon from "@/components/icons/radiation-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
 import { updateOrderStatusAction } from "@/actions/orders"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getPresignedUrl, saveImageToOrder, deleteImageFromOrder, saveExternalLinkToOrder } from "@/actions/storage"
+import { getPresignedUrl, saveImageToOrder, deleteImageFromOrder, saveExternalLinkToOrder, updateImageLabel } from "@/actions/storage"
 import { getTickets, replyTicket } from "@/actions/tickets"
 import { assignTechnicianToOrder, saveTechnicianProfile, deleteTechnicianProfile } from "@/actions/technicians"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,8 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
   const [uploadingOrder, setUploadingOrder] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null)
+  const [pendingUpload, setPendingUpload] = useState<{orderId: string, items: {file: File, label: string}[]} | null>(null)
+  const [editingLabel, setEditingLabel] = useState<{orderId: string, url: string, value: string} | null>(null)
 
   // Mensajes / Tickets
   const [showTicketsModal, setShowTicketsModal] = useState(false)
@@ -189,34 +191,42 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
     toast.success(`${label} copiado ✓`);
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, orderId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, orderId: string, procedures: string[]) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    // Pre-label: si hay un solo procedimiento, lo usamos como label por defecto
+    const defaultLabel = procedures.length === 1 ? procedures[0] : ""
+    setPendingUpload({ orderId, items: files.map(f => ({ file: f, label: defaultLabel })) })
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
 
-    setUploadingOrder(orderId);
-    toast.loading("Subiendo archivo...", { id: `upload-${orderId}` });
-
-    try {
-      const res = await getPresignedUrl(file.name, file.type, orderId);
-      if (!res.success) throw new Error(res.error);
-
-      const uploadRes = await fetch(res.signedUrl as string, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type }
-      });
-
-      if (!uploadRes.ok) throw new Error("Fallo al subir archivo a la nube");
-
-      await saveImageToOrder(orderId, res.publicUrl as string);
-      toast.success("¡Archivo subido con éxito! ✓", { id: `upload-${orderId}` });
-      
-    } catch (error: any) {
-      toast.error(error.message || "Error al subir el archivo", { id: `upload-${orderId}` });
-    } finally {
-      setUploadingOrder(null);
-      if (fileInputRef.current) fileInputRef.current.value = ""; 
+  const handleConfirmUpload = async () => {
+    if (!pendingUpload) return
+    const { orderId, items } = pendingUpload
+    setUploadingOrder(orderId)
+    setPendingUpload(null)
+    let ok = 0, fail = 0
+    for (const { file, label } of items) {
+      try {
+        const res = await getPresignedUrl(file.name, file.type, orderId)
+        if (!res.success) throw new Error(res.error)
+        const uploadRes = await fetch(res.signedUrl as string, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+        if (!uploadRes.ok) throw new Error("Fallo al subir")
+        await saveImageToOrder(orderId, res.publicUrl as string, label || undefined)
+        ok++
+      } catch { fail++ }
     }
+    setUploadingOrder(null)
+    if (ok > 0) toast.success(`${ok} archivo${ok > 1 ? 's' : ''} subido${ok > 1 ? 's' : ''} ✓`)
+    if (fail > 0) toast.error(`${fail} archivo${fail > 1 ? 's' : ''} fallaron`)
+    router.refresh()
+  }
+
+  const handleSaveLabelEdit = async () => {
+    if (!editingLabel) return
+    await updateImageLabel(editingLabel.orderId, editingLabel.url, editingLabel.value)
+    setEditingLabel(null)
+    router.refresh()
   }
 
   const handleSaveLink = async (orderId: string) => {
@@ -248,6 +258,57 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
   return (
     <div className="min-h-screen bg-slate-50 p-6 space-y-6">
       
+      {/* MODAL SUBIDA MÚLTIPLE */}
+      <Dialog open={!!pendingUpload} onOpenChange={open => { if (!open) setPendingUpload(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase text-sm flex items-center gap-2">
+              <UploadCloud size={16} className="text-brand-600"/> Subir {pendingUpload?.items.length} archivo{(pendingUpload?.items.length ?? 0) > 1 ? 's' : ''}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {pendingUpload?.items.map((item, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-xl border border-slate-200 p-2.5 space-y-1.5">
+                <p className="text-[10px] font-black uppercase text-slate-500 truncate">{item.file.name}</p>
+                <input
+                  value={item.label}
+                  onChange={e => setPendingUpload(p => p ? { ...p, items: p.items.map((it, i) => i === idx ? { ...it, label: e.target.value } : it) } : p)}
+                  placeholder="Etiqueta (ej: Periapical Pza 14)..."
+                  className="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-300 focus:border-brand-400 outline-none font-medium"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => setPendingUpload(null)} className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-black uppercase text-slate-500 hover:bg-slate-50">Cancelar</button>
+            <button onClick={handleConfirmUpload} className="flex-1 h-10 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black uppercase flex items-center justify-center gap-1.5">
+              <UploadCloud size={13}/> Subir
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL EDITAR ETIQUETA */}
+      <Dialog open={!!editingLabel} onOpenChange={open => { if (!open) setEditingLabel(null) }}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="font-black uppercase text-sm">Editar etiqueta</DialogTitle>
+          </DialogHeader>
+          <input
+            value={editingLabel?.value || ""}
+            onChange={e => setEditingLabel(l => l ? { ...l, value: e.target.value } : l)}
+            onKeyDown={e => e.key === "Enter" && handleSaveLabelEdit()}
+            placeholder="Ej: Periapical Pza 14, Panorámica..."
+            className="w-full text-sm px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-brand-400 outline-none font-medium"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setEditingLabel(null)} className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-black uppercase text-slate-500">Cancelar</button>
+            <button onClick={handleSaveLabelEdit} className="flex-1 h-10 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-black uppercase">Guardar</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* MODAL TÉCNICOS */}
       <Dialog open={showTechModal} onOpenChange={setShowTechModal}>
         <DialogContent className="sm:max-w-[400px] bg-white rounded-2xl border-t-8 border-slate-900 p-0 outline-none overflow-hidden">
@@ -289,10 +350,10 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
       </Dialog>
 
       <Dialog open={showBranchModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[450px] bg-white rounded-[2.5rem] border-t-8 border-brand-700 p-8 outline-none">
+        <DialogContent className="sm:max-w-[450px] bg-white rounded-3xl border-t-8 border-brand-700 p-8 outline-none">
           <DialogHeader>
             <DialogTitle className="text-3xl font-black italic uppercase text-center tracking-tighter text-slate-900">Configurar Sede</DialogTitle>
-            <p className="text-center text-xs font-black uppercase text-slate-400 tracking-[0.2em] mt-2">Hola, {session?.userName} • Seleccioná tu puesto de hoy</p>
+            <p className="text-center text-xs font-bold uppercase text-slate-500 tracking-[0.2em] mt-2">Hola, {session?.userName} • Seleccioná tu puesto de hoy</p>
           </DialogHeader>
           <div className="grid gap-3 py-6">
             {branches.map((branch: any) => (
@@ -306,7 +367,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
 
       {/* MODAL MENSAJES ODONTÓLOGOS */}
       <Dialog open={showTicketsModal} onOpenChange={setShowTicketsModal}>
-        <DialogContent className="sm:max-w-[580px] bg-white rounded-[2rem] border-t-8 border-brand-700 p-0 outline-none overflow-hidden">
+        <DialogContent className="sm:max-w-[580px] bg-white rounded-3xl border-t-8 border-brand-700 p-0 outline-none overflow-hidden">
           <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-100">
             <DialogTitle className="text-lg font-black italic uppercase tracking-tighter text-slate-900 flex items-center gap-2">
               <Bell className="text-brand-700" size={20}/> Mensajes de Odontólogos
@@ -321,7 +382,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                 <button key={s} onClick={() => setTicketFilter(s)}
                   className={`flex-1 py-2 rounded-xl font-black uppercase text-[10px] transition-all ${ticketFilter === s ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
                   {labels[s]}
-                  {s === 'ABIERTO' && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[9px] px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
+                  {s === 'ABIERTO' && openTicketCount > 0 && <span className="ml-1.5 bg-brand-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">{openTicketCount}</span>}
                 </button>
               )
             })}
@@ -329,11 +390,11 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
 
           <div className="p-5 max-h-[55vh] overflow-y-auto space-y-3">
             {loadingTickets ? (
-              <div className="text-center py-16 font-black uppercase text-slate-400 animate-pulse text-xs tracking-widest">Cargando...</div>
+              <div className="text-center py-16 font-bold uppercase text-slate-500 animate-pulse text-xs tracking-widest">Cargando...</div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-16">
                 <Bell size={36} className="mx-auto text-slate-200 mb-3"/>
-                <p className="font-black uppercase text-slate-400 text-xs">No hay mensajes {ticketFilter === 'ABIERTO' ? 'pendientes' : ticketFilter === 'RESPONDIDO' ? 'respondidos' : 'cerrados'}</p>
+                <p className="font-bold uppercase text-slate-500 text-xs">No hay mensajes {ticketFilter === 'ABIERTO' ? 'pendientes' : ticketFilter === 'RESPONDIDO' ? 'respondidos' : 'cerrados'}</p>
               </div>
             ) : tickets.map((ticket: any) => {
               const subjectLabels: Record<string, string> = {
@@ -395,48 +456,55 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
             <span className="text-[10px] font-black uppercase text-white bg-brand-700 px-3 py-1 rounded-md tracking-widest italic shadow-sm">
               SEDE: {branches.find((b:any) => b.id === session?.branchId)?.name || "---"}
             </span>
-            <span className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">• Op: {session?.userName}</span>
+            <span className="text-xs font-bold uppercase text-slate-500 tracking-widest ml-1">• Op: {session?.userName}</span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
+          <Button onClick={() => router.push('/entregas')} className="flex-1 md:flex-none h-9 px-6 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic text-xs shadow-md border-b-[3px] border-brand-900 active:border-b-0 active:translate-y-px transition-all">
             <Send size={16} className="mr-2"/> Panel Entregas
           </Button>
-          <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-10 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
+          <Button variant="outline" onClick={() => setShowBranchModal(true)} className="flex-1 md:flex-none h-9 px-4 rounded-xl border-2 border-slate-200 font-black uppercase italic hover:bg-slate-900 hover:text-white transition-all text-xs">
             <MapPin size={16} className="mr-2 text-brand-700"/> Sede
           </Button>
           <button
             onClick={() => setShowTechModal(true)}
-            className="relative flex-none h-10 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-800 hover:text-white hover:border-slate-800 transition-all"
+            className="relative flex-none h-9 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-slate-800 hover:text-white hover:border-slate-800 transition-all"
             title="Gestionar técnicos"
           >
             <UserCog size={18}/>
           </button>
           <button
             onClick={() => setShowTicketsModal(true)}
-            className="relative flex-none h-10 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-brand-700 hover:text-white hover:border-brand-700 transition-all"
+            className="relative flex-none h-9 w-10 flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-500 hover:bg-brand-700 hover:text-white hover:border-brand-700 transition-all"
             title="Mensajes de odontólogos"
           >
             <Bell size={18}/>
             {openTicketCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce">
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-600 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce">
                 {openTicketCount}
               </span>
             )}
           </button>
-          <Button onClick={handleLogout} variant="ghost" className="text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-xl transition-all h-10 w-10 p-0" title="Cerrar sesión"><LogOut size={20} /></Button>
+          <Button onClick={handleLogout} variant="ghost" className="text-slate-400 hover:text-brand-700 hover:bg-brand-50 rounded-xl transition-all h-9 w-10 p-0" title="Cerrar sesión"><LogOut size={20} /></Button>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-full max-w-2xl">
-        <Button onClick={() => setActiveFilter('TODOS')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'TODOS' ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Todos</Button>
-        <Button onClick={() => setActiveFilter('EN_ESPERA')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'EN_ESPERA' ? 'bg-emerald-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Espera</Button>
-        <Button onClick={() => setActiveFilter('ATENDIENDO')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'ATENDIENDO' ? 'bg-blue-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Sala</Button>
-        <Button onClick={() => setActiveFilter('REPETIR')} className={`flex-1 rounded-xl h-10 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'REPETIR' ? 'bg-amber-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Repeticiones</Button>
+        <Button onClick={() => setActiveFilter('TODOS')} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'TODOS' ? 'bg-slate-900 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Todos</Button>
+        <Button onClick={() => setActiveFilter('EN_ESPERA')} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'EN_ESPERA' ? 'bg-emerald-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Espera</Button>
+        <Button onClick={() => setActiveFilter('ATENDIENDO')} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'ATENDIENDO' ? 'bg-blue-600 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>En Sala</Button>
+        <Button onClick={() => setActiveFilter('REPETIR')} className={`flex-1 rounded-xl h-9 font-black uppercase text-[10px] md:text-xs transition-all ${activeFilter === 'REPETIR' ? 'bg-amber-500 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}>Repeticiones</Button>
       </div>
 
-      <input type="file" accept="image/jpeg, image/png, application/dicom, application/pdf" className="hidden" ref={fileInputRef} onChange={(e) => { if (activeOrderId) handleFileUpload(e, activeOrderId); }} />
+      <input type="file" accept="image/jpeg,image/png,application/pdf" multiple className="hidden" ref={fileInputRef}
+        onChange={(e) => {
+          if (!activeOrderId) return
+          const order = orders.find((o: any) => o.id === activeOrderId)
+          const procs = order?.items?.map((i: any) => i.procedure?.name).filter(Boolean) || []
+          handleFileSelect(e, activeOrderId, procs)
+        }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredOrders.length > 0 ? (
@@ -445,14 +513,14 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
             const isRepetir = order.status === 'PARA_REPETIR';
             
             return (
-            <Card key={order.id} className={`shadow-lg rounded-[2rem] overflow-hidden bg-white transition-all duration-300 flex flex-col border-t-8 ${order.status === 'EN_ATENCION' ? 'border-t-blue-600 scale-[1.02] shadow-blue-100' : isRepetir ? 'border-t-amber-500 shadow-amber-100' : 'border-t-emerald-500 hover:scale-[1.01] hover:shadow-xl'}`}>
+            <Card key={order.id} className={`shadow-lg rounded-3xl overflow-hidden bg-white transition-all duration-300 flex flex-col border-t-8 ${order.status === 'EN_ATENCION' ? 'border-t-blue-600 scale-[1.02] shadow-blue-100' : isRepetir ? 'border-t-amber-500 shadow-amber-100' : 'border-t-emerald-500 hover:scale-[1.01] hover:shadow-xl'}`}>
               <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
                 <div className="flex justify-between items-start border-b border-slate-100 pb-3">
                   <div className="space-y-1 w-full">
                     <div className="flex items-center justify-between w-full">
                        
                        <div className="flex gap-2 items-center">
-                         <span className={`text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest border flex items-center gap-1 ${order.status === 'EN_ATENCION' ? 'bg-blue-100 text-blue-700 border-blue-200 animate-pulse' : isRepetir ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
+                         <span className={`text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-widest border flex items-center gap-1 ${order.status === 'EN_ATENCION' ? 'bg-blue-100 text-blue-700 border-blue-200 animate-pulse' : isRepetir ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'}`}>
                           {order.status === 'EN_ATENCION' ? '● EN SALA' : isRepetir ? '⚠ REPETIR' : '● EN ESPERA'}
                          </span>
                          
@@ -496,7 +564,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                 {order.notes && order.notes.trim() !== "" && (
                   <div className="bg-amber-50 p-3 rounded-xl border-l-4 border-amber-500 flex items-start gap-2">
                     <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[11px] font-bold text-amber-900 uppercase leading-tight">{order.notes}</p>
+                    <p className="text-xs font-bold text-amber-900 uppercase leading-tight">{order.notes}</p>
                   </div>
                 )}
 
@@ -508,13 +576,13 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                           <p className="font-black uppercase text-sm tracking-tight leading-tight">{item.procedure.name}</p>
                           {(item.metadata?.teeth || item.teeth)?.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1.5 items-center">
-                              <span className="text-[9px] font-black text-slate-400 uppercase">Piezas:</span>
+                              <span className="text-[10px] font-black text-slate-400 uppercase">Piezas:</span>
                               {(item.metadata?.teeth || item.teeth).map((tooth: any) => <span key={tooth} className="bg-brand-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{tooth}</span>)}
                             </div>
                           )}
                           {item.metadata?.photos?.length > 0 && (
                             <div className="mt-2 space-y-1.5">
-                              <span className="text-[9px] font-black text-slate-400 uppercase block">
+                              <span className="text-[10px] font-black text-slate-400 uppercase block">
                                 {item.metadata.photos.length} foto{item.metadata.photos.length !== 1 ? 's' : ''}
                                 {item.metadata.photos.length > (item.metadata.basePhotoCount ?? 5) && (
                                   <span className="text-brand-400 ml-1">· {item.metadata.photos.length - (item.metadata.basePhotoCount ?? 5)} adicional{item.metadata.photos.length - (item.metadata.basePhotoCount ?? 5) > 1 ? 'es' : ''}</span>
@@ -522,7 +590,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                               </span>
                               <div className="flex flex-wrap gap-1">
                                 {item.metadata.photos.map((photo: string, pi: number) => (
-                                  <span key={pi} className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${pi >= (item.metadata.basePhotoCount ?? 5) ? 'bg-brand-700/50 text-brand-200 border border-brand-600/50' : 'bg-slate-700 text-slate-300'}`}>
+                                  <span key={pi} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${pi >= (item.metadata.basePhotoCount ?? 5) ? 'bg-brand-700/50 text-brand-200 border border-brand-600/50' : 'bg-slate-700 text-slate-300'}`}>
                                     {photo}
                                   </span>
                                 ))}
@@ -535,36 +603,45 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
 
                    <div className="mt-auto bg-slate-800/80 p-3 rounded-xl border border-slate-700">
                      <div className="flex justify-between items-center mb-3">
-                       <h4 className="font-black uppercase text-slate-300 flex items-center gap-1.5 text-[9px] tracking-widest"><ImageIcon size={12} className="text-brand-500"/> Archivos</h4>
-                       <Button variant="ghost" size="sm" onClick={() => { setActiveOrderId(order.id); fileInputRef.current?.click(); }} disabled={uploadingOrder === order.id} className="h-6 text-[9px] px-2 bg-brand-700/20 text-brand-400 hover:bg-brand-700 hover:text-white font-black uppercase rounded-md">
+                       <h4 className="font-black uppercase text-slate-300 flex items-center gap-1.5 text-[10px] tracking-widest"><ImageIcon size={12} className="text-brand-500"/> Archivos</h4>
+                       <Button variant="ghost" size="sm" onClick={() => { setActiveOrderId(order.id); fileInputRef.current?.click(); }} disabled={uploadingOrder === order.id} className="h-6 text-[10px] px-2 bg-brand-700/20 text-brand-400 hover:bg-brand-700 hover:text-white font-black uppercase rounded-md">
                          {uploadingOrder === order.id ? <Loader2 size={10} className="mr-1 animate-spin"/> : <UploadCloud size={10} className="mr-1"/>} Subir
                        </Button>
                      </div>
 
-                     {order.items.some((i:any) => i.metadata?.images?.length > 0) || (order.images && order.images.length > 0) ? (
+                     {order.images && order.images.length > 0 ? (
                         <div className="grid grid-cols-4 gap-2">
-                          {(order.images || []).map((imgUrl: string, idx: number) => (
-                            <div key={`img-${idx}`} className="relative group rounded-md overflow-hidden border border-slate-600 aspect-square bg-slate-900">
-                              {imgUrl.toLowerCase().includes('.pdf') ? (
-                                <div className="flex items-center justify-center w-full h-full bg-slate-800 text-slate-400"><span className="font-black text-[10px]">PDF</span></div>
-                              ) : (
-                                <img src={imgUrl} alt="Placa" className="object-cover w-full h-full opacity-60 group-hover:opacity-100 transition-opacity" />
-                              )}
-                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                                <a href={imgUrl} target="_blank" rel="noreferrer" className="p-1 bg-white/20 rounded-full hover:bg-white text-slate-900 transition-colors"><Search size={12}/></a>
-                                <button onClick={async () => { if(confirm("¿Eliminar archivo?")) { await deleteImageFromOrder(order.id, imgUrl); router.refresh(); } }} className="p-1 bg-brand-600 rounded-full hover:bg-brand-700 text-white transition-colors"><Trash2 size={12}/></button>
+                          {(order.images || []).map((imgUrl: string, idx: number) => {
+                            const meta = order.imageMetadata as Record<string,string> | null
+                            const label = meta?.[imgUrl]
+                            const isPDF = imgUrl.toLowerCase().includes('.pdf')
+                            return (
+                              <div key={`img-${idx}`} className="flex flex-col gap-0.5">
+                                <div className="relative group rounded-md overflow-hidden border border-slate-600 aspect-square bg-slate-900">
+                                  {isPDF ? (
+                                    <div className="flex items-center justify-center w-full h-full bg-slate-800 text-slate-400"><span className="font-black text-[10px]">PDF</span></div>
+                                  ) : (
+                                    <img src={imgUrl} alt="Placa" className="object-cover w-full h-full opacity-60 group-hover:opacity-100 transition-opacity" />
+                                  )}
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                    <a href={imgUrl} target="_blank" rel="noreferrer" className="p-1 bg-white/20 rounded-full hover:bg-white text-slate-900 transition-colors"><Search size={12}/></a>
+                                    <button onClick={() => setEditingLabel({orderId: order.id, url: imgUrl, value: label || ""})} className="p-1 bg-blue-600 rounded-full hover:bg-blue-700 text-white transition-colors"><Pencil size={10}/></button>
+                                    <button onClick={async () => { if(confirm("¿Eliminar archivo?")) { await deleteImageFromOrder(order.id, imgUrl); router.refresh(); } }} className="p-1 bg-brand-600 rounded-full hover:bg-brand-700 text-white transition-colors"><Trash2 size={12}/></button>
+                                  </div>
+                                </div>
+                                {label && <span className="text-[8px] font-black uppercase text-slate-400 truncate text-center leading-tight">{label}</span>}
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       ) : (
-                        <p className="text-[9px] font-black text-slate-500 uppercase italic text-center py-2">Sin archivos subidos</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase italic text-center py-2">Sin archivos subidos</p>
                       )}
 
                      <div className="mt-3 pt-3 border-t border-slate-700 flex flex-col gap-2">
                        <div className="flex gap-2">
                          <input type="url" placeholder="Link de WeTransfer o Drive..." className="flex-1 text-[10px] px-2 py-1 rounded border border-slate-600 bg-slate-900 text-white focus:border-blue-500 outline-none" value={externalLinks[order.id] !== undefined ? externalLinks[order.id] : (order.externalLink || '')} onChange={(e) => setExternalLinks({ ...externalLinks, [order.id]: e.target.value })}/>
-                         <Button size="sm" onClick={() => handleSaveLink(order.id)} className="h-auto py-1 px-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-[9px] uppercase rounded">Guardar</Button>
+                         <Button size="sm" onClick={() => handleSaveLink(order.id)} className="h-auto py-1 px-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase rounded">Guardar</Button>
                        </div>
                      </div>
                    </div>
@@ -575,7 +652,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                    <div className="flex items-start gap-2">
                      <ToothIcon size={14} className="text-slate-400 mt-0.5 shrink-0"/> 
                      <div className="flex flex-col w-full overflow-hidden">
-                        <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Odontólogo Derivante</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Odontólogo Derivante</span>
                         
                         <div className="flex justify-between items-center w-full gap-2">
                           <p className="text-xs font-black text-slate-800 uppercase italic truncate">
@@ -642,15 +719,15 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                 <div className="flex gap-2 pt-1 mt-auto">
                   {order.status === 'EN_ATENCION' ? (
                     <>
-                      <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'PARA_REPETIR')} className="w-12 bg-amber-100 hover:bg-amber-200 text-amber-700 h-12 rounded-xl shadow-sm border border-amber-200 p-0" title="Marcar para repetición">
+                      <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'PARA_REPETIR')} className="w-12 bg-amber-100 hover:bg-amber-200 text-amber-700 h-11 rounded-xl shadow-sm border border-amber-200 p-0" title="Marcar para repetición">
                         <AlertTriangle size={18} />
                       </Button>
-                      <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'LISTO_PARA_ENTREGA')} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white h-12 rounded-xl font-black uppercase italic shadow-sm text-xs border-b-[3px] border-emerald-800 active:border-b-0 active:translate-y-px transition-all">
+                      <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'LISTO_PARA_ENTREGA')} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white h-11 rounded-xl font-black uppercase italic shadow-sm text-xs border-b-[3px] border-emerald-800 active:border-b-0 active:translate-y-px transition-all">
                         <CheckCircle className="mr-2 h-4 w-4" /> Finalizar Estudio
                       </Button>
                     </>
                   ) : (
-                    <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'EN_ATENCION')} className="flex-1 h-12 rounded-xl font-black uppercase italic shadow-sm transition-all text-xs bg-slate-900 text-white hover:bg-slate-800 border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px">
+                    <Button disabled={loadingId === order.id} onClick={() => handleStatus(order.id, 'EN_ATENCION')} className="flex-1 h-11 rounded-xl font-black uppercase italic shadow-sm transition-all text-xs bg-slate-900 text-white hover:bg-slate-800 border-b-[3px] border-slate-950 active:border-b-0 active:translate-y-px">
                       <Play className="mr-2 h-4 w-4 fill-white" /> Llamar a Sala
                     </Button>
                   )}
@@ -660,7 +737,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
           )})
         ) : (
           <div className="col-span-full py-20 text-center space-y-4">
-            <div className="bg-white shadow-xl h-24 w-24 rounded-[2rem] flex items-center justify-center mx-auto text-slate-200 border-2 border-slate-50"><CheckCircle size={48} className="text-emerald-500 opacity-50" /></div>
+            <div className="bg-white shadow-xl h-24 w-24 rounded-3xl flex items-center justify-center mx-auto text-slate-200 border-2 border-slate-50"><CheckCircle size={48} className="text-emerald-500 opacity-50" /></div>
             <div className="space-y-1"><p className="text-slate-900 font-black uppercase italic text-2xl tracking-tighter">Sala Despejada</p><p className="text-slate-400 text-xs font-black uppercase tracking-[0.3em]">No hay pacientes {activeFilter !== 'TODOS' ? 'en este estado' : 'en esta sede'}</p></div>
           </div>
         )}

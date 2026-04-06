@@ -1,5 +1,5 @@
 "use client"
-import { deleteImageFromOrder, uploadDelayedImage, saveExternalLinkToOrder } from "@/actions/storage" 
+import { deleteImageFromOrder, uploadDelayedImage, saveExternalLinkToOrder, updateImageLabel } from "@/actions/storage" 
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import {
   FileCheck, Clock, CheckCircle2, Mail,
   Smartphone, UserCheck, RefreshCw, Send, Printer, QrCode, Search,
   UploadCloud, Link as LinkIcon, Copy, XCircle, FileText, ExternalLink,
-  ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Package, PauseCircle
+  ArrowLeft, ChevronDown, ChevronUp, AlertTriangle, Package, PauseCircle, Pencil
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ToothIcon from "@/components/icons/tooth-icon"
@@ -45,6 +45,8 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
   
   const [externalLinks, setExternalLinks] = useState<Record<string, string>>({})
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const [pendingUpload, setPendingUpload] = useState<{orderId: string, items: {file: File, label: string}[]} | null>(null)
+  const [editingLabel, setEditingLabel] = useState<{orderId: string, url: string, value: string} | null>(null)
   const pendingDeliveries = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   useEffect(() => {
@@ -91,20 +93,40 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
     setIsSearching(false);
   }
 
-  const handleDelayedUpload = async (orderId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const toastId = toast.loading("Subiendo archivo...");
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("orderId", orderId);
-      const res = await uploadDelayedImage(formData);
-      if (res.success) {
-        toast.success("¡Archivo subido!", { id: toastId });
-        if(activeTab === "BUSCADOR") executeSearch(); else loadData();
-      } else toast.error(res.error, { id: toastId });
-    } catch (error) { toast.error("Error de conexión", { id: toastId }); }
+  const handleFileSelect = (orderId: string, e: React.ChangeEvent<HTMLInputElement>, order: any) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    const procs = order?.items?.map((i: any) => i.procedure?.name).filter(Boolean) || []
+    const defaultLabel = procs.length === 1 ? procs[0] : ""
+    setPendingUpload({ orderId, items: files.map(f => ({ file: f, label: defaultLabel })) })
+    e.target.value = ""
+  }
+
+  const handleConfirmUpload = async () => {
+    if (!pendingUpload) return
+    const { orderId, items } = pendingUpload
+    setPendingUpload(null)
+    let ok = 0, fail = 0
+    for (const { file, label } of items) {
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("orderId", orderId)
+        if (label) formData.append("label", label)
+        const res = await uploadDelayedImage(formData)
+        if (res.success) ok++; else fail++
+      } catch { fail++ }
+    }
+    if (ok > 0) toast.success(`${ok} archivo${ok > 1 ? 's' : ''} subido${ok > 1 ? 's' : ''} ✓`)
+    if (fail > 0) toast.error(`${fail} archivo${fail > 1 ? 's' : ''} fallaron`)
+    if (activeTab === "BUSCADOR") executeSearch(); else loadData()
+  }
+
+  const handleSaveLabelEdit = async () => {
+    if (!editingLabel) return
+    await updateImageLabel(editingLabel.orderId, editingLabel.url, editingLabel.value)
+    setEditingLabel(null)
+    if (activeTab === "BUSCADOR") executeSearch(); else loadData()
   }
 
   const handleSaveLink = async (orderId: string) => {
@@ -304,8 +326,55 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
 
   return (
     <>
+      {/* MODAL SUBIDA MÚLTIPLE */}
+      <Dialog open={!!pendingUpload} onOpenChange={open => { if (!open) setPendingUpload(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogTitle className="font-black uppercase text-sm flex items-center gap-2">
+            <UploadCloud size={16} className="text-amber-600"/> Subir {pendingUpload?.items.length} archivo{(pendingUpload?.items.length ?? 0) > 1 ? 's' : ''}
+          </DialogTitle>
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {pendingUpload?.items.map((item, idx) => (
+              <div key={idx} className="bg-slate-50 rounded-xl border border-slate-200 p-2.5 space-y-1.5">
+                <p className="text-[10px] font-black uppercase text-slate-500 truncate">{item.file.name}</p>
+                <input
+                  value={item.label}
+                  onChange={e => setPendingUpload(p => p ? { ...p, items: p.items.map((it, i) => i === idx ? { ...it, label: e.target.value } : it) } : p)}
+                  placeholder="Etiqueta (ej: Periapical Pza 14)..."
+                  className="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-300 focus:border-amber-400 outline-none font-medium"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button onClick={() => setPendingUpload(null)} className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-black uppercase text-slate-500 hover:bg-slate-50">Cancelar</button>
+            <button onClick={handleConfirmUpload} className="flex-1 h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase flex items-center justify-center gap-1.5">
+              <UploadCloud size={13}/> Subir
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL EDITAR ETIQUETA */}
+      <Dialog open={!!editingLabel} onOpenChange={open => { if (!open) setEditingLabel(null) }}>
+        <DialogContent className="max-w-xs">
+          <DialogTitle className="font-black uppercase text-sm">Editar etiqueta</DialogTitle>
+          <input
+            value={editingLabel?.value || ""}
+            onChange={e => setEditingLabel(l => l ? { ...l, value: e.target.value } : l)}
+            onKeyDown={e => e.key === "Enter" && handleSaveLabelEdit()}
+            placeholder="Ej: Periapical Pza 14, Panorámica..."
+            className="w-full text-sm px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-amber-400 outline-none font-medium"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setEditingLabel(null)} className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-black uppercase text-slate-500">Cancelar</button>
+            <button onClick={handleSaveLabelEdit} className="flex-1 h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase">Guardar</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-6 relative print:hidden">
-        
+
         {/* HEADER PRINCIPAL */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-5 rounded-2xl shadow-sm border-t-8 border-t-brand-700 gap-4 border border-slate-200">
           <div>
@@ -398,14 +467,20 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                           <div className="bg-white p-2.5 rounded-xl border border-slate-200">
                             <div className="flex gap-2 flex-wrap">
                               {order.images.map((img: string, idx: number) => {
-                                const isPDF = img.toLowerCase().includes('.pdf');
+                                const isPDF = img.toLowerCase().includes('.pdf')
+                                const meta = order.imageMetadata as Record<string,string> | null
+                                const label = meta?.[img]
                                 return (
-                                  <div key={idx} className="relative group w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 overflow-hidden">
-                                    {isPDF ? <FileText size={16} className="text-slate-400" /> : <img src={img} alt="placa" className="w-full h-full object-cover opacity-80"/>}
-                                    <a href={img} target="_blank" rel="noreferrer" className="absolute inset-0"></a>
-                                    <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-brand-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 shadow-md"><XCircle size={10}/></button>
+                                  <div key={idx} className="flex flex-col items-center gap-0.5">
+                                    <div className="relative group w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-300 overflow-hidden">
+                                      {isPDF ? <FileText size={16} className="text-slate-400" /> : <img src={img} alt="placa" className="w-full h-full object-cover opacity-80"/>}
+                                      <a href={img} target="_blank" rel="noreferrer" className="absolute inset-0"></a>
+                                      <button onClick={(e) => { e.preventDefault(); setEditingLabel({orderId: order.id, url: img, value: label || ""}) }} className="absolute bottom-0 left-0 bg-blue-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 shadow-md"><Pencil size={8}/></button>
+                                      <button onClick={async (e) => { e.preventDefault(); if(confirm("¿Eliminar?")) { await deleteImageFromOrder(order.id, img); loadData(); } }} className="absolute -top-1 -right-1 bg-brand-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 shadow-md"><XCircle size={10}/></button>
+                                    </div>
+                                    {label && <span className="text-[7px] font-black uppercase text-slate-500 truncate max-w-[48px] text-center">{label}</span>}
                                   </div>
-                                );
+                                )
                               })}
                             </div>
                           </div>
@@ -419,7 +494,7 @@ export default function EntregasClient({ branches }: { branches: any[] }) {
                         </div>
                         <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 flex justify-between items-center shadow-sm">
                           <p className="text-[10px] font-black uppercase text-amber-800">Cargar Archivo Diferido</p>
-                          <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-lg transition-colors"><UploadCloud size={12} className="inline mr-1"/> Adjuntar<input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleDelayedUpload(order.id, e)}/></label>
+                          <label className="cursor-pointer bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-lg transition-colors"><UploadCloud size={12} className="inline mr-1"/> Adjuntar<input type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={(e) => handleFileSelect(order.id, e, order)}/></label>
                         </div>
                       </div>
                     )}

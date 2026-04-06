@@ -51,6 +51,10 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
       max_tokens: 1024,
       messages: [
         {
+          role: "system",
+          content: "Sos un asistente de radiología dental integrado en un sistema de gestión clínica profesional. Tu función es asistir a odontólogos y especialistas en la descripción técnica de imágenes radiológicas. Siempre respondés en español con terminología clínica apropiada."
+        },
+        {
           role: "user",
           content: [
             { type: "text", text: PROMPT },
