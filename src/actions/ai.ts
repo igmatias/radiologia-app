@@ -1,5 +1,6 @@
 "use server"
 
+import OpenAI from "openai"
 import { getDentistSession } from "@/lib/session"
 
 const PROMPT = `Sos un asistente de descripción de imágenes radiológicas odontológicas. Tu tarea es describir ÚNICAMENTE lo que es claramente visible en la imagen, sin inferir ni suponer estructuras que no estés seguro de ver.
@@ -20,56 +21,32 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
   const session = await getDentistSession()
   if (!session) return { success: false, error: "No autorizado" }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return { success: false, error: "API de IA no configurada." }
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) return { success: false, error: "API de IA no configurada. Agregá OPENAI_API_KEY en las variables de entorno." }
 
   try {
-    // Fetch image and convert to base64
-    const imgResponse = await fetch(imageUrl)
-    if (!imgResponse.ok) throw new Error(`No se pudo obtener la imagen (HTTP ${imgResponse.status})`)
+    const client = new OpenAI({ apiKey })
 
-    const arrayBuffer = await imgResponse.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString("base64")
-    const rawType = imgResponse.headers.get("content-type") || "image/jpeg"
-    const mediaType = (["image/jpeg","image/png","image/gif","image/webp"].includes(rawType)
-      ? rawType : "image/jpeg") as "image/jpeg" | "image/png" | "image/gif" | "image/webp"
-
-    // Direct API call — no SDK
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: 1024,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-              { type: "text", text: PROMPT }
-            ]
-          }
-        ]
-      })
+    const response = await client.chat.completions.create({
+      model: "gpt-4o",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: PROMPT },
+            { type: "image_url", image_url: { url: imageUrl, detail: "high" } }
+          ]
+        }
+      ]
     })
 
-    const json = await res.json()
-
-    if (!res.ok) {
-      console.error("Anthropic API error:", JSON.stringify(json))
-      throw new Error(`${res.status} ${JSON.stringify(json)}`)
-    }
-
-    const analysis = json.content?.filter((b: any) => b.type === "text").map((b: any) => b.text).join("\n") ?? ""
+    const analysis = response.choices[0]?.message?.content ?? ""
     return { success: true, analysis }
 
   } catch (error: any) {
     const msg = error?.message || String(error)
-    console.error("AI error:", msg)
+    console.error("OpenAI error:", msg)
     return { success: false, error: msg }
   }
 }
