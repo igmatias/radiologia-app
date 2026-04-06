@@ -12,10 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   TrendingUp, Activity, Calendar as CalendarIcon, Wallet,
   Banknote, Clock, MapPin, Vault, CheckCircle, Lock, Unlock,
-  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, UserCog, Timer, Layers
+  MinusCircle, Briefcase, Filter, Users, Landmark, Trophy, BarChart3, UserCog, Timer, Layers, Sparkles
 } from "lucide-react"
+import { setSetting } from "@/actions/settings"
 
-export default function AdminClient({ branches }: { branches: any[] }) {
+export default function AdminClient({ branches, aiEnabled }: { branches: any[], aiEnabled: boolean }) {
+  const [aiAnalysisEnabled, setAiAnalysisEnabled] = useState(aiEnabled)
   // 🔥 ESCUDO ANTI-ERRORES DE HIDRATACIÓN
   const [isMounted, setIsMounted] = useState(false)
 
@@ -491,6 +493,45 @@ export default function AdminClient({ branches }: { branches: any[] }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── CONFIGURACIÓN DEL SISTEMA ── */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <Sparkles size={22} className="text-brand-600"/>
+          <div>
+            <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">Configuración del Sistema</h2>
+            <p className="text-xs font-bold text-slate-400 uppercase">Funciones globales</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${aiAnalysisEnabled ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+              <Sparkles size={18} className={aiAnalysisEnabled ? 'text-emerald-600' : 'text-slate-400'}/>
+            </div>
+            <div>
+              <p className="text-sm font-black uppercase text-slate-800">Análisis IA de Radiografías</p>
+              <p className="text-xs text-slate-400 font-medium">Portal médico — botón "Analizar IA" en cada imagen</p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              const next = !aiAnalysisEnabled
+              setAiAnalysisEnabled(next)
+              const res = await setSetting("ai_analysis_enabled", String(next))
+              if (res.success) {
+                toast.success(next ? "Análisis IA activado ✓" : "Análisis IA desactivado")
+              } else {
+                setAiAnalysisEnabled(!next)
+                toast.error("No se pudo guardar el cambio")
+              }
+            }}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${aiAnalysisEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${aiAnalysisEnabled ? 'translate-x-6' : 'translate-x-1'}`}/>
+          </button>
+        </div>
+      </div>
+
     </div>
   )
 }

@@ -452,3 +452,9 @@ model Derivacion {
   @@index([dentistId])
   @@index([createdAt])
 }
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

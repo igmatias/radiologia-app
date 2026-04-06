@@ -2,6 +2,7 @@
 
 import OpenAI from "openai"
 import { getDentistSession } from "@/lib/session"
+import { isAiAnalysisEnabled } from "@/actions/settings"
 
 const PROMPT = `Sos un asistente especializado en descripción de imágenes radiológicas odontológicas. Describí con precisión lo que observás en la imagen.
 
@@ -37,6 +38,9 @@ Finalizá siempre con: "⚠️ Este análisis es orientativo y no reemplaza el c
 export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: boolean; analysis?: string; error?: string }> {
   const session = await getDentistSession()
   if (!session) return { success: false, error: "No autorizado" }
+
+  const enabled = await isAiAnalysisEnabled()
+  if (!enabled) return { success: false, error: "El análisis con IA está desactivado temporalmente." }
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) return { success: false, error: "API de IA no configurada. Agregá OPENAI_API_KEY en las variables de entorno." }
