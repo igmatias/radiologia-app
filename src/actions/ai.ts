@@ -1,6 +1,6 @@
 "use server"
 
-import { GoogleGenAI } from "@google/genai"
+import Anthropic from "@anthropic-ai/sdk"
 import { getDentistSession } from "@/lib/session"
 
 const PROMPT = `Sos un asistente especializado en descripción de imágenes radiológicas odontológicas.
@@ -17,8 +17,8 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
   const session = await getDentistSession()
   if (!session) return { success: false, error: "No autorizado" }
 
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return { success: false, error: "API de IA no configurada. Agregá GEMINI_API_KEY en las variables de entorno." }
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return { success: false, error: "API de IA no configurada. Agregá ANTHROPIC_API_KEY en las variables de entorno." }
 
   try {
     // Fetch the image and convert to base64
@@ -27,28 +27,40 @@ export async function analyzeImageWithAI(imageUrl: string): Promise<{ success: b
 
     const arrayBuffer = await imgResponse.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString("base64")
-    const mimeType = imgResponse.headers.get("content-type") || "image/jpeg"
+    const contentType = imgResponse.headers.get("content-type") || "image/jpeg"
+    // Anthropic accepts: image/jpeg, image/png, image/gif, image/webp
+    const mediaType = (["image/jpeg","image/png","image/gif","image/webp"].includes(contentType)
+      ? contentType
+      : "image/jpeg") as "image/jpeg" | "image/png" | "image/gif" | "image/webp"
 
-    const ai = new GoogleGenAI({ apiKey })
+    const client = new Anthropic({ apiKey })
 
-    const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 1024,
+      messages: [
         {
           role: "user",
-          parts: [
-            { text: PROMPT },
-            { inlineData: { data: base64, mimeType } }
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: mediaType, data: base64 }
+            },
+            { type: "text", text: PROMPT }
           ]
         }
       ]
     })
 
-    const analysis = result.text ?? ""
+    const analysis = message.content
+      .filter(b => b.type === "text")
+      .map(b => (b as any).text)
+      .join("\n")
+
     return { success: true, analysis }
   } catch (error: any) {
     const msg = error?.message || String(error)
-    console.error("Gemini error:", msg)
+    console.error("Anthropic error:", msg)
     return { success: false, error: msg }
   }
 }

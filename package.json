@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@aws-sdk/client-s3": "^3.1007.0",
     "@aws-sdk/s3-request-presigner": "^3.1007.0",
-    "@google/genai": "^1.48.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "5.10.0",
     "@radix-ui/react-dialog": "^1.1.15",
