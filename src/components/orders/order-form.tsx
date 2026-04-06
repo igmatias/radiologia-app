@@ -514,28 +514,31 @@ export default function OrderForm({ branches, dentists, obrasSociales, procedure
     toast.info(`Editando Orden Nº ${orden.code || orden.dailyId}`);
   }
 
-  // 👉 IMPRIMIR QR DEL PACIENTE
+  // 👉 IMPRIMIR QR DEL PACIENTE (rollo 80mm)
   const printQR = (accessCode: string, orderCode: string, data: any) => {
     const url = `${window.location.origin}/resultados/${accessCode}`;
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(url)}&color=000000&bgcolor=FFFFFF&margin=10`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}&color=000000&bgcolor=FFFFFF&margin=8`;
     const patientName = `${data.patient.lastName}, ${data.patient.firstName}`.toUpperCase();
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Resultados</title>
     <style>
-      @page{size:90mm 110mm;margin:0}
-      body{font-family:Arial,sans-serif;margin:0;padding:6mm;width:78mm;box-sizing:border-box;text-align:center}
-      .code{font-size:11px;font-weight:900;color:#BA2C66;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-      .name{font-size:15px;font-weight:900;text-transform:uppercase;margin:4px 0 2px}
-      .sub{font-size:10px;color:#555;margin-bottom:6px}
-      .qr{margin:6px auto;display:block}
-      .url{font-size:8px;color:#888;word-break:break-all;margin-top:4px}
-      .footer{margin-top:6px;font-size:9px;color:#aaa;border-top:1px dashed #ccc;padding-top:4px}
+      @page{size:80mm auto;margin:4mm 3mm}
+      body{font-family:Arial,sans-serif;margin:0;width:74mm;box-sizing:border-box;text-align:center;font-size:11px}
+      .divider{border:none;border-top:1px dashed #ccc;margin:5px 0}
+      .badge{background:#BA2C66;color:white;padding:2px 10px;border-radius:6px;font-size:13px;font-weight:900;display:inline-block;margin-bottom:4px}
+      .name{font-size:14px;font-weight:900;text-transform:uppercase;margin:3px 0}
+      .sub{font-size:10px;color:#555;margin:2px 0 4px}
+      .url{font-size:8px;color:#aaa;word-break:break-all;margin-top:3px}
+      .footer{margin-top:4px;font-size:9px;color:#aaa}
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
-    <div class="code">Orden Nº ${orderCode}</div>
+    <hr class="divider">
+    <div class="badge">Nº ${orderCode}</div>
     <div class="name">${patientName}</div>
+    <hr class="divider">
     <div class="sub">Escaneá para ver tus estudios</div>
-    <img class="qr" src="${qrApiUrl}" width="180" height="180" />
+    <img src="${qrApiUrl}" width="160" height="160" style="display:block;margin:4px auto" />
     <div class="url">${url}</div>
+    <hr class="divider">
     <div class="footer">I-R Dental · Portal de Resultados</div>
     </body></html>`;
 
