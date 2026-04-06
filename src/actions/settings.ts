@@ -1,7 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { getCurrentSession } from "@/lib/session"
+import { getSession } from "@/lib/session"
 import { revalidatePath } from "next/cache"
 
 export async function getSetting(key: string): Promise<string | null> {
@@ -12,7 +12,7 @@ export async function getSetting(key: string): Promise<string | null> {
 }
 
 export async function setSetting(key: string, value: string): Promise<{ success: boolean }> {
-  const session = await getCurrentSession()
+  const session = await getSession()
   if (!session || !["ADMIN", "SUPERADMIN"].includes(session.role)) {
     return { success: false }
   }
