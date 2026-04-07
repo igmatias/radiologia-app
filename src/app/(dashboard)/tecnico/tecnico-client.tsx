@@ -573,7 +573,7 @@ export default function TecnicoClient({ initialOrders, branches = [], technician
                    <div className="space-y-2 mb-4">
                       {order.items.map((item: any, i: number) => (
                         <div key={i} className="bg-slate-800 p-3 rounded-xl border-l-4 border-brand-700">
-                          <p className="font-black uppercase text-sm tracking-tight leading-tight">{item.procedure.name}</p>
+                          <p className="font-black uppercase text-sm tracking-tight leading-tight">{item.metadata?.customName || item.procedure.name}</p>
                           {(item.metadata?.teeth || item.teeth)?.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1.5 items-center">
                               <span className="text-[10px] font-black text-slate-400 uppercase">Piezas:</span>
