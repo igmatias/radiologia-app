@@ -166,7 +166,74 @@ export async function deleteOSVariant(variantId: string) {
   }
 }
 
-// 7. Importación masiva de Odontólogos desde CSV
+// 7. Actualizar día de cierre de una Obra Social
+export async function updateObraSocialClosingDay(osId: string, closingDay: number | null) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
+  try {
+    await prisma.obraSocial.update({
+      where: { id: osId },
+      data: { closingDay }
+    })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al actualizar día de cierre:", error)
+    return { success: false, error: "Error al guardar" }
+  }
+}
+
+// 8. CRUD de períodos de facturación
+export async function createBillingPeriod(obraSocialId: string, name: string, startDate: string, endDate: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
+  try {
+    const period = await prisma.billingPeriod.create({
+      data: {
+        obraSocialId,
+        name: name.trim().toUpperCase(),
+        startDate: new Date(startDate + "T00:00:00"),
+        endDate: new Date(endDate + "T23:59:59"),
+      }
+    })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true, period }
+  } catch (error) {
+    console.error("Error al crear período:", error)
+    return { success: false, error: "Error al crear período" }
+  }
+}
+
+export async function updateBillingPeriod(periodId: string, name: string, startDate: string, endDate: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
+  try {
+    const period = await prisma.billingPeriod.update({
+      where: { id: periodId },
+      data: {
+        name: name.trim().toUpperCase(),
+        startDate: new Date(startDate + "T00:00:00"),
+        endDate: new Date(endDate + "T23:59:59"),
+      }
+    })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true, period }
+  } catch (error) {
+    console.error("Error al actualizar período:", error)
+    return { success: false, error: "Error al actualizar período" }
+  }
+}
+
+export async function deleteBillingPeriod(periodId: string) {
+  const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
+  try {
+    await prisma.billingPeriod.delete({ where: { id: periodId } })
+    revalidatePath("/admin/obras-sociales")
+    return { success: true }
+  } catch (error) {
+    console.error("Error al eliminar período:", error)
+    return { success: false, error: "Error al eliminar período" }
+  }
+}
+
+// 9. Importación masiva de Odontólogos desde CSV
 export async function importDentists(data: any[]) {
   const auth = await requireAdmin(); if ('error' in auth) return { success: false, error: auth.error };
   try {

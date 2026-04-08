@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import {
   LayoutGrid, ClipboardCheck, Search, Check, Filter, ArrowUpDown,
-  AlertTriangle, RefreshCw, Trash2, Edit, Printer, FileText, Calendar, GraduationCap
+  AlertTriangle, RefreshCw, Trash2, Edit, Printer, FileText, Calendar, GraduationCap, CalendarRange
 } from "lucide-react"
 import { getOrdersForRecipeCheck, toggleRecipeCheck } from "@/actions/orders"
+import { getBillingPeriodsForOS } from "@/actions/reports"
 
 export default function OrderesView({ dailyOrders, orderSearch, setOrderSearch, refreshOrders, handleReimprimir, handleImprimirComprobante, handleEditarOrden, toggleOrderActivation, obrasSociales, session }: any) {
   const [subTab, setSubTab] = useState<'ORDENES_DIA' | 'CONTROL_RECETAS'>('ORDENES_DIA');
@@ -22,6 +23,19 @@ export default function OrderesView({ dailyOrders, orderSearch, setOrderSearch, 
   const [rcVariant, setRcVariant] = useState("ALL");
   const [rcSort, setRcSort] = useState<'ALFA' | 'FECHA'>('ALFA');
   const [rcFilterChecked, setRcFilterChecked] = useState<'ALL' | 'PENDING' | 'CHECKED'>('ALL');
+  const [rcPeriods, setRcPeriods] = useState<any[]>([]);
+  const [rcSelectedPeriod, setRcSelectedPeriod] = useState<string>("LIBRE");
+
+  const handleRcOSChange = async (v: string) => {
+    setRcOS(v);
+    setRcVariant("ALL");
+    setRcSelectedPeriod("LIBRE");
+    setRcPeriods([]);
+    if (v && v !== "ALL") {
+      const res = await getBillingPeriodsForOS(v);
+      if (res.success) setRcPeriods(res.periods);
+    }
+  };
 
   const loadRecipeOrders = async () => {
     if (!session?.branchId) return;
@@ -125,18 +139,18 @@ export default function OrderesView({ dailyOrders, orderSearch, setOrderSearch, 
             </h3>
 
             {/* Filtros */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Desde</label>
-                <Input type="date" value={rcDate} onChange={e => setRcDate(e.target.value)} className="h-10 font-bold border-2 text-xs" />
+                <Input type="date" value={rcDate} onChange={e => { setRcDate(e.target.value); setRcSelectedPeriod("LIBRE"); }} className="h-10 font-bold border-2 text-xs" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Hasta</label>
-                <Input type="date" value={rcEndDate} onChange={e => setRcEndDate(e.target.value)} className="h-10 font-bold border-2 text-xs" />
+                <Input type="date" value={rcEndDate} onChange={e => { setRcEndDate(e.target.value); setRcSelectedPeriod("LIBRE"); }} className="h-10 font-bold border-2 text-xs" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Obra Social</label>
-                <Select value={rcOS} onValueChange={(v) => { setRcOS(v); setRcVariant("ALL"); }}>
+                <Select value={rcOS} onValueChange={handleRcOSChange}>
                   <SelectTrigger className="h-10 font-bold border-2 uppercase text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent className="font-bold uppercase">
                     <SelectItem value="ALL">Todas</SelectItem>
@@ -156,6 +170,34 @@ export default function OrderesView({ dailyOrders, orderSearch, setOrderSearch, 
                     </Select>
                   );
                 })()}
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><CalendarRange size={9} /> Período</label>
+                <Select
+                  value={rcSelectedPeriod}
+                  onValueChange={(v) => {
+                    setRcSelectedPeriod(v);
+                    if (v !== "LIBRE") {
+                      const p = rcPeriods.find((x: any) => x.id === v);
+                      if (p) {
+                        setRcDate(new Date(p.startDate).toISOString().split('T')[0]);
+                        setRcEndDate(new Date(p.endDate).toISOString().split('T')[0]);
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger className={`h-10 font-bold border-2 uppercase text-xs ${rcSelectedPeriod !== "LIBRE" ? "border-cyan-400 bg-cyan-50 text-cyan-800" : ""}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="font-bold uppercase">
+                    <SelectItem value="LIBRE">— Libre —</SelectItem>
+                    {rcPeriods.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} ({new Date(p.startDate).toLocaleDateString('es-AR')} — {new Date(p.endDate).toLocaleDateString('es-AR')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400">Ordenar</label>

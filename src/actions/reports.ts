@@ -158,6 +158,23 @@ export async function getInsuranceBilling(obrasocialId: string, startDate: strin
   }
 }
 
+export async function getBillingPeriodsForOS(obraSocialId: string) {
+  const session = await getCurrentSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false, periods: [] }
+  }
+  try {
+    const periods = await prisma.billingPeriod.findMany({
+      where: { obraSocialId },
+      orderBy: { startDate: 'desc' }
+    })
+    return { success: true, periods }
+  } catch (error) {
+    console.error("Error obteniendo períodos:", error)
+    return { success: false, periods: [] }
+  }
+}
+
 // Fix #6 — validación de montos negativos
 export async function updateItemInsuranceAmount(itemId: string, newAmount: number) {
   const session = await getCurrentSession()

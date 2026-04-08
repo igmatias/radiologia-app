@@ -11,7 +11,8 @@ export default async function AdminOSPage() {
           prices: true
         }
       },
-      variants: { orderBy: { name: 'asc' } }
+      variants: { orderBy: { name: 'asc' } },
+      billingPeriods: { orderBy: { startDate: 'desc' } }
     },
     orderBy: { name: 'asc' }
   })

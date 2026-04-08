@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode, updateMaxAgeOrtodoncia, createOSVariant, deleteOSVariant } from "@/actions/admin"
+import { updateProcedurePrice, createObraSocial, deleteObraSocial, updatePriceCustomCode, updateMaxAgeOrtodoncia, createOSVariant, deleteOSVariant, updateObraSocialClosingDay, createBillingPeriod, updateBillingPeriod, deleteBillingPeriod } from "@/actions/admin"
 import { toast } from "sonner"
-import { Plus, Trash2, Building2, Search, X, Calculator, Tag, ShieldAlert, List, Check } from "lucide-react"
+import { Plus, Trash2, Building2, Search, X, Calculator, Tag, ShieldAlert, List, Check, CalendarRange, Calendar, Pencil } from "lucide-react"
 
 export function PriceEditor({ obrasSociales, procedures }: any) {
   // Copia local de todas las OS (para mantener cambios al switchear entre ellas)
@@ -20,6 +20,14 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
   const [newVariantName, setNewVariantName] = useState("")
   const [isAddingVariant, setIsAddingVariant] = useState(false)
 
+  // Períodos de facturación
+  const [isAddingPeriod, setIsAddingPeriod] = useState(false)
+  const [newPeriodStart, setNewPeriodStart] = useState("")
+  const [newPeriodEnd, setNewPeriodEnd] = useState("")
+  const [newPeriodName, setNewPeriodName] = useState("")
+  const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null)
+  const [editingPeriodName, setEditingPeriodName] = useState("")
+
   const filteredProcedures = procedures.filter((p: any) =>
     p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")) ||
     p.code?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -28,6 +36,16 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
   const handleOSChange = (id: string) => {
     const os = localOS.find((o: any) => o.id === id)
     setSelectedOS(os)
+    setIsAddingPeriod(false)
+    setEditingPeriodId(null)
+  }
+
+  const autoGeneratePeriodName = (startDate: string) => {
+    if (!startDate) return ""
+    const d = new Date(startDate + "T12:00:00")
+    const yy = String(d.getFullYear()).slice(-2)
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    return `${yy}-${mm}`
   }
 
   // Actualiza el estado local (selectedOS + localOS) tras guardar
@@ -240,6 +258,50 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
           </Card>
         )}
 
+        {/* Día de cierre */}
+        {selectedOS && (
+          <Card className="border-none shadow-sm rounded-2xl bg-teal-50 border border-teal-200">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <Calendar size={14} className="text-teal-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-teal-800 mb-1">Día de Cierre del Período</p>
+                  <p className="text-[10px] font-bold text-teal-600 leading-relaxed">
+                    Día del mes en que cierra el período de esta mutual. Se usa como referencia al crear nuevos períodos.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  placeholder="Sin definir"
+                  className="h-10 w-full font-black text-center border-2 border-teal-200 bg-white text-teal-800"
+                  defaultValue={selectedOS.closingDay ?? ''}
+                  key={selectedOS.id + '-closing'}
+                  onBlur={async (e) => {
+                    const val = e.target.value.trim();
+                    const newDay = val ? parseInt(val) : null;
+                    if (newDay !== null && (newDay < 1 || newDay > 31)) return;
+                    const currentDay = selectedOS.closingDay ?? null;
+                    if (newDay === currentDay) return;
+                    const res = await updateObraSocialClosingDay(selectedOS.id, newDay);
+                    if (res.success) {
+                      toast.success("Día de cierre actualizado");
+                      setSelectedOS((prev: any) => ({ ...prev, closingDay: newDay }));
+                      setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, closingDay: newDay } : o));
+                    } else {
+                      toast.error("Error al guardar");
+                    }
+                  }}
+                />
+                <span className="text-xs font-black uppercase text-teal-500 shrink-0">de cada mes</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Sub-selecciones (variantes) */}
         {selectedOS && (
           <Card className="border-none shadow-sm rounded-2xl bg-violet-50 border border-violet-200">
@@ -327,6 +389,157 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
           </Card>
         )}
       </div>
+
+        {/* Períodos de facturación */}
+        {selectedOS && (
+          <Card className="border-none shadow-sm rounded-2xl bg-cyan-50 border border-cyan-200">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <CalendarRange size={14} className="text-cyan-600 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[10px] font-black uppercase text-cyan-800 mb-1">Períodos de Facturación</p>
+                  <p className="text-[10px] font-bold text-cyan-600 leading-relaxed">
+                    Rangos de fechas de cada período. Se usan para filtrar en facturación y control de recetas.
+                  </p>
+                </div>
+              </div>
+
+              {/* Lista de períodos */}
+              {(selectedOS.billingPeriods || []).length > 0 && (
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(selectedOS.billingPeriods || []).map((p: any) => (
+                    <div key={p.id} className="bg-white rounded-lg px-3 py-2 border border-cyan-200 space-y-1">
+                      {editingPeriodId === p.id ? (
+                        <div className="flex gap-1.5">
+                          <Input
+                            value={editingPeriodName}
+                            onChange={e => setEditingPeriodName(e.target.value.toUpperCase())}
+                            className="h-7 text-xs font-black uppercase border-cyan-300 flex-1"
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            className="h-7 px-2 bg-cyan-600 hover:bg-cyan-700 text-white"
+                            onClick={async () => {
+                              const start = new Date(p.startDate).toISOString().split('T')[0];
+                              const end = new Date(p.endDate).toISOString().split('T')[0];
+                              const res = await updateBillingPeriod(p.id, editingPeriodName, start, end);
+                              if (res.success) {
+                                toast.success("Período actualizado");
+                                const updated = (selectedOS.billingPeriods || []).map((x: any) => x.id === p.id ? { ...x, name: editingPeriodName.trim().toUpperCase() } : x);
+                                setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                                setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                                setEditingPeriodId(null);
+                              } else toast.error("Error al actualizar");
+                            }}
+                          ><Check size={12} /></Button>
+                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingPeriodId(null)}><X size={12} /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase text-cyan-900">{p.name}</span>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingPeriodId(p.id); setEditingPeriodName(p.name); }}
+                              className="text-cyan-400 hover:text-cyan-700 transition-colors"
+                            ><Pencil size={12} /></button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm(`¿Eliminar período ${p.name}?`)) return;
+                                const res = await deleteBillingPeriod(p.id);
+                                if (res.success) {
+                                  toast.success("Período eliminado");
+                                  const updated = (selectedOS.billingPeriods || []).filter((x: any) => x.id !== p.id);
+                                  setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                                  setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                                } else toast.error("Error al eliminar");
+                              }}
+                              className="text-cyan-400 hover:text-red-500 transition-colors"
+                            ><X size={12} /></button>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-cyan-500 font-bold">
+                        {new Date(p.startDate).toLocaleDateString('es-AR')} — {new Date(p.endDate).toLocaleDateString('es-AR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Agregar nuevo período */}
+              {!isAddingPeriod ? (
+                <Button
+                  variant="outline"
+                  className="w-full border-dashed border-cyan-300 text-cyan-600 h-9 hover:border-cyan-500 hover:text-cyan-800 transition-all font-bold uppercase text-[10px]"
+                  onClick={() => setIsAddingPeriod(true)}
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Agregar Período
+                </Button>
+              ) : (
+                <div className="space-y-2 p-3 bg-white rounded-xl border border-cyan-200">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Desde</label>
+                      <Input
+                        type="date"
+                        value={newPeriodStart}
+                        onChange={e => {
+                          setNewPeriodStart(e.target.value);
+                          setNewPeriodName(autoGeneratePeriodName(e.target.value));
+                        }}
+                        className="h-8 text-xs border-cyan-200 mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Hasta</label>
+                      <Input
+                        type="date"
+                        value={newPeriodEnd}
+                        onChange={e => setNewPeriodEnd(e.target.value)}
+                        className="h-8 text-xs border-cyan-200 mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Nombre del Período</label>
+                    <Input
+                      placeholder="EJ: 26-04"
+                      value={newPeriodName}
+                      onChange={e => setNewPeriodName(e.target.value.toUpperCase())}
+                      className="h-8 text-xs border-cyan-200 mt-1 font-black uppercase"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 font-bold uppercase text-xs h-8"
+                      onClick={async () => {
+                        if (!newPeriodStart || !newPeriodEnd || !newPeriodName.trim()) {
+                          toast.error("Completá todos los campos");
+                          return;
+                        }
+                        const res = await createBillingPeriod(selectedOS.id, newPeriodName, newPeriodStart, newPeriodEnd);
+                        if (res.success && res.period) {
+                          toast.success("Período creado");
+                          const updated = [...(selectedOS.billingPeriods || []), res.period];
+                          setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                          setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                          setIsAddingPeriod(false);
+                          setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName("");
+                        } else toast.error(res.error || "Error al crear");
+                      }}
+                    >Guardar ✓</Button>
+                    <Button variant="outline" className="h-8 px-3" onClick={() => { setIsAddingPeriod(false); setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName(""); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
       {/* PANEL DERECHO: TARIFARIO */}
       <Card className="md:col-span-2 xl:col-span-3 border-none shadow-xl rounded-2xl overflow-hidden">

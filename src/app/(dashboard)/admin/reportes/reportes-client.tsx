@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay, updateOrderDate } from "@/actions/reports"
-import { 
-  BarChart3, Receipt, FileSpreadsheet, Printer, Search, 
-  Stethoscope, Activity, User, X, ArrowUpDown, EyeOff, Eye
+import { getDentistStats, getInsuranceBilling, updateItemInsuranceAmount, updateItemPatientCopay, updateOrderDate, getBillingPeriodsForOS } from "@/actions/reports"
+import {
+  BarChart3, Receipt, FileSpreadsheet, Printer, Search,
+  Stethoscope, Activity, User, X, ArrowUpDown, EyeOff, Eye, CalendarRange
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 
@@ -25,6 +25,8 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   const [selectedOS, setSelectedOS] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("ALL")
   const [selectedBranch, setSelectedBranch] = useState<string>("ALL")
+  const [billingPeriods, setBillingPeriods] = useState<any[]>([])
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("LIBRE")
   const [sortBy, setSortBy] = useState<string>("PACIENTE_ASC")
   const [billingItems, setBillingItems] = useState<any[]>([])
   const [ocultarCopago, setOcultarCopago] = useState(false)
@@ -58,6 +60,17 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
   }
 
   // --- LÓGICA FACTURACIÓN ---
+  const handleOSChange = async (osId: string) => {
+    setSelectedOS(osId)
+    setSelectedVariant("ALL")
+    setSelectedPeriod("LIBRE")
+    setBillingPeriods([])
+    if (osId) {
+      const res = await getBillingPeriodsForOS(osId)
+      if (res.success) setBillingPeriods(res.periods)
+    }
+  }
+
   const handleSearchBilling = async () => {
     if (!selectedOS) return toast.error("Seleccioná una Obra Social");
     setLoading(true);
@@ -378,7 +391,7 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Obra Social / Prepaga</Label>
-                  <Select value={selectedOS} onValueChange={(v) => { setSelectedOS(v); setSelectedVariant("ALL"); }}>
+                  <Select value={selectedOS} onValueChange={handleOSChange}>
                     <SelectTrigger className="h-14 font-black uppercase border-2 border-slate-200 focus:border-brand-700 text-sm"><SelectValue placeholder="SELECCIONAR..."/></SelectTrigger>
                     <SelectContent className="font-black uppercase italic">
                       {obrasSociales.map((os: any) => <SelectItem key={os.id} value={String(os.id)}>{os.name}</SelectItem>)}
@@ -409,13 +422,43 @@ export default function ReportesClient({ dentists, obrasSociales, branches }: { 
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1">
+                    <CalendarRange size={10} /> Período de Facturación
+                  </Label>
+                  <Select
+                    value={selectedPeriod}
+                    onValueChange={(v) => {
+                      setSelectedPeriod(v);
+                      if (v !== "LIBRE") {
+                        const p = billingPeriods.find((x: any) => x.id === v);
+                        if (p) {
+                          setStartDate(new Date(p.startDate).toISOString().split('T')[0]);
+                          setEndDate(new Date(p.endDate).toISOString().split('T')[0]);
+                        }
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={`h-14 font-black uppercase border-2 text-sm ${selectedPeriod !== "LIBRE" ? "border-cyan-400 bg-cyan-50 text-cyan-800" : "border-slate-200"}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="font-black uppercase">
+                      <SelectItem value="LIBRE">— RANGO LIBRE —</SelectItem>
+                      {billingPeriods.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} ({new Date(p.startDate).toLocaleDateString('es-AR')} — {new Date(p.endDate).toLocaleDateString('es-AR')})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Fecha Desde</Label>
-                  <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-14 font-bold border-2" />
+                  <Input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setSelectedPeriod("LIBRE"); }} className="h-14 font-bold border-2" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-slate-400">Fecha Hasta</Label>
-                  <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-14 font-bold border-2" />
+                  <Input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setSelectedPeriod("LIBRE"); }} className="h-14 font-bold border-2" />
                 </div>
               </div>
               <Button onClick={handleSearchBilling} disabled={loading} className="w-full mt-4 h-14 bg-brand-700 hover:bg-brand-800 text-white font-black uppercase italic rounded-xl shadow-md"><Search size={18} className="mr-2"/> {loading ? "Buscando..." : "Generar Liquidación"}</Button>

@@ -217,15 +217,29 @@ model ObraSocial {
   name              String
   code              String?    @unique
   maxAgeOrtodoncia  Int?
+  closingDay        Int?
 
   priceListId String?
   priceList   PriceList? @relation(fields: [priceListId], references: [id])
 
-  variants    ObraSocialVariant[]
-  orders      Order[]
-  patients    Patient[]
+  variants       ObraSocialVariant[]
+  orders         Order[]
+  patients       Patient[]
+  billingPeriods BillingPeriod[]
 
   isActive    Boolean    @default(true)
+}
+
+model BillingPeriod {
+  id           String     @id @default(cuid())
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  obraSocialId String
+  obraSocial   ObraSocial @relation(fields: [obraSocialId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@index([obraSocialId])
 }
 
 model ObraSocialVariant {
