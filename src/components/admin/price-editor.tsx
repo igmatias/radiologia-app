@@ -136,6 +136,7 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
   }
 
   return (
+    <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
       {/* PANEL IZQUIERDO */}
       <div className="space-y-4">
@@ -390,157 +391,6 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
         )}
       </div>
 
-        {/* Períodos de facturación */}
-        {selectedOS && (
-          <Card className="border-none shadow-sm rounded-2xl bg-cyan-50 border border-cyan-200">
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-start gap-2">
-                <CalendarRange size={14} className="text-cyan-600 mt-0.5 shrink-0" />
-                <div className="flex-1">
-                  <p className="text-[10px] font-black uppercase text-cyan-800 mb-1">Períodos de Facturación</p>
-                  <p className="text-[10px] font-bold text-cyan-600 leading-relaxed">
-                    Rangos de fechas de cada período. Se usan para filtrar en facturación y control de recetas.
-                  </p>
-                </div>
-              </div>
-
-              {/* Lista de períodos */}
-              {(selectedOS.billingPeriods || []).length > 0 && (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {(selectedOS.billingPeriods || []).map((p: any) => (
-                    <div key={p.id} className="bg-white rounded-lg px-3 py-2 border border-cyan-200 space-y-1">
-                      {editingPeriodId === p.id ? (
-                        <div className="flex gap-1.5">
-                          <Input
-                            value={editingPeriodName}
-                            onChange={e => setEditingPeriodName(e.target.value.toUpperCase())}
-                            className="h-7 text-xs font-black uppercase border-cyan-300 flex-1"
-                            autoFocus
-                          />
-                          <Button
-                            size="sm"
-                            className="h-7 px-2 bg-cyan-600 hover:bg-cyan-700 text-white"
-                            onClick={async () => {
-                              const start = new Date(p.startDate).toISOString().split('T')[0];
-                              const end = new Date(p.endDate).toISOString().split('T')[0];
-                              const res = await updateBillingPeriod(p.id, editingPeriodName, start, end);
-                              if (res.success) {
-                                toast.success("Período actualizado");
-                                const updated = (selectedOS.billingPeriods || []).map((x: any) => x.id === p.id ? { ...x, name: editingPeriodName.trim().toUpperCase() } : x);
-                                setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
-                                setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
-                                setEditingPeriodId(null);
-                              } else toast.error("Error al actualizar");
-                            }}
-                          ><Check size={12} /></Button>
-                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingPeriodId(null)}><X size={12} /></Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-black uppercase text-cyan-900">{p.name}</span>
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => { setEditingPeriodId(p.id); setEditingPeriodName(p.name); }}
-                              className="text-cyan-400 hover:text-cyan-700 transition-colors"
-                            ><Pencil size={12} /></button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (!confirm(`¿Eliminar período ${p.name}?`)) return;
-                                const res = await deleteBillingPeriod(p.id);
-                                if (res.success) {
-                                  toast.success("Período eliminado");
-                                  const updated = (selectedOS.billingPeriods || []).filter((x: any) => x.id !== p.id);
-                                  setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
-                                  setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
-                                } else toast.error("Error al eliminar");
-                              }}
-                              className="text-cyan-400 hover:text-red-500 transition-colors"
-                            ><X size={12} /></button>
-                          </div>
-                        </div>
-                      )}
-                      <p className="text-[10px] text-cyan-500 font-bold">
-                        {new Date(p.startDate).toLocaleDateString('es-AR')} — {new Date(p.endDate).toLocaleDateString('es-AR')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Agregar nuevo período */}
-              {!isAddingPeriod ? (
-                <Button
-                  variant="outline"
-                  className="w-full border-dashed border-cyan-300 text-cyan-600 h-9 hover:border-cyan-500 hover:text-cyan-800 transition-all font-bold uppercase text-[10px]"
-                  onClick={() => setIsAddingPeriod(true)}
-                >
-                  <Plus className="h-3 w-3 mr-1" /> Agregar Período
-                </Button>
-              ) : (
-                <div className="space-y-2 p-3 bg-white rounded-xl border border-cyan-200">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Desde</label>
-                      <Input
-                        type="date"
-                        value={newPeriodStart}
-                        onChange={e => {
-                          setNewPeriodStart(e.target.value);
-                          setNewPeriodName(autoGeneratePeriodName(e.target.value));
-                        }}
-                        className="h-8 text-xs border-cyan-200 mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Hasta</label>
-                      <Input
-                        type="date"
-                        value={newPeriodEnd}
-                        onChange={e => setNewPeriodEnd(e.target.value)}
-                        className="h-8 text-xs border-cyan-200 mt-1"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-black uppercase text-cyan-600 tracking-widest">Nombre del Período</label>
-                    <Input
-                      placeholder="EJ: 26-04"
-                      value={newPeriodName}
-                      onChange={e => setNewPeriodName(e.target.value.toUpperCase())}
-                      className="h-8 text-xs border-cyan-200 mt-1 font-black uppercase"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 font-bold uppercase text-xs h-8"
-                      onClick={async () => {
-                        if (!newPeriodStart || !newPeriodEnd || !newPeriodName.trim()) {
-                          toast.error("Completá todos los campos");
-                          return;
-                        }
-                        const res = await createBillingPeriod(selectedOS.id, newPeriodName, newPeriodStart, newPeriodEnd);
-                        if (res.success && res.period) {
-                          toast.success("Período creado");
-                          const updated = [...(selectedOS.billingPeriods || []), res.period];
-                          setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
-                          setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
-                          setIsAddingPeriod(false);
-                          setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName("");
-                        } else toast.error(res.error || "Error al crear");
-                      }}
-                    >Guardar ✓</Button>
-                    <Button variant="outline" className="h-8 px-3" onClick={() => { setIsAddingPeriod(false); setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName(""); }}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
       {/* PANEL DERECHO: TARIFARIO */}
       <Card className="md:col-span-2 xl:col-span-3 border-none shadow-xl rounded-2xl overflow-hidden">
         <CardHeader className="bg-slate-900 text-white space-y-4 p-6 border-b-8 border-brand-700">
@@ -657,6 +507,160 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
           )}
         </CardContent>
       </Card>
+    </div>
+
+    {/* SECCIÓN FULL-WIDTH: PERÍODOS DE FACTURACIÓN */}
+    {selectedOS && (
+      <Card className="border-none shadow-lg rounded-2xl overflow-hidden border-t-4 border-cyan-500">
+        <CardHeader className="bg-cyan-50 border-b border-cyan-100 pb-4 pt-5 px-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CalendarRange size={20} className="text-cyan-600" />
+              <div>
+                <CardTitle className="text-sm font-black uppercase tracking-widest text-cyan-900">
+                  Períodos de Facturación — {selectedOS.name}
+                </CardTitle>
+                <p className="text-[10px] font-bold text-cyan-600 mt-0.5">
+                  Rangos de fechas para filtrar en facturación y control de recetas
+                  {selectedOS.closingDay ? ` · Día de cierre: ${selectedOS.closingDay}` : ''}
+                </p>
+              </div>
+            </div>
+            {!isAddingPeriod && (
+              <Button
+                variant="outline"
+                className="border-dashed border-2 border-cyan-300 text-cyan-700 hover:border-cyan-500 hover:bg-cyan-50 font-bold uppercase text-xs h-9"
+                onClick={() => setIsAddingPeriod(true)}
+              >
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Agregar Período
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          {/* Formulario nuevo período */}
+          {isAddingPeriod && (
+            <div className="bg-cyan-50 rounded-xl border-2 border-cyan-200 p-4 flex flex-wrap gap-4 items-end">
+              <div>
+                <label className="text-[9px] font-black uppercase text-cyan-700 tracking-widest">Desde</label>
+                <Input
+                  type="date"
+                  value={newPeriodStart}
+                  onChange={e => {
+                    setNewPeriodStart(e.target.value);
+                    setNewPeriodName(autoGeneratePeriodName(e.target.value));
+                  }}
+                  className="h-9 text-xs border-cyan-200 mt-1 w-40"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black uppercase text-cyan-700 tracking-widest">Hasta</label>
+                <Input
+                  type="date"
+                  value={newPeriodEnd}
+                  onChange={e => setNewPeriodEnd(e.target.value)}
+                  className="h-9 text-xs border-cyan-200 mt-1 w-40"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black uppercase text-cyan-700 tracking-widest">Nombre del período</label>
+                <Input
+                  placeholder="EJ: 26-04"
+                  value={newPeriodName}
+                  onChange={e => setNewPeriodName(e.target.value.toUpperCase())}
+                  className="h-9 text-xs border-cyan-200 mt-1 w-28 font-black uppercase"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  className="bg-cyan-600 hover:bg-cyan-700 font-bold uppercase text-xs h-9 px-4"
+                  onClick={async () => {
+                    if (!newPeriodStart || !newPeriodEnd || !newPeriodName.trim()) {
+                      toast.error("Completá todos los campos");
+                      return;
+                    }
+                    const res = await createBillingPeriod(selectedOS.id, newPeriodName, newPeriodStart, newPeriodEnd);
+                    if (res.success && res.period) {
+                      toast.success("Período creado");
+                      const updated = [...(selectedOS.billingPeriods || []), res.period];
+                      setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                      setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                      setIsAddingPeriod(false);
+                      setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName("");
+                    } else toast.error(res.error || "Error al crear");
+                  }}
+                >Guardar ✓</Button>
+                <Button variant="outline" className="h-9 px-3 border-cyan-200" onClick={() => { setIsAddingPeriod(false); setNewPeriodStart(""); setNewPeriodEnd(""); setNewPeriodName(""); }}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Grid de períodos */}
+          {(selectedOS.billingPeriods || []).length === 0 && !isAddingPeriod ? (
+            <div className="text-center py-8 text-cyan-300">
+              <CalendarRange size={32} className="mx-auto mb-2 opacity-40" />
+              <p className="text-xs font-black uppercase text-cyan-400">No hay períodos cargados para esta mutual</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
+              {(selectedOS.billingPeriods || []).map((p: any) => (
+                <div key={p.id} className="bg-white rounded-xl border-2 border-cyan-100 p-3 space-y-1 hover:border-cyan-300 transition-colors group">
+                  {editingPeriodId === p.id ? (
+                    <div className="flex gap-1">
+                      <Input
+                        value={editingPeriodName}
+                        onChange={e => setEditingPeriodName(e.target.value.toUpperCase())}
+                        className="h-7 text-xs font-black uppercase border-cyan-300 flex-1"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 bg-cyan-600 hover:bg-cyan-700 text-white shrink-0"
+                        onClick={async () => {
+                          const start = new Date(p.startDate).toISOString().split('T')[0];
+                          const end = new Date(p.endDate).toISOString().split('T')[0];
+                          const res = await updateBillingPeriod(p.id, editingPeriodName, start, end);
+                          if (res.success) {
+                            toast.success("Período actualizado");
+                            const updated = (selectedOS.billingPeriods || []).map((x: any) => x.id === p.id ? { ...x, name: editingPeriodName.trim().toUpperCase() } : x);
+                            setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                            setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                            setEditingPeriodId(null);
+                          } else toast.error("Error al actualizar");
+                        }}
+                      ><Check size={11} /></Button>
+                      <Button size="sm" variant="ghost" className="h-7 px-1.5 shrink-0" onClick={() => setEditingPeriodId(null)}><X size={11} /></Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-base font-black uppercase text-cyan-800 leading-none">{p.name}</span>
+                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" onClick={() => { setEditingPeriodId(p.id); setEditingPeriodName(p.name); }} className="text-cyan-400 hover:text-cyan-700 p-0.5"><Pencil size={11} /></button>
+                        <button type="button" onClick={async () => {
+                          if (!confirm(`¿Eliminar período ${p.name}?`)) return;
+                          const res = await deleteBillingPeriod(p.id);
+                          if (res.success) {
+                            toast.success("Período eliminado");
+                            const updated = (selectedOS.billingPeriods || []).filter((x: any) => x.id !== p.id);
+                            setSelectedOS((prev: any) => ({ ...prev, billingPeriods: updated }));
+                            setLocalOS((all: any[]) => all.map((o: any) => o.id === selectedOS.id ? { ...o, billingPeriods: updated } : o));
+                          } else toast.error("Error al eliminar");
+                        }} className="text-cyan-400 hover:text-red-500 p-0.5"><X size={11} /></button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-[9px] font-bold text-cyan-500 leading-tight">
+                    {new Date(p.startDate).toLocaleDateString('es-AR')}<br />{new Date(p.endDate).toLocaleDateString('es-AR')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )}
     </div>
   )
 }
