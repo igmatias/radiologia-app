@@ -24,7 +24,7 @@ import {
   UserPlus, Wallet, Clock, Lock, ShieldCheck,
   Banknote, Vault, MinusCircle, Trash2, Calculator, LayoutGrid,
   Send, RefreshCw, Plus, ChevronRight, ChevronDown, MessageSquare, CheckCircle, X,
-  Search, FileInput, Stethoscope, CreditCard, Smartphone, Building2, FileText
+  Search, FileInput, Stethoscope, CreditCard, Smartphone, Building2, FileText, WifiOff
 } from "lucide-react"
 import { getTickets, replyTicket, closeTicket } from "@/actions/tickets"
 import { findDerivacion, markDerivacionCargada } from "@/actions/derivaciones"
@@ -373,6 +373,17 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
 
           <div className="pt-2 border-t border-slate-800 mt-2">
             {navBtn("Entregas", <Send size={16}/>, () => router.push("/entregas"), false, "bg-slate-700")}
+          </div>
+
+          <div className="pt-2 border-t border-slate-800 mt-2">
+            <a
+              href="/api/offline-bundle"
+              title="Actualizar archivo de emergencia offline"
+              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-amber-400 hover:bg-amber-900/30 hover:text-amber-300 transition-all text-xs font-bold uppercase tracking-wider"
+            >
+              <WifiOff size={14} className="shrink-0" />
+              <span>Actualizar modo emergencia</span>
+            </a>
           </div>
         </nav>
 
