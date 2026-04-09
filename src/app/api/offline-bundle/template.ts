@@ -318,7 +318,7 @@ function buildPatientStep() {
     \${!S.patient && !S.isNewPatient ? \`
       <button class="btn btn-outline w-full" onclick="startNewPatient()">+ Paciente nuevo</button>
     \` : ''}
-    \${(S.patient || (S.isNewPatient && S.newPatientData.dni)) ? \`
+    \${(S.patient || S.isNewPatient) ? \`
       <button class="btn btn-primary w-full mt-4" onclick="goToStep2()">Continuar →</button>
     \` : ''}
   \`
@@ -334,31 +334,52 @@ function buildPatientInfo() {
           <div>
             <label>DNI *</label>
             <input type="text" placeholder="12345678" value="\${d.dni}"
-              oninput="setNewPatient('dni',this.value)">
+              oninput="S.newPatientData.dni=this.value">
           </div>
           <div>
             <label>Teléfono</label>
             <input type="text" placeholder="351..." value="\${d.phone}"
-              oninput="setNewPatient('phone',this.value)">
+              oninput="S.newPatientData.phone=this.value">
           </div>
         </div>
         <div class="row cols-2 mt-2">
           <div>
             <label>Apellido *</label>
             <input type="text" placeholder="GARCIA" value="\${d.lastName}"
-              oninput="setNewPatient('lastName',this.value.toUpperCase())">
+              oninput="S.newPatientData.lastName=this.value.toUpperCase()">
           </div>
           <div>
             <label>Nombre *</label>
             <input type="text" placeholder="Carlos" value="\${d.firstName}"
-              oninput="setNewPatient('firstName',this.value)">
+              oninput="S.newPatientData.firstName=this.value">
           </div>
         </div>
         <div class="row cols-2 mt-2">
           <div>
             <label>Fecha de Nacimiento</label>
             <input type="date" value="\${d.birthDate}"
-              oninput="setNewPatient('birthDate',this.value)">
+              oninput="S.newPatientData.birthDate=this.value">
+          </div>
+        </div>
+        <div class="row cols-2 mt-2">
+          <div>
+            <label>Obra Social</label>
+            <select onchange="S.newPatientData.defaultObraSocialId=this.value;S.obraSocialId=this.value">
+              <option value="">— Particular —</option>
+              \${APP_DATA.obrasSociales.map(o=>\`<option value="\${o.id}" \${d.defaultObraSocialId===o.id?'selected':''}>\${o.name}</option>\`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Nº de Afiliado</label>
+            <input type="text" placeholder="123456" value="\${d.affiliateNumber||''}"
+              oninput="S.newPatientData.affiliateNumber=this.value">
+          </div>
+        </div>
+        <div class="row cols-2 mt-2">
+          <div>
+            <label>Plan</label>
+            <input type="text" placeholder="Ej: 210, GOLD..." value="\${d.plan||''}"
+              oninput="S.newPatientData.plan=this.value">
           </div>
         </div>
         <button class="btn btn-outline btn-sm mt-2" onclick="cancelNewPatient()">Cancelar</button>
