@@ -48,6 +48,35 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
     return `${yy}-${mm}`
   }
 
+  const autoNextPeriod = () => {
+    const periods: any[] = selectedOS.billingPeriods || []
+    const closingDay: number = selectedOS.closingDay || 2
+    let nextStart: Date
+
+    if (periods.length > 0) {
+      const sorted = [...periods].sort((a: any, b: any) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime())
+      const lastEnd = new Date(sorted[0].endDate)
+      nextStart = new Date(lastEnd)
+      nextStart.setDate(nextStart.getDate() + 1)
+    } else {
+      const today = new Date()
+      if (today.getDate() > closingDay) {
+        nextStart = new Date(today.getFullYear(), today.getMonth(), closingDay + 1)
+      } else {
+        nextStart = new Date(today.getFullYear(), today.getMonth() - 1, closingDay + 1)
+      }
+    }
+
+    const nextEnd = new Date(nextStart.getFullYear(), nextStart.getMonth() + 1, closingDay)
+    const startStr = nextStart.toISOString().slice(0, 10)
+    const endStr = nextEnd.toISOString().slice(0, 10)
+
+    setNewPeriodStart(startStr)
+    setNewPeriodEnd(endStr)
+    setNewPeriodName(autoGeneratePeriodName(startStr))
+    setIsAddingPeriod(true)
+  }
+
   // Actualiza el estado local (selectedOS + localOS) tras guardar
   const applyLocalUpdate = (procedureId: string, newInsurance: number, newPatient: number, newCode?: string | null) => {
     setSelectedOS((prev: any) => {
@@ -527,13 +556,24 @@ export function PriceEditor({ obrasSociales, procedures }: any) {
               </div>
             </div>
             {!isAddingPeriod && (
-              <Button
-                variant="outline"
-                className="border-dashed border-2 border-cyan-300 text-cyan-700 hover:border-cyan-500 hover:bg-cyan-50 font-bold uppercase text-xs h-9"
-                onClick={() => setIsAddingPeriod(true)}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1.5" /> Agregar Período
-              </Button>
+              <div className="flex gap-2">
+                {selectedOS.closingDay && (
+                  <Button
+                    variant="outline"
+                    className="border-dashed border-2 border-cyan-400 text-cyan-600 hover:border-cyan-600 hover:bg-cyan-50 font-bold uppercase text-xs h-9"
+                    onClick={autoNextPeriod}
+                  >
+                    ⚡ Generar próximo
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className="border-dashed border-2 border-cyan-300 text-cyan-700 hover:border-cyan-500 hover:bg-cyan-50 font-bold uppercase text-xs h-9"
+                  onClick={() => setIsAddingPeriod(true)}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Agregar Período
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>

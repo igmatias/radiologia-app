@@ -9,7 +9,7 @@ export async function GET() {
   const session = await getCurrentSession()
   if (!session) return new NextResponse('No autorizado', { status: 401 })
 
-  const [patients, procedures, obrasSociales, dentists, branches] = await Promise.all([
+  const [patients, procedures, obrasSociales, dentists, branches, particularPriceList] = await Promise.all([
     prisma.patient.findMany({
       select: {
         id: true, dni: true, firstName: true, lastName: true,
@@ -40,6 +40,18 @@ export async function GET() {
       where: { isActive: true },
       select: { id: true, name: true },
       orderBy: { name: 'asc' }
+    }),
+    prisma.priceList.findFirst({
+      where: {
+        isActive: true,
+        obrasSociales: { none: {} }
+      },
+      include: {
+        prices: {
+          select: { procedureId: true, amount: true, insuranceCoverage: true, patientCopay: true }
+        }
+      },
+      orderBy: { name: 'asc' }
     })
   ])
 
@@ -60,6 +72,17 @@ export async function GET() {
     )
   }))
 
+  const particularPriceMap = Object.fromEntries(
+    (particularPriceList?.prices || []).map(p => [
+      p.procedureId,
+      {
+        amount: Number(p.amount),
+        insuranceCoverage: Number(p.insuranceCoverage),
+        patientCopay: Number(p.patientCopay)
+      }
+    ])
+  )
+
   const data = {
     patients: patients.map(p => ({
       ...p,
@@ -69,6 +92,7 @@ export async function GET() {
     obrasSociales: osSociales,
     dentists,
     branches,
+    particularPriceMap,
     generatedAt: new Date().toISOString()
   }
 

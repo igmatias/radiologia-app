@@ -376,14 +376,17 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
           </div>
 
           <div className="pt-2 border-t border-slate-800 mt-2">
-            <a
-              href="/api/offline-bundle"
+            <button
+              onClick={() => {
+                if (!window.confirm('¿Actualizar el archivo de emergencia?\n\nSi tenés órdenes en el archivo anterior sin importar, hacelo PRIMERO desde Admin → Importar sesión offline.\n\n¿Continuar de todas formas?')) return
+                window.location.href = '/api/offline-bundle'
+              }}
               title="Actualizar archivo de emergencia offline"
-              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-amber-400 hover:bg-amber-900/30 hover:text-amber-300 transition-all text-xs font-bold uppercase tracking-wider"
+              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-amber-400 hover:bg-amber-900/30 hover:text-amber-300 transition-all text-xs font-bold uppercase tracking-wider cursor-pointer border-0 bg-transparent"
             >
               <WifiOff size={14} className="shrink-0" />
               <span>Actualizar modo emergencia</span>
-            </a>
+            </button>
           </div>
         </nav>
 

@@ -188,6 +188,9 @@ function getDentist(id) { return APP_DATA.dentists.find(d => d.id === id) }
 function getBranch(id) { return APP_DATA.branches.find(b => b.id === id) }
 
 function getPrice(osId, procId) {
+  if (!osId) {
+    return (APP_DATA.particularPriceMap || {})[procId] || { amount:0, insuranceCoverage:0, patientCopay:0 }
+  }
   const os = getOS(osId)
   return os?.priceMap?.[procId] || { amount:0, insuranceCoverage:0, patientCopay:0 }
 }
@@ -218,6 +221,9 @@ function buildApp() {
   const ordCount = S.orders.length
   const cajaCount = S.cajaMovimientos.length
   const genAt = APP_DATA.generatedAt ? new Date(APP_DATA.generatedAt).toLocaleString('es-AR') : '?'
+  const genDate = APP_DATA.generatedAt ? new Date(APP_DATA.generatedAt) : null
+  const daysOld = genDate ? Math.floor((Date.now() - genDate.getTime()) / 86400000) : 0
+  const totalCobrado = S.orders.reduce((a, o) => a + (o.patientAmount || 0), 0)
 
   return \`
   <div class="header">
@@ -225,7 +231,8 @@ function buildApp() {
       <span class="badge">⚠ EMERGENCIA</span>
       <div>
         <div class="header-title">SISTEMA RADIOLÓGICO — MODO OFFLINE</div>
-        <div class="header-meta">Datos al: \${genAt} &nbsp;·&nbsp; <strong>¡No olvides exportar al volver la conexión!</strong></div>
+        <div class="header-meta">Datos al: \${genAt}\${daysOld > 3 ? ' <span style="color:#fbbf24;font-weight:900">⚠ ' + daysOld + ' días — actualizá el archivo</span>' : ''}</div>
+        <div class="header-meta" style="color:#86efac;font-weight:700">\${ordCount > 0 ? '📋 ' + ordCount + ' órdenes &nbsp;·&nbsp; 💰 ' + formatMoney(totalCobrado) + ' cobrado' : '¡No olvides exportar al volver la conexión!'}</div>
       </div>
     </div>
     <div class="flex items-center gap-3">
@@ -919,6 +926,14 @@ function saveOrder(printLabel) {
     createdAt: new Date().toISOString()
   }
 
+  // Validar pago dividido
+  if (S.paymentSplit && order.patientAmount > 0) {
+    var splitTotal = Object.keys(S.paymentAmounts).reduce(function(sum, k) { return sum + (parseFloat(S.paymentAmounts[k]) || 0) }, 0)
+    if (Math.abs(splitTotal - order.patientAmount) > 1) {
+      if (!confirm('El total dividido (' + formatMoney(splitTotal) + ') no coincide con el copago del paciente (' + formatMoney(order.patientAmount) + '). ¿Guardar de todas formas?')) return
+    }
+  }
+
   S.orders.push(order)
 
   // Auto-registrar cobro en caja
@@ -1076,17 +1091,16 @@ function attachEvents() {
     render()
   })
 
-  // Cerrar resultados de búsqueda al hacer click afuera
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.search-box')) {
-      S.patientResults = []
-      const sr = document.querySelector('.search-results')
-      if (sr) sr.remove()
-    }
-  }, { once: true })
 }
 
-// ─── Init ────────────────────────────────────────────────────────
+// ─── Click fuera del buscador cierra el dropdown (listener global) ───
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#patSearchBox')) {
+    var sr = document.getElementById('patSearchResults')
+    if (sr) sr.remove()
+  }
+})
+
 render()
 </script>
 
