@@ -17,7 +17,7 @@ body{font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b;min-height:10
 .header-meta{font-size:11px;color:#94a3b8}
 .tabs{display:flex;gap:4px;background:#1e293b;padding:8px 20px}
 .tab{padding:8px 20px;border:none;background:none;color:#94a3b8;font-weight:900;font-size:12px;cursor:pointer;border-radius:6px;text-transform:uppercase;letter-spacing:1px;transition:all .2s}
-.tab.active{background:#3b82f6;color:white}
+.tab.active{background:#9e2457;color:white}
 .tab:hover:not(.active){background:#334155;color:white}
 .main{max-width:1200px;margin:0 auto;padding:20px}
 .card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden}
@@ -27,14 +27,14 @@ body{font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b;min-height:10
 label{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:4px;margin-top:12px}
 label:first-child{margin-top:0}
 input,select,textarea{width:100%;padding:9px 12px;border:2px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;outline:none;transition:border .2s;background:white}
-input:focus,select:focus,textarea:focus{border-color:#3b82f6}
+input:focus,select:focus,textarea:focus{border-color:#9e2457}
 .row{display:grid;gap:12px}
 .cols-2{grid-template-columns:1fr 1fr}
 .cols-3{grid-template-columns:1fr 1fr 1fr}
 .cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
-.btn-primary{background:#3b82f6;color:white}
-.btn-primary:hover{background:#2563eb}
+.btn-primary{background:#9e2457;color:white}
+.btn-primary:hover{background:#821c47}
 .btn-success{background:#16a34a;color:white}
 .btn-success:hover{background:#15803d}
 .btn-danger{background:#ef4444;color:white}
@@ -44,12 +44,12 @@ input:focus,select:focus,textarea:focus{border-color:#3b82f6}
 .btn-sm{padding:5px 12px;font-size:11px}
 .btn-lg{padding:12px 24px;font-size:14px;border-radius:10px}
 .search-box{position:relative}
-.search-results{position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #3b82f6;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.search-results{position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #9e2457;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.1)}
 .search-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
 .search-item:hover{background:#eff6ff}
 .search-item-name{font-size:13px;font-weight:700;color:#1e293b}
 .search-item-meta{font-size:11px;color:#6b7280}
-.selected-patient{background:#eff6ff;border:2px solid #3b82f6;border-radius:8px;padding:12px;margin-top:8px}
+.selected-patient{background:#fdf0f5;border:2px solid #9e2457;border-radius:8px;padding:12px;margin-top:8px}
 .proc-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px}
 .proc-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;transition:background .15s;border-bottom:1px solid #f1f5f9}
 .proc-item:hover{background:#f8fafc}
@@ -67,18 +67,18 @@ input:focus,select:focus,textarea:focus{border-color:#3b82f6}
 .total-label{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase}
 .total-value{font-size:14px;font-weight:900;color:#1e293b}
 .total-row.grand{border-top:2px solid #e2e8f0;margin-top:6px;padding-top:8px}
-.total-row.grand .total-value{color:#3b82f6;font-size:16px}
+.total-row.grand .total-value{color:#9e2457;font-size:16px}
 .order-list{display:flex;flex-direction:column;gap:8px}
 .order-card{border:2px solid #e2e8f0;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;transition:border .2s}
 .order-card:hover{border-color:#3b82f6;background:#f8fbff}
 .order-card-name{font-size:14px;font-weight:900;text-transform:uppercase;color:#1e293b}
 .order-card-meta{font-size:11px;color:#6b7280;margin-top:2px}
 .order-card-amount{font-size:16px;font-weight:900;color:#16a34a}
-.badge-count{background:#3b82f6;color:white;border-radius:999px;font-size:11px;font-weight:900;padding:2px 8px}
+.badge-count{background:#9e2457;color:white;border-radius:999px;font-size:11px;font-weight:900;padding:2px 8px}
 .alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:600}
 .alert-warning{background:#fefce8;border:1px solid #fde047;color:#713f12}
 .alert-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
-.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.alert-info{background:#fdf0f5;border:1px solid #e8b4cc;color:#821c47}
 .empty{text-align:center;padding:40px 20px;color:#9ca3af}
 .empty-icon{font-size:48px;display:block;margin-bottom:12px}
 .divider{border:none;border-top:2px solid #e2e8f0;margin:20px 0}
@@ -88,7 +88,7 @@ input:focus,select:focus,textarea:focus{border-color:#3b82f6}
 .font-black{font-weight:900}
 .text-gray{color:#6b7280}
 .text-green{color:#16a34a}
-.text-blue{color:#3b82f6}
+.text-blue{color:#9e2457}
 .text-red{color:#ef4444}
 .flex{display:flex}
 .gap-2{gap:8px}
@@ -100,9 +100,9 @@ input:focus,select:focus,textarea:focus{border-color:#3b82f6}
 .mb-2{margin-bottom:8px}
 .w-full{width:100%}
 .text-right{text-align:right}
-.branch-select{background:#1e3a5f;border:2px solid #3b82f6;border-radius:8px;color:white;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.branch-select{background:#5c1030;border:2px solid #9e2457;border-radius:8px;color:white;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
 .branch-select option{background:#1e293b}
-.section-title{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#1e293b;margin-bottom:16px;border-bottom:3px solid #3b82f6;padding-bottom:8px}
+.section-title{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#1e293b;margin-bottom:16px;border-bottom:3px solid #9e2457;padding-bottom:8px}
 .caja-type-btn{flex:1;padding:12px;border:2px solid #e2e8f0;border-radius:10px;background:white;cursor:pointer;font-size:13px;font-weight:900;text-transform:uppercase;transition:all .2s}
 .caja-type-btn.active-cobro{border-color:#16a34a;background:#f0fdf4;color:#16a34a}
 .caja-type-btn.active-gasto{border-color:#ef4444;background:#fef2f2;color:#ef4444}
@@ -110,7 +110,7 @@ input:focus,select:focus,textarea:focus{border-color:#3b82f6}
 .movimiento-cobro{border-left:4px solid #16a34a;background:#f9fffe}
 .movimiento-gasto{border-left:4px solid #ef4444;background:#fff9f9}
 .export-stat{text-align:center;background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:20px}
-.export-stat-num{font-size:36px;font-weight:900;color:#3b82f6}
+.export-stat-num{font-size:36px;font-weight:900;color:#9e2457}
 .export-stat-label{font-size:12px;font-weight:700;text-transform:uppercase;color:#6b7280;letter-spacing:1px;margin-top:4px}
 .hint{font-size:11px;color:#9ca3af;margin-top:4px;font-style:italic}
 @media print{
@@ -144,6 +144,7 @@ let S = {
   osVariantId: '',
   dentistId: '',
   notes: '',
+  paymentMethod: 'EFECTIVO',
   selectedProcs: [], // { procedureId, procedureName, procedureCode, amount, insuranceCoverage, patientCopay }
   procSearch: '',
 
@@ -508,6 +509,18 @@ function buildConfirmStep() {
 
     \${buildTotals()}
 
+    <label class="mt-4">Método de cobro</label>
+    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+      \${['EFECTIVO','TRANSFERENCIA','TARJETA','CHEQUE','OS (sin cobro)'].map(m=>\`
+        <button type="button"
+          onclick="S.paymentMethod='\${m}';document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('pay-active'));this.classList.add('pay-active')"
+          class="pay-btn \${S.paymentMethod===m?'pay-active':''}"
+          style="padding:8px 14px;border:2px solid \${S.paymentMethod===m?'#9e2457':'#e2e8f0'};background:\${S.paymentMethod===m?'#fdf0f5':'white'};color:\${S.paymentMethod===m?'#9e2457':'#374151'};border-radius:8px;font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase">
+          \${m}
+        </button>
+      \`).join('')}
+    </div>
+
     <label class="mt-4">Notas (opcional)</label>
     <textarea rows="2" placeholder="Observaciones..." oninput="S.notes=this.value">\${S.notes}</textarea>
 
@@ -761,6 +774,7 @@ function resetForm() {
   S.step = 1; S.patient = null; S.isNewPatient = false; S.patientQuery = ''
   S.patientResults = []; S.newPatientData = { dni:'', firstName:'', lastName:'', birthDate:'', affiliateNumber:'', plan:'', phone:'' }
   S.obraSocialId = ''; S.osVariantId = ''; S.dentistId = ''; S.notes = ''
+  S.paymentMethod = 'EFECTIVO'
   S.selectedProcs = []; S.procSearch = ''
   render()
 }
@@ -843,12 +857,27 @@ function saveOrder(printLabel) {
   }
 
   S.orders.push(order)
+
+  // Auto-registrar cobro en caja si hay monto de paciente y no es "OS (sin cobro)"
+  if (order.patientAmount > 0 && S.paymentMethod !== 'OS (sin cobro)') {
+    const patName = \`\${(order.patientLastName||'').toUpperCase()}, \${order.patientFirstName||''}\`
+    S.cajaMovimientos.push({
+      tempId: genTempId(),
+      type: 'COBRO',
+      amount: order.patientAmount,
+      description: \`Cobro - \${patName} - \${order.items.map(i=>i.procedureName).join(', ')}\`,
+      method: S.paymentMethod,
+      createdAt: order.createdAt,
+      fromOrderTempId: order.tempId
+    })
+  }
+
   save()
 
   if (printLabel) printOrderLabel(order)
 
   resetForm()
-  alert('✓ Orden guardada correctamente')
+  alert(\`✓ Orden guardada\${order.patientAmount > 0 && S.paymentMethod !== 'OS (sin cobro)' ? ' y cobro registrado en caja' : ''}\`)
 }
 
 function printOrderLabel(order) {
