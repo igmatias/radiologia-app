@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { getCurrentSession } from '@/actions/auth'
+import { PaymentMethod } from '@prisma/client'
 
 const PAYMENT_METHOD_MAP: Record<string, string> = {
   'EFECTIVO': 'EFECTIVO',
@@ -18,8 +19,8 @@ const PAYMENT_METHOD_MAP: Record<string, string> = {
   'SALDO': 'SALDO',
 }
 
-function mapPaymentMethod(method: string): string {
-  return PAYMENT_METHOD_MAP[method] || 'OTRO'
+function mapPaymentMethod(method: string): PaymentMethod {
+  return (PAYMENT_METHOD_MAP[method] || 'OTRO') as PaymentMethod
 }
 
 export async function importOfflineSession(data: any) {
