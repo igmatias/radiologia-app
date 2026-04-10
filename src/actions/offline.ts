@@ -3,6 +3,25 @@
 import { prisma } from '@/lib/prisma'
 import { getCurrentSession } from '@/actions/auth'
 
+const PAYMENT_METHOD_MAP: Record<string, string> = {
+  'EFECTIVO': 'EFECTIVO',
+  'TRANSFERENCIA': 'TRANSFERENCIA',
+  'TARJETA_DEBITO': 'TARJETA_DEBITO',
+  'TARJETA_CREDITO': 'TARJETA_CREDITO',
+  'TARJETA': 'TARJETA_DEBITO',
+  'CHEQUE': 'OTRO',
+  'OTRO': 'OTRO',
+  'OBRA_SOCIAL': 'OTRO',
+  'OS (sin cobro)': 'OTRO',
+  'MERCADOPAGO': 'MERCADOPAGO',
+  'CUENTA_CORRIENTE': 'CUENTA_CORRIENTE',
+  'SALDO': 'SALDO',
+}
+
+function mapPaymentMethod(method: string): string {
+  return PAYMENT_METHOD_MAP[method] || 'OTRO'
+}
+
 export async function importOfflineSession(data: any) {
   const session = await getCurrentSession()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
@@ -128,7 +147,7 @@ export async function importOfflineSession(data: any) {
                 type: 'INGRESO_EXTRA',
                 amount: m.amount,
                 description: `[OFFLINE] ${m.description}`,
-                method: m.method || 'EFECTIVO',
+                method: mapPaymentMethod(m.method || 'EFECTIVO'),
                 createdAt: m.createdAt ? new Date(m.createdAt) : new Date()
               }
             })
@@ -139,7 +158,7 @@ export async function importOfflineSession(data: any) {
                 type: 'GASTO',
                 amount: m.amount,
                 description: `[OFFLINE] ${m.description}`,
-                method: m.method || 'EFECTIVO',
+                method: mapPaymentMethod(m.method || 'EFECTIVO'),
                 createdAt: m.createdAt ? new Date(m.createdAt) : new Date()
               }
             })

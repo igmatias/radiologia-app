@@ -19,6 +19,8 @@ body{font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b;min-height:10
 .tab{padding:8px 20px;border:none;background:none;color:#94a3b8;font-weight:900;font-size:12px;cursor:pointer;border-radius:6px;text-transform:uppercase;letter-spacing:1px;transition:all .2s}
 .tab.active{background:#9e2457;color:white}
 .tab:hover:not(.active){background:#334155;color:white}
+.pay-btn{padding:8px 14px;border:2px solid #e2e8f0;background:white;color:#374151;border-radius:8px;font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase;transition:all .2s;letter-spacing:.5px}
+.pay-btn.pay-active{border-color:#9e2457!important;background:#fdf0f5!important;color:#9e2457!important}
 .main{max-width:1200px;margin:0 auto;padding:20px}
 .card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden}
 .card-header{padding:14px 18px;border-bottom:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:space-between;align-items:center}
@@ -145,6 +147,8 @@ let S = {
   dentistId: '',
   notes: '',
   paymentMethod: 'EFECTIVO',
+  paymentSplit: false,
+  paymentAmounts: { EFECTIVO: '', TRANSFERENCIA: '', TARJETA_DEBITO: '', TARJETA_CREDITO: '', OTRO: '' },
   selectedProcs: [], // { procedureId, procedureName, procedureCode, amount, insuranceCoverage, patientCopay }
   procSearch: '',
 
@@ -295,24 +299,11 @@ function buildPatientStep() {
   return \`
     <p class="text-xs text-gray mb-2 font-bold">PASO 1 DE 3 — PACIENTE</p>
     <label>Buscar por DNI o apellido</label>
-    <div class="search-box">
+    <div class="search-box" id="patSearchBox">
       <input id="patQuery" type="text" placeholder="Escribí DNI o apellido..."
         value="\${S.patientQuery}"
-        oninput="onPatientSearch(this.value)"
+        oninput="handlePatientInput(this.value)"
         autocomplete="off" />
-      \${S.patientResults.length > 0 ? \`
-        <div class="search-results">
-          \${S.patientResults.map(p=>\`
-            <div class="search-item" onclick="selectPatient('\${p.id}')">
-              <div>
-                <div class="search-item-name">\${(p.lastName||'').toUpperCase()}, \${p.firstName||''}</div>
-                <div class="search-item-meta">DNI: \${p.dni||'S/D'} · \${getOS(p.defaultObraSocialId)?.name||'Particular'}</div>
-              </div>
-              <span class="text-xs text-gray">\${p.affiliateNumber||''}</span>
-            </div>
-          \`).join('')}
-        </div>
-      \` : ''}
     </div>
     \${patInfo}
     <hr class="divider">
@@ -463,8 +454,12 @@ function buildProcsStep() {
       <div class="selected-procs">
         \${S.selectedProcs.map((p,i)=>\`
           <div class="selected-proc">
-            <div>
-              <div class="selected-proc-name">\${p.procedureName}</div>
+            <div style="flex:1;min-width:0">
+              <input type="text" value="\${p.procedureName}"
+                style="background:transparent;border:none;border-bottom:1px dashed #86efac;font-size:12px;font-weight:700;color:#166534;width:100%;padding:2px 0;outline:none"
+                title="Podés editar el nombre (ej: agregar pieza dental)"
+                onfocus="this.style.borderBottomColor='#9e2457'"
+                onblur="S.selectedProcs[\${i}].procedureName=this.value;this.style.borderBottomColor='#86efac'">
               <div class="text-xs text-gray">\${formatMoney(p.patientCopay)} copago · \${formatMoney(p.insuranceCoverage)} OS</div>
             </div>
             <button class="remove-btn" onclick="removeProc(\${i})">×</button>
@@ -511,15 +506,14 @@ function buildConfirmStep() {
 
     <label class="mt-4">Método de cobro</label>
     <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
-      \${['EFECTIVO','TRANSFERENCIA','TARJETA','CHEQUE','OS (sin cobro)'].map(m=>\`
-        <button type="button"
-          onclick="S.paymentMethod='\${m}';document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('pay-active'));this.classList.add('pay-active')"
-          class="pay-btn \${S.paymentMethod===m?'pay-active':''}"
-          style="padding:8px 14px;border:2px solid \${S.paymentMethod===m?'#9e2457':'#e2e8f0'};background:\${S.paymentMethod===m?'#fdf0f5':'white'};color:\${S.paymentMethod===m?'#9e2457':'#374151'};border-radius:8px;font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase">
-          \${m}
-        </button>
-      \`).join('')}
+      <button type="button" data-method="EFECTIVO" onclick="setPayMethod('EFECTIVO')" class="pay-btn \${S.paymentMethod==='EFECTIVO'&&!S.paymentSplit?'pay-active':''}">Efectivo</button>
+      <button type="button" data-method="TRANSFERENCIA" onclick="setPayMethod('TRANSFERENCIA')" class="pay-btn \${S.paymentMethod==='TRANSFERENCIA'&&!S.paymentSplit?'pay-active':''}">Transferencia</button>
+      <button type="button" data-method="TARJETA_DEBITO" onclick="setPayMethod('TARJETA_DEBITO')" class="pay-btn \${S.paymentMethod==='TARJETA_DEBITO'&&!S.paymentSplit?'pay-active':''}">Tarjeta Déb.</button>
+      <button type="button" data-method="TARJETA_CREDITO" onclick="setPayMethod('TARJETA_CREDITO')" class="pay-btn \${S.paymentMethod==='TARJETA_CREDITO'&&!S.paymentSplit?'pay-active':''}">Tarjeta Créd.</button>
+      <button type="button" data-method="OTRO" onclick="setPayMethod('OTRO')" class="pay-btn \${S.paymentMethod==='OTRO'&&!S.paymentSplit?'pay-active':''}">Obra Social</button>
+      <button type="button" onclick="togglePaySplit()" class="pay-btn \${S.paymentSplit?'pay-active':''}">Dividido ÷</button>
     </div>
+    \${S.paymentSplit ? buildPaySplit() : ''}
 
     <label class="mt-4">Notas (opcional)</label>
     <textarea rows="2" placeholder="Observaciones..." oninput="S.notes=this.value">\${S.notes}</textarea>
@@ -609,8 +603,9 @@ function buildCaja() {
           <select onchange="S.cajaMethod=this.value">
             <option value="EFECTIVO" \${S.cajaMethod==='EFECTIVO'?'selected':''}>Efectivo</option>
             <option value="TRANSFERENCIA" \${S.cajaMethod==='TRANSFERENCIA'?'selected':''}>Transferencia</option>
-            <option value="TARJETA" \${S.cajaMethod==='TARJETA'?'selected':''}>Tarjeta</option>
-            <option value="CHEQUE" \${S.cajaMethod==='CHEQUE'?'selected':''}>Cheque</option>
+            <option value="TARJETA_DEBITO" \${S.cajaMethod==='TARJETA_DEBITO'?'selected':''}>Tarjeta Débito</option>
+            <option value="TARJETA_CREDITO" \${S.cajaMethod==='TARJETA_CREDITO'?'selected':''}>Tarjeta Crédito</option>
+            <option value="OTRO" \${S.cajaMethod==='OTRO'?'selected':''}>Obra Social / Otro</option>
           </select>
           <button class="btn \${S.cajaType==='COBRO'?'btn-success':'btn-danger'} w-full mt-4"
             onclick="saveCajaMovimiento()">
@@ -708,11 +703,35 @@ function buildExportar() {
 // ─── Lógica de formulario ────────────────────────────────────────
 function setTab(tab) { S.tab = tab; render() }
 
-function onPatientSearch(q) {
+// ─── Búsqueda de pacientes (sin re-render para no perder el foco) ──
+function handlePatientInput(q) {
   S.patientQuery = q
-  S.patientResults = q.length >= 2 ? searchPatients(q) : []
-  S.patient = null
-  render()
+
+  // Eliminar dropdown anterior
+  var old = document.getElementById('patSearchResults')
+  if (old) old.remove()
+
+  if (q.length < 2) return
+
+  var results = searchPatients(q)
+  S.patientResults = results
+  if (results.length === 0) return
+
+  var searchBox = document.getElementById('patSearchBox')
+  if (!searchBox) return
+
+  var div = document.createElement('div')
+  div.id = 'patSearchResults'
+  div.className = 'search-results'
+  div.innerHTML = results.map(function(p) {
+    var osName = (getOS(p.defaultObraSocialId) || {}).name || 'Particular'
+    return '<div class="search-item" onclick="selectPatient(\'' + p.id + '\')">' +
+      '<div>' +
+      '<div class="search-item-name">' + (p.lastName||'').toUpperCase() + ', ' + (p.firstName||'') + '</div>' +
+      '<div class="search-item-meta">DNI: ' + p.dni + ' \u00b7 ' + osName + '</div>' +
+      '</div></div>'
+  }).join('')
+  searchBox.appendChild(div)
 }
 
 function selectPatient(id) {
@@ -741,6 +760,42 @@ function cancelNewPatient() { S.isNewPatient = false; render() }
 
 function setNewPatient(field, val) {
   S.newPatientData[field] = val
+}
+
+// ─── Métodos de pago ─────────────────────────────────────────────
+function setPayMethod(m) {
+  S.paymentMethod = m
+  S.paymentSplit = false
+  document.querySelectorAll('.pay-btn[data-method]').forEach(function(b) {
+    if (b.dataset.method === m) b.classList.add('pay-active')
+    else b.classList.remove('pay-active')
+  })
+}
+
+function togglePaySplit() {
+  S.paymentSplit = !S.paymentSplit
+  if (S.paymentSplit) S.paymentAmounts = { EFECTIVO: '', TRANSFERENCIA: '', TARJETA_DEBITO: '', TARJETA_CREDITO: '', OTRO: '' }
+  render()
+}
+
+function buildPaySplit() {
+  var methods = [
+    { value: 'EFECTIVO', label: 'Efectivo' },
+    { value: 'TRANSFERENCIA', label: 'Transferencia' },
+    { value: 'TARJETA_DEBITO', label: 'Tarjeta Débito' },
+    { value: 'TARJETA_CREDITO', label: 'Tarjeta Crédito' },
+    { value: 'OTRO', label: 'Obra Social' },
+  ]
+  return \`<div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:14px;margin-top:8px">
+    <p class="text-xs font-black text-gray mb-2">DIVIDIR PAGO — Ingresá los montos por método (dejá en 0 lo que no aplica)</p>
+    <div class="row cols-2">
+      \${methods.map(m => \`<div>
+        <label>\${m.label}</label>
+        <input type="number" min="0" placeholder="0" value="\${S.paymentAmounts[m.value]||''}"
+          oninput="S.paymentAmounts['\${m.value}']=this.value">
+      </div>\`).join('')}
+    </div>
+  </div>\`
 }
 
 function setOS(id) {
@@ -775,6 +830,8 @@ function resetForm() {
   S.patientResults = []; S.newPatientData = { dni:'', firstName:'', lastName:'', birthDate:'', affiliateNumber:'', plan:'', phone:'' }
   S.obraSocialId = ''; S.osVariantId = ''; S.dentistId = ''; S.notes = ''
   S.paymentMethod = 'EFECTIVO'
+  S.paymentSplit = false
+  S.paymentAmounts = { EFECTIVO: '', TRANSFERENCIA: '', TARJETA_DEBITO: '', TARJETA_CREDITO: '', OTRO: '' }
   S.selectedProcs = []; S.procSearch = ''
   render()
 }
@@ -858,18 +915,43 @@ function saveOrder(printLabel) {
 
   S.orders.push(order)
 
-  // Auto-registrar cobro en caja si hay monto de paciente y no es "OS (sin cobro)"
-  if (order.patientAmount > 0 && S.paymentMethod !== 'OS (sin cobro)') {
+  // Auto-registrar cobro en caja
+  if (order.patientAmount > 0 && S.paymentMethod !== 'OTRO') {
     const patName = \`\${(order.patientLastName||'').toUpperCase()}, \${order.patientFirstName||''}\`
-    S.cajaMovimientos.push({
-      tempId: genTempId(),
-      type: 'COBRO',
-      amount: order.patientAmount,
-      description: \`Cobro - \${patName} - \${order.items.map(i=>i.procedureName).join(', ')}\`,
-      method: S.paymentMethod,
-      createdAt: order.createdAt,
-      fromOrderTempId: order.tempId
-    })
+    const baseDesc = \`Cobro - \${patName} - \${order.items.map(i=>i.procedureName).join(', ')}\`
+    if (S.paymentSplit) {
+      const splitMethods = [
+        { value: 'EFECTIVO', label: 'Efectivo' },
+        { value: 'TRANSFERENCIA', label: 'Transferencia' },
+        { value: 'TARJETA_DEBITO', label: 'Tarjeta Débito' },
+        { value: 'TARJETA_CREDITO', label: 'Tarjeta Crédito' },
+        { value: 'OTRO', label: 'Obra Social' },
+      ]
+      splitMethods.forEach(m => {
+        const amt = parseFloat(S.paymentAmounts[m.value] || '0') || 0
+        if (amt > 0) {
+          S.cajaMovimientos.push({
+            tempId: genTempId(),
+            type: 'COBRO',
+            amount: amt,
+            description: \`\${baseDesc} [\${m.label}]\`,
+            method: m.value,
+            createdAt: order.createdAt,
+            fromOrderTempId: order.tempId
+          })
+        }
+      })
+    } else {
+      S.cajaMovimientos.push({
+        tempId: genTempId(),
+        type: 'COBRO',
+        amount: order.patientAmount,
+        description: baseDesc,
+        method: S.paymentMethod,
+        createdAt: order.createdAt,
+        fromOrderTempId: order.tempId
+      })
+    }
   }
 
   save()
@@ -877,7 +959,7 @@ function saveOrder(printLabel) {
   if (printLabel) printOrderLabel(order)
 
   resetForm()
-  alert(\`✓ Orden guardada\${order.patientAmount > 0 && S.paymentMethod !== 'OS (sin cobro)' ? ' y cobro registrado en caja' : ''}\`)
+  alert(\`✓ Orden guardada\${order.patientAmount > 0 && S.paymentMethod !== 'OTRO' ? ' y cobro registrado en caja' : ''}\`)
 }
 
 function printOrderLabel(order) {
