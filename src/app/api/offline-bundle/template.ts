@@ -725,12 +725,18 @@ function handlePatientInput(q) {
   div.className = 'search-results'
   div.innerHTML = results.map(function(p) {
     var osName = (getOS(p.defaultObraSocialId) || {}).name || 'Particular'
-    return '<div class="search-item" onclick="selectPatient(\'' + p.id + '\')">' +
+    var displayName = (p.lastName||'').toUpperCase() + ', ' + (p.firstName||'')
+    var meta = 'DNI: ' + p.dni + ' \u00b7 ' + osName
+    return '<div class="search-item" data-pid="' + p.id + '">' +
       '<div>' +
-      '<div class="search-item-name">' + (p.lastName||'').toUpperCase() + ', ' + (p.firstName||'') + '</div>' +
-      '<div class="search-item-meta">DNI: ' + p.dni + ' \u00b7 ' + osName + '</div>' +
+      '<div class="search-item-name">' + displayName + '</div>' +
+      '<div class="search-item-meta">' + meta + '</div>' +
       '</div></div>'
   }).join('')
+  div.addEventListener('click', function(e) {
+    var item = e.target.closest('.search-item')
+    if (item && item.dataset.pid) selectPatient(item.dataset.pid)
+  })
   searchBox.appendChild(div)
 }
 
