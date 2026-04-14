@@ -713,3 +713,27 @@ export async function adminUpdateOrder(orderId: string, data: {
     return { success: false, error: 'No se pudo actualizar la orden' }
   }
 }
+
+export async function getPatientTimeline(dni: string) {
+  const session = await getCurrentSession()
+  if (!session) return null
+  try {
+    return await prisma.patient.findUnique({
+      where: { dni },
+      include: {
+        defaultObraSocial: true,
+        orders: {
+          include: {
+            branch: true,
+            dentist: true,
+            obraSocial: true,
+            osVariant: true,
+            items: { include: { procedure: true } },
+            payments: true
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    })
+  } catch (error) { return null }
+}

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { searchOrdersAdmin, adminUpdateOrder } from "@/actions/orders"
+import Link from "next/link"
 import {
   Search, ClipboardList, Calendar, User, Building2,
   CreditCard, Hash, Edit2, Save, X, ChevronDown, ChevronUp, Trash2, Plus, Eye, EyeOff
@@ -290,7 +291,14 @@ export default function OrdenesAdminClient({ branches, procedures, obrasSociales
                           {new Date(order.createdAt).toLocaleDateString('es-AR')}
                         </td>
                         <td className="px-4 py-3 font-black uppercase text-slate-900 whitespace-nowrap">
-                          {order.patient?.lastName}, {order.patient?.firstName}
+                          {order.patient?.dni ? (
+                            <Link href={`/admin/pacientes/${encodeURIComponent(order.patient.dni)}`}
+                              className="hover:text-brand-600 hover:underline transition-colors">
+                              {order.patient?.lastName}, {order.patient?.firstName}
+                            </Link>
+                          ) : (
+                            <>{order.patient?.lastName}, {order.patient?.firstName}</>
+                          )}
                         </td>
                         <td className="px-4 py-3 font-bold text-slate-500">{order.patient?.dni}</td>
                         <td className="px-4 py-3 font-bold text-slate-600 whitespace-nowrap">
