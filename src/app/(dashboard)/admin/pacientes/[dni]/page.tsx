@@ -5,12 +5,13 @@ import PacienteTimelineClient from "./paciente-timeline-client"
 
 export const dynamic = 'force-dynamic'
 
-export default async function PacienteTimelinePage({ params }: { params: { dni: string } }) {
+export default async function PacienteTimelinePage({ params }: { params: Promise<{ dni: string }> }) {
   const session = await getSession()
   if (!session) redirect('/login')
   if (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN') redirect('/recepcion')
 
-  const dni = decodeURIComponent(params.dni)
+  const { dni: rawDni } = await params
+  const dni = decodeURIComponent(rawDni)
 
   const patient = await prisma.patient.findUnique({
     where: { dni },
