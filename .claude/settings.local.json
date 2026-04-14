@@ -3,5 +3,19 @@
     "allow": [
       "Bash(ls -la /c/Users/Ryzen/radiologia-app/.claude/worktrees/zealous-lovelace/src/app/\\\\\\(dashboard\\\\\\)/recepcion/)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'git push' && npx vercel --prod --cwd 'C:/Users/Ryzen/radiologia-app' 2>&1 || true",
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }
