@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import {
   Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, LogOut, ClipboardCheck, History, WifiOff, Users
+  LayoutDashboard, Receipt, ClipboardList, LogOut, ClipboardCheck, History, WifiOff, Users, Landmark
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Órdenes",        icon: ClipboardCheck,  href: "/admin/ordenes" },
     { name: "Pacientes",      icon: Users,           href: "/admin/pacientes" },
     { name: "Facturación",   icon: Receipt,         href: "/admin/reportes" },
+    { name: "Caja Global",   icon: Landmark,        href: "/admin/caja-consolidada" },
     { name: "Prácticas",     icon: ClipboardList,   href: "/admin/estudios" },
     { name: "Usuarios",      icon: ShieldCheck,     href: "/admin/usuarios",       superAdminOnly: true },
     { name: "Odontólogos",   icon: ToothIcon,       href: "/admin/dentistas" },
