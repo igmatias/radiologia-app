@@ -485,7 +485,9 @@ model ChatMessage {
   senderRole  String
   branchName  String
   branchId    String?
+  toChannel   String   @default("general")
   createdAt   DateTime @default(now())
 
   @@index([createdAt])
+  @@index([toChannel, createdAt])
 }
