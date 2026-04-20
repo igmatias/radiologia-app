@@ -4,6 +4,7 @@ import RadiationIcon from "@/components/icons/radiation-icon"
 import { isMaintenanceModeEnabled } from "@/actions/settings"
 import { prisma } from "@/lib/prisma"
 import ChatNavItem from "@/components/chat-nav-item"
+import GlobalSearch from "@/components/global-search"
 
 export default async function DashboardLayout({
   children,
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
 
         {/* Navegación — solo íconos en mobile, ícono+texto en sm+ */}
         <nav className="flex items-center gap-0.5 sm:gap-1">
+          <GlobalSearch />
           <Link href="/recepcion">
             <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer">
               <Monitor size={14} /> <span className="hidden sm:inline">Recepción</span>

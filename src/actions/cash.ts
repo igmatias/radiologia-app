@@ -42,6 +42,69 @@ export async function getDailyCash(branchId: string, dateStr: string) {
   }
 }
 
+export async function getCashConsolidated(dateStr: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, data: [] }
+  try {
+    const [year, month, day] = dateStr.split('-')
+    const startOfDay = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0)
+    const endOfDay   = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59, 999)
+
+    const branches = await prisma.branch.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    })
+
+    const results = await Promise.all(branches.map(async (branch) => {
+      const [payments, movements] = await Promise.all([
+        prisma.payment.findMany({
+          where: { createdAt: { gte: startOfDay, lte: endOfDay }, order: { branchId: branch.id } },
+          include: { order: { include: { patient: true } } },
+          orderBy: { createdAt: 'asc' },
+        }),
+        prisma.cashMovement.findMany({
+          where: { branchId: branch.id, createdAt: { gte: startOfDay, lte: endOfDay } },
+          orderBy: { createdAt: 'asc' },
+        }),
+      ])
+
+      const totalIngresos = payments
+        .filter(p => p.method !== 'SALDO' && p.method !== 'CUENTA_CORRIENTE')
+        .reduce((acc, p) => acc + Number(p.amount), 0)
+
+      const totalEgresos = movements
+        .filter(m => m.type !== 'INGRESO_EXTRA')
+        .reduce((acc, m) => acc + Number(m.amount), 0)
+
+      const totalIngresosExtra = movements
+        .filter(m => m.type === 'INGRESO_EXTRA')
+        .reduce((acc, m) => acc + Number(m.amount), 0)
+
+      const byMethod: Record<string, number> = {}
+      for (const p of payments) {
+        if (p.method === 'SALDO' || p.method === 'CUENTA_CORRIENTE') continue
+        byMethod[p.method] = (byMethod[p.method] ?? 0) + Number(p.amount)
+      }
+
+      return {
+        branch,
+        payments,
+        movements,
+        totalIngresos,
+        totalEgresos,
+        totalIngresosExtra,
+        balance: totalIngresos + totalIngresosExtra - totalEgresos,
+        byMethod,
+      }
+    }))
+
+    return { success: true, data: results }
+  } catch (error) {
+    console.error('Error caja consolidada:', error)
+    return { success: false, data: [] }
+  }
+}
+
 export async function createCashMovement(data: { branchId: string, type: MovementType, amount: number, description: string, method: PaymentMethod }) {
   const session = await getCurrentSession();
   if (!session) return { success: false, error: "No autenticado" };
