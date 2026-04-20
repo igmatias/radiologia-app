@@ -9,8 +9,9 @@ export default async function ChatPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const [messages, user] = await Promise.all([
+  const [messages, user, branches] = await Promise.all([
     prisma.chatMessage.findMany({
+      where: { toChannel: 'general' },
       orderBy: { createdAt: 'desc' },
       take: 60,
     }),
@@ -18,10 +19,15 @@ export default async function ChatPage() {
       where: { id: session.id },
       include: { branch: true },
     }),
+    prisma.branch.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
   ])
 
   const senderName = user ? `${user.firstName} ${user.lastName}` : session.username
-  const branchName = user?.branch?.name ?? 'Sin sede'
+  const branchName = user?.branch?.name ?? 'Administración'
 
   return (
     <ChatClient
@@ -29,6 +35,7 @@ export default async function ChatPage() {
       senderName={senderName}
       branchName={branchName}
       sessionRole={session.role}
+      branches={branches}
     />
   )
 }

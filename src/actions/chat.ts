@@ -13,88 +13,92 @@ const s3 = new S3Client({
   },
 })
 
-export async function getMessages(cursor?: string) {
+async function getSenderInfo() {
   const session = await getCurrentSession()
-  if (!session) return { success: false, messages: [] }
-
-  try {
-    const messages = await prisma.chatMessage.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 60,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    })
-    return { success: true, messages: messages.reverse() }
-  } catch (error) {
-    return { success: false, messages: [] }
+  if (!session) return null
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    include: { branch: true },
+  })
+  return {
+    session,
+    senderName: user ? `${user.firstName} ${user.lastName}` : session.username,
+    senderRole: session.role,
+    branchName: user?.branch?.name ?? 'Administración',
+    branchId: user?.branchId ?? null,
   }
 }
 
-export async function getNewMessages(afterId: string) {
+export async function getMessages(channel = 'general') {
   const session = await getCurrentSession()
   if (!session) return { success: false, messages: [] }
+  try {
+    const messages = await prisma.chatMessage.findMany({
+      where: { toChannel: channel },
+      orderBy: { createdAt: 'desc' },
+      take: 60,
+    })
+    return { success: true, messages: messages.reverse() }
+  } catch { return { success: false, messages: [] } }
+}
 
+export async function getNewMessages(afterId: string, channel = 'general') {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, messages: [] }
   try {
     const after = await prisma.chatMessage.findUnique({ where: { id: afterId } })
     if (!after) return { success: true, messages: [] }
-
     const messages = await prisma.chatMessage.findMany({
-      where: { createdAt: { gt: after.createdAt } },
+      where: { toChannel: channel, createdAt: { gt: after.createdAt } },
       orderBy: { createdAt: 'asc' },
     })
     return { success: true, messages }
-  } catch (error) {
-    return { success: false, messages: [] }
-  }
+  } catch { return { success: false, messages: [] } }
 }
 
-export async function sendMessage(content: string) {
+export async function getLatestMessageId() {
   const session = await getCurrentSession()
-  if (!session) return { success: false, error: "No autenticado" }
+  if (!session) return null
+  try {
+    const msg = await prisma.chatMessage.findFirst({ orderBy: { createdAt: 'desc' }, select: { id: true } })
+    return msg?.id ?? null
+  } catch { return null }
+}
 
+export async function sendMessage(content: string, channel = 'general') {
+  const info = await getSenderInfo()
+  if (!info) return { success: false, error: "No autenticado" }
   if (!content.trim()) return { success: false, error: "Mensaje vacío" }
   if (content.length > 2000) return { success: false, error: "Mensaje demasiado largo" }
-
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      include: { branch: true },
-    })
-
     const message = await prisma.chatMessage.create({
       data: {
         content: content.trim(),
-        senderName: user ? `${user.firstName} ${user.lastName}` : session.username,
-        senderRole: session.role,
-        branchName: user?.branch?.name ?? 'Sin sede',
-        branchId: user?.branchId ?? null,
+        senderName: info.senderName,
+        senderRole: info.senderRole,
+        branchName: info.branchName,
+        branchId: info.branchId,
+        toChannel: channel,
       },
     })
     return { success: true, message }
-  } catch (error) {
-    return { success: false, error: "Error al enviar mensaje" }
-  }
+  } catch { return { success: false, error: "Error al enviar mensaje" } }
 }
 
 export async function sendFileMessage(formData: FormData) {
-  const session = await getCurrentSession()
-  if (!session) return { success: false, error: "No autenticado" }
+  const info = await getSenderInfo()
+  if (!info) return { success: false, error: "No autenticado" }
 
   const file = formData.get('file') as File | null
   const content = (formData.get('content') as string | null) ?? ''
+  const channel = (formData.get('channel') as string | null) ?? 'general'
 
   if (!file) return { success: false, error: "No se recibió archivo" }
   if (file.size > 20 * 1024 * 1024) return { success: false, error: "El archivo supera 20 MB" }
-
-  if (!process.env.R2_ENDPOINT || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL) {
+  if (!process.env.R2_ENDPOINT || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL)
     return { success: false, error: "Almacenamiento no configurado" }
-  }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      include: { branch: true },
-    })
-
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -118,10 +122,11 @@ export async function sendFileMessage(formData: FormData) {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
-        senderName: user ? `${user.firstName} ${user.lastName}` : session.username,
-        senderRole: session.role,
-        branchName: user?.branch?.name ?? 'Sin sede',
-        branchId: user?.branchId ?? null,
+        senderName: info.senderName,
+        senderRole: info.senderRole,
+        branchName: info.branchName,
+        branchId: info.branchId,
+        toChannel: channel,
       },
     })
     return { success: true, message }
