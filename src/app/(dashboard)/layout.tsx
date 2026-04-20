@@ -2,13 +2,18 @@ import Link from "next/link"
 import { Monitor, Send, Settings, AlertTriangle } from "lucide-react"
 import RadiationIcon from "@/components/icons/radiation-icon"
 import { isMaintenanceModeEnabled } from "@/actions/settings"
+import { prisma } from "@/lib/prisma"
+import ChatNavItem from "@/components/chat-nav-item"
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const maintenance = await isMaintenanceModeEnabled()
+  const [maintenance, lastMessage] = await Promise.all([
+    isMaintenanceModeEnabled(),
+    prisma.chatMessage.findFirst({ orderBy: { createdAt: 'desc' }, select: { id: true } }),
+  ])
 
   return (
     <div className="h-[100dvh] flex flex-col bg-slate-50">
@@ -38,6 +43,7 @@ export default async function DashboardLayout({
               <Send size={14} /> <span className="hidden sm:inline">Entregas</span>
             </span>
           </Link>
+          <ChatNavItem lastMessageId={lastMessage?.id ?? null} />
           <Link href="/admin">
             <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 ml-0.5 sm:ml-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer shadow-md">
               <Settings size={14} /> <span className="hidden sm:inline">Admin</span>

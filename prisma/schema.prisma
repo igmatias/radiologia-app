@@ -473,3 +473,19 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  content     String?
+  fileUrl     String?
+  fileName    String?
+  fileSize    Int?
+  fileType    String?
+  senderName  String
+  senderRole  String
+  branchName  String
+  branchId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
