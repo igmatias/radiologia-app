@@ -1,10 +1,12 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
+import { getCurrentSession } from "@/actions/auth"
 
 export async function searchOrdersGlobal(query: string) {
-  if (!query || query.length < 2) return { success: false, orders: [] };
-  
+  const session = await getCurrentSession()
+  if (!session) return { success: false, orders: [] }
+  if (!query || query.length < 2) return { success: false, orders: [] }
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -21,12 +23,11 @@ export async function searchOrdersGlobal(query: string) {
         dentist: true
       },
       orderBy: { createdAt: 'desc' },
-      take: 15 // Trae los últimos 15 resultados que coincidan
-    });
-    
-    return { success: true, orders };
+      take: 15
+    })
+    return { success: true, orders }
   } catch (error) {
-    console.error("Error buscando órdenes:", error);
-    return { success: false, orders: [] };
+    console.error("Error buscando órdenes:", error)
+    return { success: false, orders: [] }
   }
 }

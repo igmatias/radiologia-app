@@ -1,31 +1,36 @@
 'use server'
 
 import { prisma } from "@/lib/prisma"
+import { getCurrentSession } from "@/actions/auth"
 
-// Traer todas las sucursales
 export async function getBranches() {
+  const session = await getCurrentSession()
+  if (!session) return []
   return await prisma.branch.findMany({ where: { isActive: true } })
 }
 
-// Traer odontólogos activos
 export async function getDentists() {
-  return await prisma.dentist.findMany({ 
+  const session = await getCurrentSession()
+  if (!session) return []
+  return await prisma.dentist.findMany({
     where: { isActive: true },
     orderBy: { lastName: 'asc' }
   })
 }
 
-// Traer obras sociales
 export async function getObrasSociales() {
-  return await prisma.obraSocial.findMany({ 
+  const session = await getCurrentSession()
+  if (!session) return []
+  return await prisma.obraSocial.findMany({
     where: { isActive: true },
     orderBy: { name: 'asc' }
   })
 }
 
-// Traer lista de estudios (Procedimientos)
 export async function getProcedures() {
-  return await prisma.procedure.findMany({ 
+  const session = await getCurrentSession()
+  if (!session) return []
+  return await prisma.procedure.findMany({
     where: { isActive: true },
     orderBy: { name: 'asc' }
   })

@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma"
 import { randomBytes } from "crypto"
+import { getCurrentSession } from "@/actions/auth"
+import { getDentistSession } from "@/lib/session"
 
 export async function createDerivacion(data: {
   dentistId: string
@@ -15,6 +17,8 @@ export async function createDerivacion(data: {
   procedures: string
   indicaciones?: string
 }) {
+  const dentistSession = await getDentistSession()
+  if (!dentistSession) return { success: false, error: "No autenticado" }
   try {
     const prescriptionCode = `DER-${Date.now()}-${randomBytes(3).toString('hex').toUpperCase()}`
     const derivacion = await prisma.derivacion.create({
@@ -39,7 +43,6 @@ export async function createDerivacion(data: {
   }
 }
 
-// Alias usado por portal-medico panel (formato extendido con procedimientos detallados)
 export async function saveDerivacion(data: {
   dentistId: string
   patientApellido: string
@@ -52,8 +55,9 @@ export async function saveDerivacion(data: {
   procedures: any[]
   indicaciones?: string
 }) {
+  const dentistSession = await getDentistSession()
+  if (!dentistSession) return { success: false, error: "No autenticado" }
   try {
-    // Generar código aleatorio de 6 dígitos que no exista
     let prescriptionCode: string
     let exists = true
     do {
@@ -84,6 +88,8 @@ export async function saveDerivacion(data: {
 }
 
 export async function findDerivacion(prescriptionCode: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
   try {
     const derivacion = await prisma.derivacion.findUnique({
       where: { prescriptionCode },
@@ -97,6 +103,8 @@ export async function findDerivacion(prescriptionCode: string) {
 }
 
 export async function markDerivacionCargada(prescriptionCode: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
   try {
     await prisma.derivacion.update({
       where: { prescriptionCode },

@@ -6,6 +6,8 @@ import { MovementType, PaymentMethod } from "@prisma/client"
 import { getCurrentSession } from "@/actions/auth"
 
 export async function getDailyCash(branchId: string, dateStr: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, payments: [], movements: [] }
   try {
     // 🔥 FIX DE ZONA HORARIA: Separamos el texto "YYYY-MM-DD" manualmente
     const [year, month, day] = dateStr.split('-');
