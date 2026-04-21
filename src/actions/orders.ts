@@ -81,6 +81,8 @@ async function logOrderHistory(orderId: string, action: string, details?: string
  *     Este preview puede no coincidir exactamente si hay órdenes concurrentes.
  */
 export async function getNextOrderNumber(branchId: string) {
+  const session = await getCurrentSession()
+  if (!session) return "---"
   try {
     const branch = await prisma.branch.findUnique({
       where: { id: branchId },
@@ -357,6 +359,8 @@ export async function toggleOrderActivation(orderId: string, currentStatus: stri
 // --- FUNCIONES DE CONSULTA (MANTENIDAS) ---
 
 export async function getProcedurePrice(procedureId: string, obraSocialId: string) {
+  const session = await getCurrentSession()
+  if (!session) return { amount: 0, insuranceCoverage: 0, patientCopay: 0 }
   try {
     const os = await prisma.obraSocial.findUnique({
       where: { id: obraSocialId },
@@ -375,6 +379,8 @@ export async function getProcedurePrice(procedureId: string, obraSocialId: strin
 }
 
 export async function getPatientByDni(dni: string) {
+  const session = await getCurrentSession()
+  if (!session) return null
   try {
     return await prisma.patient.findUnique({
       where: { dni },
@@ -384,6 +390,8 @@ export async function getPatientByDni(dni: string) {
 }
 
 export async function getPatientPendingDebt(dni: string) {
+  const session = await getCurrentSession()
+  if (!session) return { totalDebt: 0, payments: [] }
   try {
     const payments = await prisma.payment.findMany({
       where: { method: 'SALDO', order: { patient: { dni }, status: { not: 'ANULADA' } } },
@@ -409,6 +417,8 @@ export async function getPatientHistory(dni: string) {
 }
 
 export async function getDailyOrders(branchId: string) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
   try {
     const ordenes = await prisma.order.findMany({
       where: {
@@ -542,6 +552,8 @@ export async function getAuditLog(startDate: string, endDate: string, search?: s
 }
 
 export async function getOrders() {
+  const session = await getCurrentSession()
+  if (!session) return []
   try {
     return await prisma.order.findMany({
       where: {
@@ -567,6 +579,8 @@ export async function searchOrdersAdmin(filters: {
   endDate?: string
   status?: string
 }) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, orders: [] }
   try {
     const where: any = {}
 

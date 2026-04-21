@@ -4,9 +4,14 @@ import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay } from "date-fns"
 import { revalidatePath } from "next/cache"
 import { toNum } from "@/lib/utils"
+import { getCurrentSession } from "@/actions/auth"
 
 // 1. OBTENER TODO EL TABLERO DEL DUEÑO (Con filtros)
 export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaFin: Date, branchId: string }) {
+  const session = await getCurrentSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false, error: "Sin permisos" }
+  }
   const inicio = startOfDay(new Date(filtros.fechaInicio));
   const fin = endOfDay(new Date(filtros.fechaFin));
 
@@ -81,6 +86,10 @@ export async function getAdminDashboardData(filtros: { fechaInicio: Date, fechaF
 
 // 2. RETIRAR PLATA DE LA BÓVEDA (AL BOLSILLO DEL DUEÑO)
 export async function retirarDeBoveda(branchId: string, amount: number, description: string) {
+  const session = await getCurrentSession()
+  if (!session || session.role !== 'SUPERADMIN') {
+    return { success: false, error: "Solo el SUPERADMIN puede retirar de la bóveda" }
+  }
   try {
     const boveda = await prisma.safeVault.findUnique({ where: { branchId } });
     if (!boveda || toNum(boveda.balance) < amount) {
@@ -111,6 +120,10 @@ export async function retirarDeBoveda(branchId: string, amount: number, descript
 }
 
 export async function cobrarSaldoPendiente(paymentId: string, nuevoMetodo: any) {
+  const session = await getCurrentSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false }
+  }
   try {
     await prisma.payment.update({ where: { id: paymentId }, data: { method: nuevoMetodo, createdAt: new Date() } });
     revalidatePath("/admin");
@@ -122,6 +135,10 @@ export async function cobrarSaldoPendiente(paymentId: string, nuevoMetodo: any) 
 
 // ESTADÍSTICAS DEL PERSONAL TÉCNICO
 export async function getTechnicianStats(filtros: { fechaInicio: Date, fechaFin: Date, branchId: string }) {
+  const session = await getCurrentSession()
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPERADMIN')) {
+    return { success: false, stats: [] }
+  }
   const inicio = startOfDay(new Date(filtros.fechaInicio))
   const fin = endOfDay(new Date(filtros.fechaFin))
   const branchQuery = filtros.branchId !== "ALL" ? { branchId: filtros.branchId } : {}

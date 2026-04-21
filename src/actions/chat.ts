@@ -95,6 +95,25 @@ export async function sendFileMessage(formData: FormData) {
 
   if (!file) return { success: false, error: "No se recibió archivo" }
   if (file.size > 20 * 1024 * 1024) return { success: false, error: "El archivo supera 20 MB" }
+
+  const ALLOWED_MIME_TYPES = new Set([
+    // Imágenes
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+    // Documentos
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    // Texto
+    'text/plain',
+    // Comprimidos
+    'application/zip', 'application/x-rar-compressed',
+  ])
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return { success: false, error: "Tipo de archivo no permitido" }
+  }
+
   if (!process.env.R2_ENDPOINT || !process.env.R2_BUCKET_NAME || !process.env.R2_PUBLIC_URL)
     return { success: false, error: "Almacenamiento no configurado" }
 
