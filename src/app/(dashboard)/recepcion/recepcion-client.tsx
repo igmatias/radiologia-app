@@ -29,6 +29,16 @@ import {
 import { getTickets, replyTicket, closeTicket } from "@/actions/tickets"
 import { findDerivacion, markDerivacionCargada } from "@/actions/derivaciones"
 
+const DENOMINACIONES = [
+  { label: "$20.000", value: 20000 },
+  { label: "$10.000", value: 10000 },
+  { label: "$2.000",  value: 2000  },
+  { label: "$1.000",  value: 1000  },
+  { label: "$500",    value: 500   },
+  { label: "$200",    value: 200   },
+  { label: "$100",    value: 100   },
+]
+
 export default function RecepcionClient({ branches, dentists, obrasSociales, procedures, saldos }: any) {
   const router = useRouter()
 
@@ -63,7 +73,15 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
   const [movimientoModal, setMovimientoModal] = useState(false)
   const [nuevoMovimiento, setNuevoMovimiento] = useState({ type: "GASTO", amount: "", description: "" })
 
-  const [efectivoFisico, setEfectivoFisico] = useState<string>("")
+  // Desglose de billetes para el arqueo físico
+  const [billetes, setBilletes] = useState<Record<string, string>>({})
+  const [monedas, setMonedas] = useState<string>("")
+  // Valor total computado (mantiene compatibilidad con resto del componente)
+  const efectivoFisicoNum =
+    DENOMINACIONES.reduce((acc, d) => acc + (parseInt(billetes[d.label] || "0") || 0) * d.value, 0) +
+    (parseFloat(monedas || "0") || 0)
+  const efectivoFisico = efectivoFisicoNum > 0 ? efectivoFisicoNum.toString() : ""
+
   const [cierreModal, setCierreModal] = useState(false)
   const [totalEfectivoCierre, setTotalEfectivoCierre] = useState(0)
   const [notasCierre, setNotasCierre] = useState("")
@@ -84,6 +102,24 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
     }
     init()
   }, [])
+
+  // Persistir y restaurar desglose de billetes por sucursal
+  useEffect(() => {
+    if (!branchId) return
+    const saved = localStorage.getItem(`arqueo-billetes-${branchId}`)
+    if (saved) {
+      try {
+        const { b, m } = JSON.parse(saved)
+        if (b) setBilletes(b)
+        if (m !== undefined) setMonedas(m)
+      } catch {}
+    }
+  }, [branchId])
+
+  useEffect(() => {
+    if (!branchId) return
+    localStorage.setItem(`arqueo-billetes-${branchId}`, JSON.stringify({ b: billetes, m: monedas }))
+  }, [billetes, monedas, branchId])
 
   // Cargar contador de tickets abiertos al inicio
   useEffect(() => {
@@ -853,16 +889,59 @@ export default function RecepcionClient({ branches, dentists, obrasSociales, pro
                       <span className="text-2xl font-black text-slate-800">${estadoCaja.totalEnCajon.toLocaleString('es-AR')}</span>
                     </div>
 
-                    {/* Input de conteo */}
+                    {/* Conteo por denominación */}
                     <div>
-                      <label className="text-xs font-black uppercase text-slate-500 ml-1 mb-1.5 block">Tu conteo ($)</label>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={efectivoFisico}
-                        onChange={e => setEfectivoFisico(e.target.value)}
-                        className="h-16 rounded-2xl border-2 border-slate-200 bg-slate-50 text-center font-black text-3xl text-slate-900 focus-visible:border-emerald-500 transition-all"
-                      />
+                      <label className="text-xs font-black uppercase text-slate-500 ml-1 mb-2 block">Conteo de Billetes</label>
+                      <div className="space-y-1.5">
+                        {DENOMINACIONES.map(d => {
+                          const qty = parseInt(billetes[d.label] || "0") || 0
+                          const subtotal = qty * d.value
+                          return (
+                            <div key={d.label} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100">
+                              <span className="text-xs font-black text-slate-600 w-[4.5rem] shrink-0">{d.label}</span>
+                              <span className="text-slate-300 text-xs">×</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={billetes[d.label] || ""}
+                                onChange={e => setBilletes(prev => ({ ...prev, [d.label]: e.target.value }))}
+                                className="h-8 rounded-lg border border-slate-200 bg-white text-center font-black text-sm w-14 shrink-0 px-1 focus-visible:border-emerald-400 transition-all"
+                              />
+                              <span className="text-xs font-black text-slate-700 ml-auto whitespace-nowrap">
+                                {subtotal > 0 ? `$${subtotal.toLocaleString('es-AR')}` : <span className="text-slate-300">—</span>}
+                              </span>
+                            </div>
+                          )
+                        })}
+
+                        {/* Monedas (monto directo, no cantidad) */}
+                        <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100">
+                          <span className="text-xs font-black text-slate-600 w-[4.5rem] shrink-0">Monedas</span>
+                          <span className="text-slate-300 text-xs invisible">×</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={monedas}
+                            onChange={e => setMonedas(e.target.value)}
+                            className="h-8 rounded-lg border border-slate-200 bg-white text-center font-black text-sm w-14 shrink-0 px-1 focus-visible:border-emerald-400 transition-all"
+                          />
+                          <span className="text-xs font-black text-slate-700 ml-auto whitespace-nowrap">
+                            {parseFloat(monedas || "0") > 0
+                              ? `$${parseFloat(monedas).toLocaleString('es-AR')}`
+                              : <span className="text-slate-300">—</span>}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Total contado */}
+                      <div className={`mt-3 rounded-xl px-4 py-3 flex justify-between items-center transition-colors ${efectivoFisicoNum > 0 ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                        <span className={`text-xs font-black uppercase ${efectivoFisicoNum > 0 ? 'text-slate-400' : 'text-slate-400'}`}>Total contado</span>
+                        <span className={`text-xl font-black ${efectivoFisicoNum > 0 ? 'text-white' : 'text-slate-400'}`}>
+                          ${efectivoFisicoNum.toLocaleString('es-AR')}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Diferencia */}
