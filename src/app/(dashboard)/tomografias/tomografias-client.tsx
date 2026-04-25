@@ -424,64 +424,83 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         }
       }
 
-      // 3. Render via native Canvas API — bypass html2canvas entirely for the background,
-      //    and use a minimal isolated container for text to avoid oklch/lab CSS issues.
+      // 3. Build canvas in PHYSICAL pixels (no ctx.scale – avoids drawImage size confusion)
       const { jsPDF } = await import('jspdf')
       const W = 794, H = 1123, SCALE = 2
+      const WP = W * SCALE  // physical width  = 1588
+      const HP = H * SCALE  // physical height = 2246
+
       const mainCanvas = document.createElement('canvas')
-      mainCanvas.width = W * SCALE
-      mainCanvas.height = H * SCALE
+      mainCanvas.width  = WP
+      mainCanvas.height = HP
       const ctx = mainCanvas.getContext('2d')!
-      ctx.scale(SCALE, SCALE)
 
       // White base
       ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, W, H)
+      ctx.fillRect(0, 0, WP, HP)
 
-      // Draw background image directly — no html2canvas, no CSS parsing
+      // Draw background image at full physical size — pure Canvas API, no CSS involved
       if (bgDataUrl) {
         const bgImg = new Image()
         bgImg.src = bgDataUrl
         await new Promise<void>(resolve => { bgImg.onload = () => resolve(); bgImg.onerror = () => resolve() })
-        ctx.drawImage(bgImg, 0, 0, W, H)
+        ctx.drawImage(bgImg, 0, 0, WP, HP)
       }
 
-      // 4. Render only the HTML text content with html2canvas
-      //    Use a completely isolated iframe so NO page CSS leaks in (including Tailwind oklch vars)
+      // 4. Render text in a fully isolated iframe (no page CSS, no Tailwind oklch)
+      //    — iframe uses the FULL page width (W) with CSS padding for margins
+      //    — this lets right-aligned content align to (W - MR) correctly
+      const MB = activeTemplate?.marginBottom ?? 113
       const iframe = document.createElement('iframe')
-      const textW = W - ML - MR
-      iframe.style.cssText = `position:absolute;top:0;left:-9999px;width:${textW}px;height:${H}px;border:none;`
+      iframe.style.cssText = `position:absolute;top:0;left:-9999px;width:${W}px;height:${H}px;border:none;visibility:hidden;`
       document.body.appendChild(iframe)
 
       const iDoc = iframe.contentDocument!
       iDoc.open()
       iDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-        html,body{margin:0;padding:0;background:transparent;color:#000;
-          font-family:Georgia,serif;font-size:11pt;line-height:1.6;width:${textW}px;}
-        b,strong{font-weight:bold;}  i,em{font-style:italic;}
-        h1,h2,h3{font-weight:bold;margin:.4em 0;}
-        p{margin:.3em 0;} ul,ol{margin:.3em 0;padding-left:1.5em;}
+        html { margin:0; padding:0; width:${W}px; }
+        body {
+          margin:0; padding:0;
+          padding-left:${ML}px; padding-right:${MR}px;
+          box-sizing:border-box;
+          width:${W}px;
+          background:transparent;
+          color:#000000;
+          font-family:Georgia,serif;
+          font-size:11pt;
+          line-height:1.6;
+        }
+        b,strong { font-weight:bold; }
+        i,em     { font-style:italic; }
+        u        { text-decoration:underline; }
+        h1,h2,h3 { font-weight:bold; margin:.4em 0; }
+        p        { margin:.3em 0; }
+        ul,ol    { margin:.3em 0; padding-left:1.5em; }
       </style></head><body>${reportHtml}</body></html>`)
       iDoc.close()
 
-      // Wait a tick for layout
-      await new Promise(r => setTimeout(r, 80))
+      // Give browser a moment to layout
+      await new Promise(r => setTimeout(r, 120))
 
       const html2canvas = (await import('html2canvas')).default
+      // Capture at SCALE=2 → produces a WP × HP physical-pixel canvas
       const textCanvas = await html2canvas(iDoc.body, {
         scale: SCALE,
-        backgroundColor: null,   // transparent — composited onto mainCanvas
+        backgroundColor: null,  // transparent so background image shows through
         useCORS: false,
         allowTaint: false,
-        width: textW,
+        width:  W,
         height: H,
-        windowWidth: textW,
+        windowWidth:  W,
         windowHeight: H,
       })
       document.body.removeChild(iframe)
 
-      // Composite text onto main canvas
-      ctx.drawImage(textCanvas, ML, MT)
+      // Composite: draw textCanvas (WP×HP physical) at physical offset (0, MT*SCALE)
+      // — full width means no horizontal clipping
+      // — top-margin offset: content starts below the template header
+      // — bottom overflow (MT pixels) clips naturally at canvas edge (= bottom margin)
+      ctx.drawImage(textCanvas, 0, MT * SCALE)
 
       const canvas = mainCanvas
 
