@@ -44,7 +44,8 @@ export async function getPatientResults(accessCode: string, dni: string) {
       include: {
         items: { include: { procedure: true } },
         dentist: true,
-        branch: true
+        branch: true,
+        tomografiaData: true,
       },
       orderBy: { createdAt: 'desc' },
       take: 100

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Monitor, Send, Settings, AlertTriangle } from "lucide-react"
+import { Monitor, Send, Settings, AlertTriangle, ScanLine } from "lucide-react"
 import RadiationIcon from "@/components/icons/radiation-icon"
 import { isMaintenanceModeEnabled } from "@/actions/settings"
 import { prisma } from "@/lib/prisma"
@@ -43,6 +43,11 @@ export default async function DashboardLayout({
           <Link href="/entregas">
             <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer">
               <Send size={14} /> <span className="hidden sm:inline">Entregas</span>
+            </span>
+          </Link>
+          <Link href="/tomografias">
+            <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg font-bold uppercase text-[10px] tracking-wider transition-all cursor-pointer">
+              <ScanLine size={14} /> <span className="hidden sm:inline">TC3D</span>
             </span>
           </Link>
           <ChatNavItem lastMessageId={lastMessage?.id ?? null} />

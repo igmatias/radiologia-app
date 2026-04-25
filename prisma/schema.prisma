@@ -346,6 +346,8 @@ model Order {
   recipeCheckedAt DateTime?
   recipeCheckedBy String?
 
+  tomografiaData  TomografiaData?
+
   updatedAt       DateTime       @updatedAt
 
   @@index([branchId, status])
@@ -472,6 +474,33 @@ model Setting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model TomografiaData {
+  id                  String    @id @default(cuid())
+  orderId             String    @unique
+  order               Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  derivacionFiles     String[]  @default([])
+  studyFiles          String[]  @default([])
+  studyLinks          String[]  @default([])
+  reportHtml          String?
+  reportPdfUrl        String?
+  reportGeneratedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model ReportTemplate {
+  id                 String   @id @default(cuid())
+  name               String
+  backgroundImageUrl String?
+  marginTop          Int      @default(113)
+  marginLeft         Int      @default(95)
+  marginRight        Int      @default(95)
+  marginBottom       Int      @default(113)
+  isActive           Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model ChatMessage {

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import {
   Building2, ShieldCheck, CreditCard,
-  LayoutDashboard, Receipt, ClipboardList, LogOut, ClipboardCheck, History, WifiOff, Users, Landmark
+  LayoutDashboard, Receipt, ClipboardList, LogOut, ClipboardCheck, History, WifiOff, Users, Landmark, ScanLine
 } from "lucide-react"
 import ToothIcon from "@/components/icons/tooth-icon"
 import { logoutUser, getCurrentSession } from "@/actions/auth"
@@ -36,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Auditoría",     icon: History,         href: "/admin/auditoria" },
     { name: "Sedes",         icon: Building2,       href: "/admin/sedes",          superAdminOnly: true },
     { name: "Modo Emergencia", icon: WifiOff,       href: "/admin/importar-offline" },
+    { name: "Template TC3D",   icon: ScanLine,      href: "/admin/tomografia-template" },
   ]
 
   const menuItems = allMenuItems.filter(item =>

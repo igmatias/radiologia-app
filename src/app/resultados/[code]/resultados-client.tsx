@@ -386,6 +386,62 @@ export default function ResultadosClient() {
                   )}
                 </div>
 
+                {/* Sección Tomografía — solo si hay datos */}
+                {(order.tomografiaData?.studyFiles?.length > 0 ||
+                  order.tomografiaData?.studyLinks?.length > 0 ||
+                  order.tomografiaData?.reportPdfUrl) && (
+                  <div className="mt-6 border-t-2 border-indigo-100 pt-5">
+                    <h4 className="text-sm font-black uppercase italic text-indigo-800 flex items-center gap-2 mb-4">
+                      <FileText className="text-indigo-500" size={15} /> Informe y Archivos TC3D
+                    </h4>
+
+                    {/* PDF del informe */}
+                    {order.tomografiaData?.reportPdfUrl && (
+                      <a href={order.tomografiaData.reportPdfUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-200 rounded-2xl p-4 mb-3 transition-colors group">
+                        <div className="bg-indigo-100 p-2.5 rounded-xl shrink-0">
+                          <FileText size={20} className="text-indigo-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-black uppercase text-indigo-900">Informe Radiológico</p>
+                          <p className="text-xs text-indigo-500">Ver / Descargar PDF</p>
+                        </div>
+                        <Download size={16} className="text-indigo-400 group-hover:text-indigo-600 transition-colors" />
+                      </a>
+                    )}
+
+                    {/* Archivos del estudio */}
+                    {order.tomografiaData?.studyFiles?.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        {order.tomografiaData.studyFiles.map((url: string, i: number) => {
+                          const isPDF_ = url.toLowerCase().includes('.pdf')
+                          const name = url.split('/').pop()?.replace(/^[a-f0-9-]{36}-/, '') || `Archivo ${i+1}`
+                          return (
+                            <a key={url} href={url} target="_blank" rel="noreferrer"
+                              className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-3 transition-colors group">
+                              <FileText size={16} className={isPDF_ ? 'text-red-400' : 'text-blue-400'} />
+                              <span className="text-xs font-bold text-slate-700 truncate flex-1">{name}</span>
+                              <Download size={13} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
+                            </a>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Links externos */}
+                    {order.tomografiaData?.studyLinks?.length > 0 && (
+                      <div className="space-y-2">
+                        {order.tomografiaData.studyLinks.map((link: string, i: number) => (
+                          <a key={link} href={link} target="_blank" rel="noreferrer"
+                            className="flex items-center gap-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl p-3 transition-colors group">
+                            <ExternalLink size={14} className="text-blue-500 shrink-0" />
+                            <span className="text-xs font-bold text-blue-700 truncate flex-1">{link}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </CardContent>
             </Card>
           )

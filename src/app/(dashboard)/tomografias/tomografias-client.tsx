@@ -1,0 +1,769 @@
+"use client"
+
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import QRCode from "react-qr-code"
+import {
+  getTomografias, uploadTomoFile, removeTomoFile,
+  addTomoLink, removeTomoLink, saveReportHtml, deleteReport,
+  saveReportPdf, markAsDelivered, markAsDelayed, updateOrderStatusAction
+} from "@/actions/tomografias"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Search, UploadCloud, Link as LinkIcon, Trash2, FileText, ExternalLink,
+  Printer, QrCode, Copy, Mail, Smartphone, UserCheck, PauseCircle,
+  ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, X,
+  Loader2, FileImage, Download, Eye, Plus, ScanLine,
+  CheckCircle2, Clock, Package, Send, RefreshCw, Underline, Heading2
+} from "lucide-react"
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+function getLocalDate() {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().split('T')[0]
+}
+
+function isImage(url: string) { return /\.(jpe?g|png|webp|gif)$/i.test(url) }
+function isPdf(url: string) { return /\.pdf$/i.test(url) }
+function shortFileName(url: string) {
+  const parts = url.split('/'); const name = parts[parts.length - 1] || url
+  return name.replace(/^[a-f0-9-]{36}-/, '')
+}
+
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+  CREADA:            { label: 'Creada',          cls: 'bg-slate-100 text-slate-600' },
+  EN_ESPERA:         { label: 'En espera',        cls: 'bg-yellow-100 text-yellow-700' },
+  EN_ATENCION:       { label: 'En atención',      cls: 'bg-blue-100 text-blue-700' },
+  PROCESANDO:        { label: 'Procesando',       cls: 'bg-indigo-100 text-indigo-700' },
+  LISTO_PARA_ENTREGA:{ label: 'Lista ✓',          cls: 'bg-emerald-100 text-emerald-700' },
+  ENVIADA_DIGITAL:   { label: 'Enviada digital',  cls: 'bg-teal-100 text-teal-700' },
+  ENTREGADA:         { label: 'Entregada ✓',      cls: 'bg-green-100 text-green-700' },
+  DEMORADA:          { label: 'Demorada',         cls: 'bg-orange-100 text-orange-700' },
+}
+
+// ─── Rich Text Editor ─────────────────────────────────────────────────────────
+function RichEditor({ value, onChange }: { value: string; onChange: (h: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    if (ref.current && isFirstRender.current) {
+      ref.current.innerHTML = value
+      isFirstRender.current = false
+    }
+  }, [value])
+
+  const exec = (cmd: string, val?: string) => {
+    ref.current?.focus()
+    document.execCommand(cmd, false, val)
+    onChange(ref.current?.innerHTML || '')
+  }
+
+  const ToolBtn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
+    <button
+      type="button"
+      title={title}
+      onMouseDown={e => { e.preventDefault(); onClick() }}
+      className="p-1.5 rounded hover:bg-slate-200 text-slate-600 transition-colors"
+    >
+      {children}
+    </button>
+  )
+
+  return (
+    <div className="border-2 border-slate-200 rounded-2xl overflow-hidden focus-within:border-indigo-400 transition-colors">
+      <div className="flex flex-wrap gap-0.5 p-2 bg-slate-100 border-b border-slate-200">
+        <ToolBtn onClick={() => exec('bold')} title="Negrita (Ctrl+B)"><Bold size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('italic')} title="Cursiva (Ctrl+I)"><Italic size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('underline')} title="Subrayado (Ctrl+U)"><Underline size={14} /></ToolBtn>
+        <div className="w-px bg-slate-300 mx-1 self-stretch" />
+        <ToolBtn onClick={() => exec('insertUnorderedList')} title="Lista con viñetas"><List size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('insertOrderedList')} title="Lista numerada"><ListOrdered size={14} /></ToolBtn>
+        <div className="w-px bg-slate-300 mx-1 self-stretch" />
+        <ToolBtn onClick={() => exec('formatBlock', 'h2')} title="Título"><Heading2 size={14} /></ToolBtn>
+        <ToolBtn onClick={() => exec('formatBlock', 'p')} title="Párrafo normal"><FileText size={14} /></ToolBtn>
+        <div className="w-px bg-slate-300 mx-1 self-stretch" />
+        <ToolBtn onClick={() => exec('removeFormat')} title="Limpiar formato"><X size={14} /></ToolBtn>
+      </div>
+      <div
+        ref={ref}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={() => onChange(ref.current?.innerHTML || '')}
+        className="min-h-[280px] p-4 outline-none text-sm leading-relaxed text-slate-800 bg-white"
+        style={{ fontFamily: 'Georgia, serif' }}
+      />
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+export default function TomografiasClient({ branches, activeTemplate }: { branches: any[]; activeTemplate: any }) {
+  // Filtros
+  const [filters, setFilters] = useState({ branchId: 'ALL', startDate: '', endDate: '', search: '' })
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // Orden seleccionada
+  const [selected, setSelected] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<'archivos' | 'informe' | 'acciones'>('archivos')
+
+  // Files
+  const [uploadingStudy, setUploadingStudy] = useState(false)
+  const [uploadingDeriv, setUploadingDeriv] = useState(false)
+  const [newLink, setNewLink] = useState('')
+  const fileStudyRef = useRef<HTMLInputElement>(null)
+  const fileDerivRef = useRef<HTMLInputElement>(null)
+
+  // Informe
+  const [reportHtml, setReportHtml] = useState('')
+  const [savingReport, setSavingReport] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  // Acciones
+  const [showQr, setShowQr] = useState(false)
+  const [delayReason, setDelayReason] = useState('')
+  const [showDelayModal, setShowDelayModal] = useState(false)
+  const [deliveryMethod, setDeliveryMethod] = useState('RETIRO_PERSONAL')
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  // ── Cargar órdenes ──────────────────────────────────────────────────────────
+  const load = useCallback(async (f = filters) => {
+    setLoading(true)
+    const res = await getTomografias(f)
+    if (res.success) setOrders(res.orders as any[])
+    setHasSearched(true)
+    setLoading(false)
+  }, [filters])
+
+  useEffect(() => { load() }, []) // eslint-disable-line
+
+  // ── Seleccionar orden ───────────────────────────────────────────────────────
+  const selectOrder = (order: any) => {
+    setSelected(order)
+    setActiveTab('archivos')
+    setReportHtml(order.tomografiaData?.reportHtml || '')
+    setConfirmDelete(false)
+  }
+
+  // ── Refrescar orden seleccionada en la lista ────────────────────────────────
+  const refreshSelected = async () => {
+    const res = await getTomografias(filters)
+    if (res.success) {
+      setOrders(res.orders as any[])
+      if (selected) {
+        const updated = (res.orders as any[]).find((o: any) => o.id === selected.id)
+        if (updated) setSelected(updated)
+      }
+    }
+  }
+
+  // ── Upload study files ──────────────────────────────────────────────────────
+  const handleFileUpload = async (files: FileList | null, tipo: 'study' | 'derivacion') => {
+    if (!files || !selected) return
+    if (tipo === 'study') setUploadingStudy(true)
+    else setUploadingDeriv(true)
+
+    for (const file of Array.from(files)) {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('orderId', selected.id)
+      fd.append('tipo', tipo)
+      const res = await uploadTomoFile(fd)
+      if (!res.success) toast.error(res.error || 'Error al subir archivo')
+    }
+    await refreshSelected()
+    if (tipo === 'study') setUploadingStudy(false)
+    else setUploadingDeriv(false)
+    toast.success('Archivo(s) subido(s) ✓')
+  }
+
+  // ── Add link ────────────────────────────────────────────────────────────────
+  const handleAddLink = async () => {
+    if (!newLink || !selected) return
+    const res = await addTomoLink(selected.id, newLink)
+    if (res.success) { setNewLink(''); await refreshSelected(); toast.success('Link agregado ✓') }
+    else toast.error(res.error)
+  }
+
+  // ── Save report ─────────────────────────────────────────────────────────────
+  const handleSaveReport = async () => {
+    if (!selected) return
+    setSavingReport(true)
+    const res = await saveReportHtml(selected.id, reportHtml)
+    if (res.success) { await refreshSelected(); toast.success('Informe guardado ✓') }
+    else toast.error(res.error)
+    setSavingReport(false)
+  }
+
+  // ── Generate PDF ─────────────────────────────────────────────────────────────
+  const handleGeneratePdf = async () => {
+    if (!reportHtml || !selected) return
+    setGeneratingPdf(true)
+    try {
+      // 1. Save latest HTML first
+      await saveReportHtml(selected.id, reportHtml)
+
+      // 2. Build hidden A4 element
+      const MT = activeTemplate?.marginTop ?? 113
+      const ML = activeTemplate?.marginLeft ?? 95
+      const MR = activeTemplate?.marginRight ?? 95
+
+      const wrapper = document.createElement('div')
+      wrapper.style.cssText = `
+        width:794px;min-height:1123px;position:fixed;top:-99999px;left:-99999px;
+        background:white;overflow:hidden;font-family:Georgia,serif;font-size:11pt;line-height:1.6;
+      `
+      if (activeTemplate?.backgroundImageUrl) {
+        const img = document.createElement('img')
+        img.src = activeTemplate.backgroundImageUrl
+        img.crossOrigin = 'anonymous'
+        img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;'
+        wrapper.appendChild(img)
+        // Wait for image to load
+        await new Promise<void>(resolve => {
+          img.onload = () => resolve()
+          img.onerror = () => resolve()
+          setTimeout(resolve, 3000)
+        })
+      }
+      const content = document.createElement('div')
+      content.style.cssText = `position:absolute;top:${MT}px;left:${ML}px;right:${MR}px;`
+      content.innerHTML = reportHtml
+      wrapper.appendChild(content)
+      document.body.appendChild(wrapper)
+
+      // 3. html2canvas → jsPDF
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' })
+      document.body.removeChild(wrapper)
+
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const imgData = canvas.toDataURL('image/jpeg', 0.95)
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297)
+
+      // 4. Upload to R2
+      const pdfBlob = pdf.output('blob')
+      const fd = new FormData()
+      fd.append('pdf', pdfBlob, `informe-${selected.code || selected.id}.pdf`)
+      const res = await saveReportPdf(selected.id, fd)
+      if (res.success) {
+        toast.success('PDF generado y guardado ✓')
+        await refreshSelected()
+      } else {
+        toast.error(res.error || 'Error al guardar PDF')
+      }
+    } catch (err) {
+      console.error('PDF generation error:', err)
+      toast.error('Error al generar el PDF')
+    }
+    setGeneratingPdf(false)
+  }
+
+  // ── Acciones de entrega ──────────────────────────────────────────────────────
+  const handleMarkReady = async () => {
+    if (!selected) return
+    setActionLoading(true)
+    const res = await updateOrderStatusAction(selected.id, 'LISTO_PARA_ENTREGA')
+    if (res.success) { toast.success('Marcado como lista ✓'); await refreshSelected() }
+    else toast.error('Error al actualizar')
+    setActionLoading(false)
+  }
+
+  const handleDeliver = async () => {
+    if (!selected) return
+    setActionLoading(true)
+    const res = await markAsDelivered(selected.id, deliveryMethod)
+    if (res.success) { toast.success('Marcada como entregada ✓'); setShowDeliveryModal(false); await refreshSelected() }
+    else toast.error(res.error)
+    setActionLoading(false)
+  }
+
+  const handleDelay = async () => {
+    if (!delayReason.trim() || !selected) return
+    setActionLoading(true)
+    const res = await markAsDelayed(selected.id, delayReason)
+    if (res.success) { toast.success('Marcada como demorada'); setShowDelayModal(false); setDelayReason(''); await refreshSelected() }
+    else toast.error(res.error)
+    setActionLoading(false)
+  }
+
+  const portalUrl = selected ? `${typeof window !== 'undefined' ? window.location.origin : 'https://www.irdsistema.com'}/resultados/${selected.accessCode}` : ''
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  const tomoData = selected?.tomografiaData
+
+  return (
+    <div className="flex flex-col h-full bg-slate-50">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3 shrink-0">
+        <div className="bg-indigo-600 p-2 rounded-xl">
+          <ScanLine size={20} className="text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Tomografías</h1>
+          <p className="text-xs text-slate-500 font-medium">Gestión de estudios TC3D</p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => load()} disabled={loading} className="rounded-xl">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          </Button>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="bg-white border-b border-slate-100 px-6 py-3 flex flex-wrap gap-2 shrink-0">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Apellido, nombre o DNI..."
+            value={filters.search}
+            onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
+            onKeyDown={e => e.key === 'Enter' && load({ ...filters })}
+            className="pl-8 h-9 w-56 rounded-xl border-slate-200 text-sm"
+          />
+        </div>
+        <Select value={filters.branchId} onValueChange={v => setFilters(f => ({ ...f, branchId: v }))}>
+          <SelectTrigger className="h-9 w-44 rounded-xl border-slate-200 text-sm">
+            <SelectValue placeholder="Todas las sedes" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todas las sedes</SelectItem>
+            {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Input type="date" value={filters.startDate} onChange={e => setFilters(f => ({ ...f, startDate: e.target.value }))}
+          className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+        <span className="self-center text-slate-400 text-sm">→</span>
+        <Input type="date" value={filters.endDate} onChange={e => setFilters(f => ({ ...f, endDate: e.target.value }))}
+          className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+        <Button onClick={() => load({ ...filters })} size="sm" className="h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4">
+          <Search size={14} className="mr-1.5" /> Buscar
+        </Button>
+        <Button variant="ghost" size="sm" className="h-9 rounded-xl text-slate-500" onClick={() => {
+          const reset = { branchId: 'ALL', startDate: '', endDate: '', search: '' }
+          setFilters(reset); load(reset)
+        }}>Limpiar</Button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Order List */}
+        <div className={`${selected ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-[380px] xl:w-[420px] border-r border-slate-200 bg-white overflow-y-auto shrink-0`}>
+          {loading ? (
+            <div className="flex items-center justify-center h-48 text-slate-400">
+              <Loader2 size={24} className="animate-spin mr-2" /> Cargando...
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 gap-2">
+              <ScanLine size={32} className="opacity-30" />
+              <p className="text-sm font-medium">{hasSearched ? 'Sin resultados para este filtro' : 'Aplicá un filtro para buscar'}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {orders.map(order => {
+                const st = STATUS_MAP[order.status] ?? { label: order.status, cls: 'bg-slate-100 text-slate-600' }
+                const tomoProcs = order.items.filter((i: any) =>
+                  i.procedure.code?.startsWith('09.03') || i.procedure.name?.startsWith('TC3D')
+                )
+                const hasReport = !!order.tomografiaData?.reportHtml
+                const hasPdf = !!order.tomografiaData?.reportPdfUrl
+                const fileCount = (order.tomografiaData?.studyFiles?.length || 0) + (order.tomografiaData?.derivacionFiles?.length || 0)
+                return (
+                  <div
+                    key={order.id}
+                    onClick={() => selectOrder(order)}
+                    className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${selected?.id === order.id ? 'bg-indigo-50 border-l-2 border-indigo-500' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-black text-slate-900 uppercase text-sm truncate">
+                          {order.patient.lastName}, {order.patient.firstName}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">DNI {order.patient.dni} · {order.branch?.name}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {new Date(order.createdAt).toLocaleDateString('es-AR')} · {order.code}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {tomoProcs.slice(0, 2).map((i: any) => (
+                            <span key={i.id} className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                              {i.procedure.name}
+                            </span>
+                          ))}
+                          {tomoProcs.length > 2 && <span className="text-[10px] text-slate-400">+{tomoProcs.length - 2}</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${st.cls}`}>{st.label}</span>
+                        <div className="flex gap-1">
+                          {fileCount > 0 && <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">{fileCount} arch.</span>}
+                          {hasPdf && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">PDF ✓</span>}
+                          {hasReport && !hasPdf && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full font-bold">Inf.</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Detail Panel */}
+        {selected ? (
+          <div className="flex-1 flex flex-col overflow-hidden bg-white">
+            {/* Detail Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-start gap-3 shrink-0">
+              <button onClick={() => setSelected(null)} className="lg:hidden p-1 hover:bg-slate-100 rounded-lg">
+                <X size={18} className="text-slate-500" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-black text-lg uppercase text-slate-900">
+                  {selected.patient.lastName}, {selected.patient.firstName}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  DNI {selected.patient.dni} · {selected.branch?.name} · {new Date(selected.createdAt).toLocaleDateString('es-AR')} · <span className="font-mono">{selected.code}</span>
+                </p>
+                {selected.dentist && (
+                  <p className="text-xs text-slate-400 mt-0.5">Dr./a {selected.dentist.lastName}, {selected.dentist.firstName}</p>
+                )}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {selected.items.filter((i: any) => i.procedure.code?.startsWith('09.03') || i.procedure.name?.startsWith('TC3D'))
+                    .map((i: any) => (
+                      <span key={i.id} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">{i.procedure.name}</span>
+                    ))
+                  }
+                </div>
+              </div>
+              <span className={`text-xs font-black px-3 py-1 rounded-full uppercase ${(STATUS_MAP[selected.status] ?? { cls: 'bg-slate-100 text-slate-600' }).cls}`}>
+                {(STATUS_MAP[selected.status] ?? { label: selected.status }).label}
+              </span>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-slate-100 shrink-0 px-2">
+              {(['archivos', 'informe', 'acciones'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-5 py-3 text-xs font-black uppercase tracking-wider transition-colors ${activeTab === tab ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  {tab === 'archivos' ? '📁 Archivos' : tab === 'informe' ? '📝 Informe' : '✉️ Acciones'}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+              {/* ── ARCHIVOS TAB ─────────────────────────────────────────── */}
+              {activeTab === 'archivos' && (
+                <>
+                  {/* Orden de Derivación */}
+                  <section>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider">Orden de Derivación</h3>
+                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${uploadingDeriv ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 hover:bg-black text-white'}`}>
+                        {uploadingDeriv ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
+                        {uploadingDeriv ? 'Subiendo...' : 'Subir'}
+                        <input ref={fileDerivRef} type="file" accept=".pdf,image/*" multiple className="hidden"
+                          onChange={e => handleFileUpload(e.target.files, 'derivacion')} disabled={uploadingDeriv} />
+                      </label>
+                    </div>
+                    {tomoData?.derivacionFiles?.length > 0 ? (
+                      <div className="space-y-2">
+                        {tomoData.derivacionFiles.map((url: string) => (
+                          <FileRow key={url} url={url} onRemove={() => removeTomoFile(selected.id, url, 'derivacion').then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-400 text-sm">
+                        Sin orden de derivación adjunta
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Archivos del Estudio */}
+                  <section>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider">Archivos del Estudio</h3>
+                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${uploadingStudy ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}>
+                        {uploadingStudy ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
+                        {uploadingStudy ? 'Subiendo...' : 'Agregar archivos'}
+                        <input ref={fileStudyRef} type="file" accept=".pdf,image/*" multiple className="hidden"
+                          onChange={e => handleFileUpload(e.target.files, 'study')} disabled={uploadingStudy} />
+                      </label>
+                    </div>
+                    {tomoData?.studyFiles?.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                        {tomoData.studyFiles.map((url: string) => (
+                          isImage(url) ? (
+                            <div key={url} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100">
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <a href={url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white rounded-lg"><Eye size={14} className="text-slate-700" /></a>
+                                <a href={url} download className="p-1.5 bg-white rounded-lg"><Download size={14} className="text-slate-700" /></a>
+                                <button onClick={() => removeTomoFile(selected.id, url, 'study').then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} className="p-1.5 bg-red-500 rounded-lg"><Trash2 size={14} className="text-white" /></button>
+                              </div>
+                            </div>
+                          ) : (
+                            <FileRow key={url} url={url} onRemove={() => removeTomoFile(selected.id, url, 'study').then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} />
+                          )
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-400 text-sm mb-4">
+                        Sin archivos del estudio
+                      </div>
+                    )}
+
+                    {/* Links externos */}
+                    <div className="mt-2">
+                      <h4 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Links externos (Drive, WeTransfer, etc.)</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://drive.google.com/..."
+                          value={newLink}
+                          onChange={e => setNewLink(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAddLink()}
+                          className="h-9 rounded-xl border-slate-200 text-sm flex-1"
+                        />
+                        <Button size="sm" className="h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleAddLink}>
+                          <Plus size={14} />
+                        </Button>
+                      </div>
+                      {tomoData?.studyLinks?.length > 0 && (
+                        <div className="mt-2 space-y-1.5">
+                          {tomoData.studyLinks.map((link: string) => (
+                            <div key={link} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
+                              <LinkIcon size={13} className="text-indigo-500 shrink-0" />
+                              <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline truncate flex-1">{link}</a>
+                              <button onClick={() => removeTomoLink(selected.id, link).then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} className="p-1 hover:bg-red-100 rounded-lg text-red-500 shrink-0">
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                </>
+              )}
+
+              {/* ── INFORME TAB ──────────────────────────────────────────── */}
+              {activeTab === 'informe' && (
+                <section className="space-y-4">
+                  {tomoData?.reportPdfUrl && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-black text-emerald-800 uppercase">PDF Generado ✓</p>
+                        <p className="text-xs text-emerald-600 mt-0.5">
+                          {tomoData.reportGeneratedAt ? new Date(tomoData.reportGeneratedAt).toLocaleString('es-AR') : ''}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <a href={tomoData.reportPdfUrl} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-emerald-300 text-emerald-700">
+                            <Eye size={12} className="mr-1" /> Ver PDF
+                          </Button>
+                        </a>
+                        <a href={tomoData.reportPdfUrl} download>
+                          <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-emerald-300 text-emerald-700">
+                            <Download size={12} className="mr-1" /> Descargar
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-black uppercase text-slate-500 tracking-wider">Redactar Informe</label>
+                      {!activeTemplate && (
+                        <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                          ⚠️ Sin template activo — PDF sin fondo
+                        </span>
+                      )}
+                    </div>
+                    <RichEditor value={reportHtml} onChange={setReportHtml} />
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Button onClick={handleSaveReport} disabled={savingReport || !reportHtml.trim()} className="rounded-xl bg-slate-800 hover:bg-black text-white text-xs h-9">
+                      {savingReport ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+                      Guardar borrador
+                    </Button>
+                    <Button onClick={handleGeneratePdf} disabled={generatingPdf || !reportHtml.trim()} className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-9">
+                      {generatingPdf ? <Loader2 size={14} className="animate-spin mr-1" /> : <FileText size={14} className="mr-1" />}
+                      {generatingPdf ? 'Generando PDF...' : 'Generar PDF y subir'}
+                    </Button>
+                    {(tomoData?.reportHtml || tomoData?.reportPdfUrl) && (
+                      confirmDelete ? (
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="destructive" className="rounded-xl h-9 text-xs" onClick={() => deleteReport(selected.id).then(r => { if(r.success) { refreshSelected(); setReportHtml(''); setConfirmDelete(false); toast.success('Informe eliminado') } })}>
+                            Confirmar eliminación
+                          </Button>
+                          <Button size="sm" variant="ghost" className="rounded-xl h-9 text-xs" onClick={() => setConfirmDelete(false)}>Cancelar</Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="ghost" className="rounded-xl h-9 text-xs text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDelete(true)}>
+                          <Trash2 size={13} className="mr-1" /> Eliminar informe
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* ── ACCIONES TAB ─────────────────────────────────────────── */}
+              {activeTab === 'acciones' && (
+                <section className="space-y-4">
+                  {/* Status quick actions */}
+                  <div>
+                    <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider mb-3">Estado del Estudio</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                        onClick={handleMarkReady} disabled={actionLoading || selected.status === 'LISTO_PARA_ENTREGA'}>
+                        <CheckCircle2 size={15} className="mr-1.5" /> Marcar lista
+                      </Button>
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-blue-300 text-blue-700 hover:bg-blue-50"
+                        onClick={() => setShowDeliveryModal(true)} disabled={actionLoading}>
+                        <UserCheck size={15} className="mr-1.5" /> Entregar
+                      </Button>
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-orange-300 text-orange-700 hover:bg-orange-50"
+                        onClick={() => setShowDelayModal(true)} disabled={actionLoading}>
+                        <PauseCircle size={15} className="mr-1.5" /> Demorar
+                      </Button>
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                        onClick={() => updateOrderStatusAction(selected.id, 'ENVIADA_DIGITAL').then(r => { if(r.success) { toast.success('Marcado como enviado digital'); refreshSelected() } })}
+                        disabled={actionLoading}>
+                        <Send size={15} className="mr-1.5" /> Enviada digital
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Share */}
+                  <div>
+                    <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider mb-3">Compartir Resultados</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold" onClick={() => setShowQr(true)}>
+                        <QrCode size={15} className="mr-1.5" /> Ver QR
+                      </Button>
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold"
+                        onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado ✓') }}>
+                        <Copy size={15} className="mr-1.5" /> Copiar link
+                      </Button>
+                      <a href={`mailto:${selected.patient.email || ''}?subject=Resultados%20de%20su%20estudio&body=Hola%20${encodeURIComponent(selected.patient.firstName)}%2C%20puede%20ver%20sus%20resultados%20en%3A%20${encodeURIComponent(portalUrl)}`} className="col-span-1">
+                        <Button variant="outline" className="rounded-xl h-11 text-xs font-bold w-full">
+                          <Mail size={15} className="mr-1.5" /> Enviar email
+                        </Button>
+                      </a>
+                      <a href={`https://wa.me/?text=${encodeURIComponent(`Hola ${selected.patient.firstName}, sus resultados están disponibles en: ${portalUrl}`)}`} target="_blank" rel="noopener noreferrer" className="col-span-1">
+                        <Button variant="outline" className="rounded-xl h-11 text-xs font-bold w-full text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                          <Smartphone size={15} className="mr-1.5" /> WhatsApp
+                        </Button>
+                      </a>
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold col-span-2"
+                        onClick={() => { const w = window.open('', '_blank'); if(w) { w.document.write(`<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;"><div>${document.getElementById('qr-svg-' + selected.id)?.innerHTML || ''}</div></body></html>`); w.print() } }}>
+                        <Printer size={15} className="mr-1.5" /> Imprimir QR
+                      </Button>
+                    </div>
+                    <div id={`qr-svg-${selected.id}`} className="hidden">
+                      <QRCode value={portalUrl} size={200} />
+                    </div>
+                  </div>
+
+                  {/* Portal link */}
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <p className="text-xs text-slate-500 mb-1 font-semibold">Link del portal</p>
+                    <p className="text-xs text-indigo-600 font-mono break-all">{portalUrl}</p>
+                  </div>
+                </section>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 hidden lg:flex items-center justify-center text-slate-400 flex-col gap-3">
+            <ScanLine size={48} className="opacity-20" />
+            <p className="text-sm font-medium">Seleccioná un estudio para ver el detalle</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Modales ─────────────────────────────────────────────────────── */}
+      <Dialog open={showQr} onOpenChange={setShowQr}>
+        <DialogContent className="sm:max-w-xs bg-white rounded-3xl p-8 border-none shadow-2xl outline-none">
+          <DialogTitle className="text-center font-black uppercase text-lg">Código QR</DialogTitle>
+          <div className="flex flex-col items-center gap-4 mt-2">
+            <QRCode value={portalUrl} size={200} />
+            <p className="text-xs text-center text-slate-500 font-mono break-all">{selected?.patient?.lastName}, {selected?.patient?.firstName}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDelayModal} onOpenChange={setShowDelayModal}>
+        <DialogContent className="sm:max-w-sm bg-white rounded-3xl p-8 border-none shadow-2xl outline-none">
+          <DialogTitle className="text-xl font-black uppercase">Demorar Estudio</DialogTitle>
+          <div className="space-y-4 mt-4">
+            <Input placeholder="Motivo de la demora..." value={delayReason} onChange={e => setDelayReason(e.target.value)}
+              className="h-12 rounded-2xl border-2 font-medium" />
+            <Button onClick={handleDelay} disabled={!delayReason.trim() || actionLoading}
+              className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl">
+              {actionLoading ? <Loader2 size={16} className="animate-spin" /> : 'Confirmar Demora'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeliveryModal} onOpenChange={setShowDeliveryModal}>
+        <DialogContent className="sm:max-w-sm bg-white rounded-3xl p-8 border-none shadow-2xl outline-none">
+          <DialogTitle className="text-xl font-black uppercase">Registrar Entrega</DialogTitle>
+          <div className="space-y-4 mt-4">
+            <Select value={deliveryMethod} onValueChange={setDeliveryMethod}>
+              <SelectTrigger className="h-12 rounded-2xl border-2 font-medium"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="RETIRO_PERSONAL">Retiro personal</SelectItem>
+                <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
+                <SelectItem value="EMAIL">Email</SelectItem>
+                <SelectItem value="DRIVE">Drive / Link</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleDeliver} disabled={actionLoading}
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl">
+              {actionLoading ? <Loader2 size={16} className="animate-spin" /> : 'Confirmar Entrega'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// ─── File Row Component ────────────────────────────────────────────────────────
+function FileRow({ url, onRemove }: { url: string; onRemove: () => void }) {
+  const name = shortFileName(url)
+  const isPdf_ = isPdf(url)
+  return (
+    <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
+      {isPdf_ ? <FileText size={14} className="text-red-500 shrink-0" /> : <FileImage size={14} className="text-blue-500 shrink-0" />}
+      <span className="text-xs text-slate-700 truncate flex-1 font-medium">{name}</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-slate-200 rounded-lg shrink-0">
+        <Eye size={12} className="text-slate-500" />
+      </a>
+      <a href={url} download className="p-1 hover:bg-slate-200 rounded-lg shrink-0">
+        <Download size={12} className="text-slate-500" />
+      </a>
+      <button onClick={onRemove} className="p-1 hover:bg-red-100 rounded-lg shrink-0">
+        <Trash2 size={12} className="text-red-500" />
+      </button>
+    </div>
+  )
+}
