@@ -10,6 +10,14 @@ import { getCurrentSession } from "@/actions/auth"
 import { z } from "zod"
 import { sendStudyReadyEmail } from "@/lib/email"
 
+// ─── Códigos de procedimientos que van a la Worklist DICOM ───────────────────
+const WORKLIST_PROCEDURE_CODES = new Set([
+  '09.02.04', // Panorámica OPG
+  '09.02.05', // Telerradiografía
+  '09.03.01', '09.03.02', '09.03.03', '09.03.04',
+  '09.03.05', '09.03.06', '09.03.07', // Tomografías CBCT
+])
+
 // ─── Schemas de validación ────────────────────────────────────────────────────
 const PatientSchema = z.object({
   dni: z.string().min(7, "DNI inválido").max(11, "DNI inválido").regex(/^\d+$/, "DNI solo debe contener números"),
@@ -162,6 +170,14 @@ export async function createOrder(data: any) {
         },
       })
 
+      // Verificar si algún procedimiento requiere worklist DICOM
+      const procedureIds = items.map((item: any) => item.procedureId)
+      const worklistProcs = await tx.procedure.findMany({
+        where: { id: { in: procedureIds }, code: { in: [...WORKLIST_PROCEDURE_CODES] } },
+        select: { id: true },
+      })
+      const needsWorklist = worklistProcs.length > 0
+
       // Crear sin code primero para obtener el dailyId autoincrement
       const created = await tx.order.create({
         data: {
@@ -175,6 +191,7 @@ export async function createOrder(data: any) {
           insuranceAmount: insuranceAmount || 0,
           notes,
           status: "CREADA",
+          worklistStatus: needsWorklist ? 'PENDING' : null,
           items: {
             create: items.map((item: any) => ({
               procedureId: item.procedureId,

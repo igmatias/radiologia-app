@@ -1,0 +1,6 @@
+require('dotenv').config({ path: '../.env' })
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
+prisma.branch.findMany({ where: { isActive: true }, select: { id: true, name: true, code: true } })
+  .then(b => { console.log(JSON.stringify(b, null, 2)); prisma.$disconnect() })
+  .catch(e => { console.error(e.message); prisma.$disconnect() })

@@ -1,0 +1,15 @@
+{
+  "name": "radiologia-worklist-agent",
+  "version": "1.0.0",
+  "description": "Agente DICOM Modality Worklist para Orthanc",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dcmjs": "^0.29.0",
+    "dotenv": "^17.4.2"
+  }
+}

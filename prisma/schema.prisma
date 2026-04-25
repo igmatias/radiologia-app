@@ -81,6 +81,9 @@ model Branch {
   dailyRegisters DailyRegister[]
   safeVault      SafeVault?
 
+  orthancUrl     String?
+  dicomAeTitle   String?
+
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
@@ -150,10 +153,11 @@ model Equipment {
   name       String
   type       String?  
   
-  room       String?  
-  anydeskId  String?  
-  ipAddress  String?  
-  
+  room         String?
+  anydeskId    String?
+  ipAddress    String?
+  dicomAeTitle String?
+
   branchId   String
   branch     Branch      @relation(fields: [branchId], references: [id])
 
@@ -345,6 +349,9 @@ model Order {
   recipeChecked   Boolean        @default(false)
   recipeCheckedAt DateTime?
   recipeCheckedBy String?
+
+  worklistStatus  String?
+  worklistSentAt  DateTime?
 
   tomografiaData  TomografiaData?
 
