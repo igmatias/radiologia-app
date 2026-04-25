@@ -118,12 +118,12 @@ function cleanWordHtml(html: string): string {
   }
 }
 
-// Altura del área de contenido por página en el PDF (lógica px = H - MT - MB)
-// Ajustada al tamaño de fuente del editor (text-sm ≈ 14px, PDF 11pt ≈ 14.67px → factor ~0.97)
-const PDF_PAGE_CONTENT_H = 897   // 1123 - 113 - 113
-
 // ─── Rich Text Editor ─────────────────────────────────────────────────────────
-function RichEditor({ value, onChange }: { value: string; onChange: (h: string) => void }) {
+function RichEditor({ value, onChange, pageContentH }: {
+  value: string
+  onChange: (h: string) => void
+  pageContentH: number   // actual usable text height per PDF page (H - MT - MB)
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
   const [pageBreaks, setPageBreaks] = useState<number[]>([])
@@ -134,11 +134,11 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
     const PADDING = 16  // p-4
     const contentH = ref.current.scrollHeight - 2 * PADDING
     const positions: number[] = []
-    for (let y = PDF_PAGE_CONTENT_H; y < contentH; y += PDF_PAGE_CONTENT_H) {
+    for (let y = pageContentH; y < contentH; y += pageContentH) {
       positions.push(y + PADDING)
     }
     setPageBreaks(positions)
-  }, [])
+  }, [pageContentH])
 
   useEffect(() => {
     if (ref.current && isFirstRender.current) {
@@ -1022,7 +1022,11 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                         </span>
                       )}
                     </div>
-                    <RichEditor value={reportHtml} onChange={setReportHtml} />
+                    <RichEditor
+                      value={reportHtml}
+                      onChange={setReportHtml}
+                      pageContentH={1123 - (activeTemplate?.marginTop ?? 113) - (activeTemplate?.marginBottom ?? 113)}
+                    />
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-1">
