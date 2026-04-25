@@ -229,6 +229,20 @@ function RichEditor({ value, onChange, pageContentH }: {
       </div>
 
       {/* Editor area — relative so page break indicators can be absolutely positioned */}
+      {/*
+        IMPORTANT: font-size, line-height and paragraph margins MUST match the iframe CSS
+        used during PDF generation so the page break indicator is accurate.
+        Iframe uses: font-size:11pt, line-height:1.6, p{margin:.35em 0}
+      */}
+      <style>{`
+        .pdf-editor p   { margin: .35em 0 !important; }
+        .pdf-editor ul,
+        .pdf-editor ol  { margin: .35em 0 !important; padding-left: 1.6em !important; }
+        .pdf-editor h1,
+        .pdf-editor h3  { font-weight: bold !important; margin: .5em 0 !important; }
+        .pdf-editor h2  { font-size: 13pt !important; font-weight: bold !important; margin: .5em 0 !important; }
+        .pdf-editor li  { margin: 0 !important; }
+      `}</style>
       <div className="relative bg-white">
 
         {/* ── Page break indicators (visual only, not in PDF) ── */}
@@ -253,15 +267,15 @@ function RichEditor({ value, onChange, pageContentH }: {
           </div>
         ))}
 
-        {/* Contenteditable */}
+        {/* Contenteditable — font/spacing matches the PDF iframe so indicators are accurate */}
         <div
           ref={ref}
           contentEditable
           suppressContentEditableWarning
           onInput={() => { onChange(ref.current?.innerHTML || ''); recalcBreaks() }}
           onPaste={handlePaste}
-          className="min-h-[280px] p-4 outline-none text-sm leading-relaxed text-slate-800"
-          style={{ fontFamily: 'Georgia, serif' }}
+          className="pdf-editor min-h-[280px] p-4 outline-none text-slate-800"
+          style={{ fontFamily: 'Georgia, serif', fontSize: '11pt', lineHeight: '1.6' }}
         />
       </div>
     </div>
