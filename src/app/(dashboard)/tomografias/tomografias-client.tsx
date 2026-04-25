@@ -190,6 +190,21 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
         <ToolBtn onClick={() => exec('formatBlock', 'p')} title="Párrafo normal"><FileText size={14} /></ToolBtn>
         <div className="w-px bg-slate-300 mx-1 self-stretch" />
         <ToolBtn onClick={() => exec('removeFormat')} title="Limpiar formato"><X size={14} /></ToolBtn>
+        <div className="w-px bg-slate-300 mx-1 self-stretch" />
+        <ToolBtn
+          onClick={() => {
+            ref.current?.focus()
+            document.execCommand('insertHTML', false, '<hr class="page-break" style="border-top:2px dashed #aaa;margin:12px 0;" data-label="— Salto de página —" /><p><br></p>')
+            onChange(ref.current?.innerHTML || '')
+          }}
+          title="Insertar salto de página"
+        >
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="4 2"/>
+            <polyline points="8 8 3 12 8 16"/>
+            <polyline points="16 8 21 12 16 16"/>
+          </svg>
+        </ToolBtn>
       </div>
       <div
         ref={ref}
@@ -395,7 +410,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
     setSavingReport(false)
   }
 
-  // ── Generate PDF ─────────────────────────────────────────────────────────────
+  // ── Generate PDF (multi-page) ─────────────────────────────────────────────────
   const handleGeneratePdf = async () => {
     if (!reportHtml || !selected) return
     setGeneratingPdf(true)
@@ -403,54 +418,33 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       // 1. Save latest HTML first
       await saveReportHtml(selected.id, reportHtml)
 
-      const MT = activeTemplate?.marginTop ?? 113
-      const ML = activeTemplate?.marginLeft ?? 95
-      const MR = activeTemplate?.marginRight ?? 95
+      const MT = activeTemplate?.marginTop    ?? 113
+      const ML = activeTemplate?.marginLeft   ?? 95
+      const MR = activeTemplate?.marginRight  ?? 95
+      const MB = activeTemplate?.marginBottom ?? 113
+      const W = 794, H = 1123, SCALE = 2
+      const WP = W * SCALE   // 1588 physical px
+      const HP = H * SCALE   // 2246 physical px
+      // Usable text height per page (between top and bottom margins)
+      const PAGE_CONTENT_H = H - MT - MB   // e.g. 897 logical px
 
-      // 2. Fetch background as base64 to avoid CORS issues
-      let bgDataUrl = ''
+      // 2. Fetch background as base64 (avoids CORS with R2)
+      let bgImgEl: HTMLImageElement | null = null
       if (activeTemplate?.backgroundImageUrl) {
         try {
-          const response = await fetch(activeTemplate.backgroundImageUrl)
-          const blob = await response.blob()
-          bgDataUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result as string)
-            reader.onerror = reject
-            reader.readAsDataURL(blob)
+          const res  = await fetch(activeTemplate.backgroundImageUrl)
+          const blob = await res.blob()
+          const b64  = await new Promise<string>((ok, fail) => {
+            const r = new FileReader(); r.onload = () => ok(r.result as string); r.onerror = fail; r.readAsDataURL(blob)
           })
-        } catch (e) {
-          console.warn('Could not load background image:', e)
-        }
+          bgImgEl = await new Promise<HTMLImageElement>(ok => {
+            const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(img); img.src = b64
+          })
+        } catch (e) { console.warn('Background image load failed:', e) }
       }
 
-      // 3. Build canvas in PHYSICAL pixels (no ctx.scale – avoids drawImage size confusion)
-      const { jsPDF } = await import('jspdf')
-      const W = 794, H = 1123, SCALE = 2
-      const WP = W * SCALE  // physical width  = 1588
-      const HP = H * SCALE  // physical height = 2246
-
-      const mainCanvas = document.createElement('canvas')
-      mainCanvas.width  = WP
-      mainCanvas.height = HP
-      const ctx = mainCanvas.getContext('2d')!
-
-      // White base
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, WP, HP)
-
-      // Draw background image at full physical size — pure Canvas API, no CSS involved
-      if (bgDataUrl) {
-        const bgImg = new Image()
-        bgImg.src = bgDataUrl
-        await new Promise<void>(resolve => { bgImg.onload = () => resolve(); bgImg.onerror = () => resolve() })
-        ctx.drawImage(bgImg, 0, 0, WP, HP)
-      }
-
-      // 4. Render text in a fully isolated iframe (no page CSS, no Tailwind oklch)
-      //    — iframe uses the FULL page width (W) with CSS padding for margins
-      //    — this lets right-aligned content align to (W - MR) correctly
-      const MB = activeTemplate?.marginBottom ?? 113
+      // 3. Render ALL text content in an isolated iframe (no Tailwind CSS leaks)
+      //    Height is unconstrained so long reports flow to their natural height
       const iframe = document.createElement('iframe')
       iframe.style.cssText = `position:absolute;top:0;left:-9999px;width:${W}px;height:${H}px;border:none;visibility:hidden;`
       document.body.appendChild(iframe)
@@ -462,51 +456,101 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         body {
           margin:0; padding:0;
           padding-left:${ML}px; padding-right:${MR}px;
-          box-sizing:border-box;
-          width:${W}px;
-          background:transparent;
-          color:#000000;
-          font-family:Georgia,serif;
-          font-size:11pt;
-          line-height:1.6;
+          box-sizing:border-box; width:${W}px;
+          background:transparent; color:#000000;
+          font-family:Georgia,serif; font-size:11pt; line-height:1.6;
         }
         b,strong { font-weight:bold; }
         i,em     { font-style:italic; }
         u        { text-decoration:underline; }
-        h1,h2,h3 { font-weight:bold; margin:.4em 0; }
-        p        { margin:.3em 0; }
-        ul,ol    { margin:.3em 0; padding-left:1.5em; }
+        h1,h2,h3 { font-weight:bold; margin:.5em 0; }
+        h2       { font-size:13pt; }
+        p        { margin:.35em 0; }
+        ul,ol    { margin:.35em 0; padding-left:1.6em; }
+        hr.page-break { border:none; margin:0; padding:0; display:block; }
       </style></head><body>${reportHtml}</body></html>`)
       iDoc.close()
 
-      // Give browser a moment to layout
-      await new Promise(r => setTimeout(r, 120))
+      // Wait for layout
+      await new Promise(r => setTimeout(r, 150))
+
+      // Detect explicit page breaks (<hr class="page-break">) and record their y positions
+      const explicitBreakYs: number[] = Array.from(iDoc.querySelectorAll('hr.page-break'))
+        .map(el => (el as HTMLElement).offsetTop)
+        .filter(y => y > 10)
+        .sort((a, b) => a - b)
+
+      // Hide page-break <hr> elements in the rendered canvas (they're only visual in the editor)
+      iDoc.querySelectorAll<HTMLElement>('hr.page-break').forEach(el => {
+        el.style.cssText = 'display:block;height:0!important;border:none!important;margin:0!important;'
+      })
+
+      // Natural content height — determines how many pages we need
+      const naturalH = Math.max(iDoc.body.scrollHeight, 1)
 
       const html2canvas = (await import('html2canvas')).default
-      // Capture at SCALE=2 → produces a WP × HP physical-pixel canvas
       const textCanvas = await html2canvas(iDoc.body, {
-        scale: SCALE,
-        backgroundColor: null,  // transparent so background image shows through
-        useCORS: false,
-        allowTaint: false,
-        width:  W,
-        height: H,
-        windowWidth:  W,
-        windowHeight: H,
+        scale:           SCALE,
+        backgroundColor: null,     // transparent — background comes from template
+        useCORS:         false,
+        allowTaint:      false,
+        width:           W,
+        height:          naturalH, // capture FULL content, not just one page
+        windowWidth:     W,
+        windowHeight:    naturalH,
       })
       document.body.removeChild(iframe)
 
-      // Composite: draw textCanvas (WP×HP physical) at physical offset (0, MT*SCALE)
-      // — full width means no horizontal clipping
-      // — top-margin offset: content starts below the template header
-      // — bottom overflow (MT pixels) clips naturally at canvas edge (= bottom margin)
-      ctx.drawImage(textCanvas, 0, MT * SCALE)
+      // 4. Build page boundaries
+      //    Priority: explicit <hr class="page-break"> positions, then auto every PAGE_CONTENT_H
+      const pageBoundaries: number[] = [0]   // start of each page (in logical px of textCanvas)
+      if (explicitBreakYs.length > 0) {
+        // Use explicit breaks as page starts
+        explicitBreakYs.forEach(y => pageBoundaries.push(y))
+      } else {
+        // Auto-paginate at fixed intervals
+        let cursor = PAGE_CONTENT_H
+        while (cursor < naturalH) { pageBoundaries.push(cursor); cursor += PAGE_CONTENT_H }
+      }
+      const numPages = pageBoundaries.length
 
-      const canvas = mainCanvas
-
+      const { jsPDF } = await import('jspdf')
       const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgData = canvas.toDataURL('image/jpeg', 0.92)
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297)
+
+      for (let page = 0; page < numPages; page++) {
+        if (page > 0) pdf.addPage()
+
+        const pageCanvas = document.createElement('canvas')
+        pageCanvas.width  = WP
+        pageCanvas.height = HP
+        const pCtx = pageCanvas.getContext('2d')!
+
+        // White base + template background (same on every page)
+        pCtx.fillStyle = '#ffffff'
+        pCtx.fillRect(0, 0, WP, HP)
+        if (bgImgEl) pCtx.drawImage(bgImgEl, 0, 0, WP, HP)
+
+        // Slice of text for this page in logical pixels
+        const srcYLogical  = pageBoundaries[page]
+        const srcEndLogical = page + 1 < numPages
+          ? pageBoundaries[page + 1]
+          : naturalH
+        const srcHLogical = Math.min(srcEndLogical - srcYLogical, PAGE_CONTENT_H)
+
+        // Convert to physical pixels for drawImage
+        const srcYP  = srcYLogical  * SCALE
+        const srcHP  = Math.min(srcHLogical * SCALE, textCanvas.height - srcYP)
+
+        if (srcHP > 0) {
+          pCtx.drawImage(
+            textCanvas,
+            0, srcYP, WP, srcHP,      // source rect (physical px of textCanvas)
+            0, MT * SCALE, WP, srcHP  // dest rect — offset by top margin
+          )
+        }
+
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297)
+      }
 
       // 5. Upload to R2
       const pdfBlob = pdf.output('blob')
@@ -514,7 +558,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       fd.append('pdf', pdfBlob, `informe-${selected.code || selected.id}.pdf`)
       const res = await saveReportPdf(selected.id, fd)
       if (res.success) {
-        toast.success('PDF generado y guardado ✓')
+        toast.success(`PDF generado ✓ (${numPages} página${numPages > 1 ? 's' : ''})`)
         await refreshSelected()
       } else {
         toast.error(res.error || 'Error al guardar PDF')
