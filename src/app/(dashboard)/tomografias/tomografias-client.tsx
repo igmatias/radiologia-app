@@ -424,58 +424,66 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         }
       }
 
-      // 3. Build hidden A4 element positioned off-screen
-      const wrapper = document.createElement('div')
-      wrapper.style.cssText = [
-        'width:794px', 'height:1123px', 'position:absolute', 'top:0', 'left:-9999px',
-        'background:#ffffff', 'overflow:hidden',
-        'font-family:Georgia,serif', 'font-size:11pt', 'line-height:1.6',
-        'color:#000000',            // explicit color — avoids lab() in computed styles
-        'color-scheme:light',       // prevents dark-mode lab() values
-      ].join(';')
-
-      if (bgDataUrl) {
-        const bgImg = document.createElement('img')
-        bgImg.src = bgDataUrl
-        bgImg.style.cssText = 'position:absolute;top:0;left:0;width:794px;height:1123px;display:block;'
-        wrapper.appendChild(bgImg)
-      }
-      const content = document.createElement('div')
-      content.style.cssText = [
-        `position:absolute`, `top:${MT}px`, `left:${ML}px`, `right:${MR}px`,
-        `bottom:${activeTemplate?.marginBottom ?? 113}px`,
-        'overflow:hidden', 'color:#000000',
-      ].join(';')
-      content.innerHTML = reportHtml
-      wrapper.appendChild(content)
-      document.body.appendChild(wrapper)
-
-      // 4. html2canvas → jsPDF
-      const html2canvas = (await import('html2canvas')).default
+      // 3. Render via native Canvas API — bypass html2canvas entirely for the background,
+      //    and use a minimal isolated container for text to avoid oklch/lab CSS issues.
       const { jsPDF } = await import('jspdf')
+      const W = 794, H = 1123, SCALE = 2
+      const mainCanvas = document.createElement('canvas')
+      mainCanvas.width = W * SCALE
+      mainCanvas.height = H * SCALE
+      const ctx = mainCanvas.getContext('2d')!
+      ctx.scale(SCALE, SCALE)
 
-      const canvas = await html2canvas(wrapper, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: 794,
-        height: 1123,
-        windowWidth: 794,
-        windowHeight: 1123,
-        // Neutralise any lab()/oklch() computed colours before html2canvas reads them
-        onclone: (_clonedDoc, clonedEl) => {
-          const all = clonedEl.querySelectorAll<HTMLElement>('*')
-          all.forEach(el => {
-            const cs = window.getComputedStyle(el)
-            const unsafePattern = /\b(lab|oklch|lch|oklab|color)\s*\(/i
-            if (unsafePattern.test(cs.color)) el.style.color = '#000000'
-            if (unsafePattern.test(cs.backgroundColor)) el.style.backgroundColor = 'transparent'
-            if (unsafePattern.test(cs.borderColor || '')) el.style.borderColor = 'transparent'
-          })
-        },
+      // White base
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, W, H)
+
+      // Draw background image directly — no html2canvas, no CSS parsing
+      if (bgDataUrl) {
+        const bgImg = new Image()
+        bgImg.src = bgDataUrl
+        await new Promise<void>(resolve => { bgImg.onload = () => resolve(); bgImg.onerror = () => resolve() })
+        ctx.drawImage(bgImg, 0, 0, W, H)
+      }
+
+      // 4. Render only the HTML text content with html2canvas
+      //    Use a completely isolated iframe so NO page CSS leaks in (including Tailwind oklch vars)
+      const iframe = document.createElement('iframe')
+      const textW = W - ML - MR
+      iframe.style.cssText = `position:absolute;top:0;left:-9999px;width:${textW}px;height:${H}px;border:none;`
+      document.body.appendChild(iframe)
+
+      const iDoc = iframe.contentDocument!
+      iDoc.open()
+      iDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+        html,body{margin:0;padding:0;background:transparent;color:#000;
+          font-family:Georgia,serif;font-size:11pt;line-height:1.6;width:${textW}px;}
+        b,strong{font-weight:bold;}  i,em{font-style:italic;}
+        h1,h2,h3{font-weight:bold;margin:.4em 0;}
+        p{margin:.3em 0;} ul,ol{margin:.3em 0;padding-left:1.5em;}
+      </style></head><body>${reportHtml}</body></html>`)
+      iDoc.close()
+
+      // Wait a tick for layout
+      await new Promise(r => setTimeout(r, 80))
+
+      const html2canvas = (await import('html2canvas')).default
+      const textCanvas = await html2canvas(iDoc.body, {
+        scale: SCALE,
+        backgroundColor: null,   // transparent — composited onto mainCanvas
+        useCORS: false,
+        allowTaint: false,
+        width: textW,
+        height: H,
+        windowWidth: textW,
+        windowHeight: H,
       })
-      document.body.removeChild(wrapper)
+      document.body.removeChild(iframe)
+
+      // Composite text onto main canvas
+      ctx.drawImage(textCanvas, ML, MT)
+
+      const canvas = mainCanvas
 
       const pdf = new jsPDF('p', 'mm', 'a4')
       const imgData = canvas.toDataURL('image/jpeg', 0.92)
