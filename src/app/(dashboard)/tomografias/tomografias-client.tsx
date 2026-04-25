@@ -548,7 +548,26 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       }
       const numPages = pageBoundaries.length
 
+      console.log('[PDF] naturalH:', naturalH, 'PAGE_CONTENT_H:', PAGE_CONTENT_H, 'pageBoundaries:', pageBoundaries, 'numPages:', numPages)
+
       const html2canvas = (await import('html2canvas')).default
+
+      // Render the FULL document once at 2× resolution
+      const fullCanvas = await html2canvas(iDoc.body, {
+        scale:           SCALE,
+        backgroundColor: null,
+        useCORS:         false,
+        allowTaint:      false,
+        width:           W,
+        height:          naturalH,
+        windowWidth:     W,
+        windowHeight:    naturalH,
+      })
+
+      document.body.removeChild(iframe)
+
+      console.log('[PDF] fullCanvas:', fullCanvas.width, '×', fullCanvas.height)
+
       const { jsPDF } = await import('jspdf')
       const pdf = new jsPDF('p', 'mm', 'a4')
 
@@ -557,40 +576,42 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
 
         const pageStart = pageBoundaries[page]
         const pageEnd   = page + 1 < numPages ? pageBoundaries[page + 1] : naturalH
-        const captureH  = Math.min(pageEnd - pageStart, PAGE_CONTENT_H)
+        const sliceH    = Math.min(pageEnd - pageStart, PAGE_CONTENT_H)  // logical px
 
-        // Capture exactly this page's content — html2canvas scrolls internally to pageStart
-        // so the resulting canvas always starts at y=0 with the actual content (no empty-space slice)
-        const textCanvas = await html2canvas(iDoc.body, {
-          scale:           SCALE,
-          backgroundColor: null,
-          useCORS:         false,
-          allowTaint:      false,
-          x:               0,
-          y:               pageStart,
-          width:           W,
-          height:          captureH,
-          windowWidth:     W,
-          windowHeight:    naturalH,
-        })
+        // Physical coords in the full canvas
+        const srcY = pageStart * SCALE
+        const srcH = Math.min(sliceH * SCALE, fullCanvas.height - srcY)
 
+        console.log(`[PDF] page ${page + 1}: pageStart=${pageStart} sliceH=${sliceH} srcY=${srcY} srcH=${srcH}`)
+
+        // ── Intermediate canvas: slice lives at y=0 (avoids any coordinate confusion) ──
+        const sliceCanvas = document.createElement('canvas')
+        sliceCanvas.width  = WP
+        sliceCanvas.height = sliceH * SCALE   // exact slice height, content starts at y=0
+        const sCtx = sliceCanvas.getContext('2d')!
+        if (srcH > 0) {
+          sCtx.drawImage(
+            fullCanvas,
+            0, srcY, WP, srcH,   // source: this page's slice
+            0, 0,   WP, srcH     // dest: place at y=0 in sliceCanvas
+          )
+        }
+
+        // ── Page canvas: white + template + text at top margin ──
         const pageCanvas = document.createElement('canvas')
         pageCanvas.width  = WP
         pageCanvas.height = HP
         const pCtx = pageCanvas.getContext('2d')!
 
-        // White base + template background (same on every page)
         pCtx.fillStyle = '#ffffff'
         pCtx.fillRect(0, 0, WP, HP)
         if (bgImgEl) pCtx.drawImage(bgImgEl, 0, 0, WP, HP)
 
-        // textCanvas y=0 corresponds to pageStart in the document → place at top margin
-        pCtx.drawImage(textCanvas, 0, MT * SCALE)
+        // sliceCanvas y=0 = document y=pageStart → place at the top margin
+        pCtx.drawImage(sliceCanvas, 0, MT * SCALE)
 
         pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297)
       }
-
-      document.body.removeChild(iframe)
 
       // 5. Upload to R2
       const pdfBlob = pdf.output('blob')
