@@ -118,17 +118,43 @@ function cleanWordHtml(html: string): string {
   }
 }
 
+// Altura del área de contenido por página en el PDF (lógica px = H - MT - MB)
+// Ajustada al tamaño de fuente del editor (text-sm ≈ 14px, PDF 11pt ≈ 14.67px → factor ~0.97)
+const PDF_PAGE_CONTENT_H = 897   // 1123 - 113 - 113
+
 // ─── Rich Text Editor ─────────────────────────────────────────────────────────
 function RichEditor({ value, onChange }: { value: string; onChange: (h: string) => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const isFirstRender = useRef(true)
+  const [pageBreaks, setPageBreaks] = useState<number[]>([])
+
+  // Recalculate page break indicator positions based on current content height
+  const recalcBreaks = useCallback(() => {
+    if (!ref.current) return
+    const PADDING = 16  // p-4
+    const contentH = ref.current.scrollHeight - 2 * PADDING
+    const positions: number[] = []
+    for (let y = PDF_PAGE_CONTENT_H; y < contentH; y += PDF_PAGE_CONTENT_H) {
+      positions.push(y + PADDING)
+    }
+    setPageBreaks(positions)
+  }, [])
 
   useEffect(() => {
     if (ref.current && isFirstRender.current) {
       ref.current.innerHTML = value
       isFirstRender.current = false
+      recalcBreaks()
     }
-  }, [value])
+  }, [value, recalcBreaks])
+
+  // ResizeObserver fires whenever the editor grows/shrinks as user types
+  useEffect(() => {
+    if (!ref.current) return
+    const ro = new ResizeObserver(recalcBreaks)
+    ro.observe(ref.current)
+    return () => ro.disconnect()
+  }, [recalcBreaks])
 
   const exec = (cmd: string, val?: string) => {
     ref.current?.focus()
@@ -144,11 +170,8 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
       const cleaned = cleanWordHtml(html)
       document.execCommand('insertHTML', false, cleaned)
     } else {
-      // Plain text: preserve line breaks
       const escaped = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/\n/g, '<br>')
       document.execCommand('insertHTML', false, escaped)
     }
@@ -156,18 +179,15 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
   }
 
   const ToolBtn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
-    <button
-      type="button"
-      title={title}
+    <button type="button" title={title}
       onMouseDown={e => { e.preventDefault(); onClick() }}
       className="p-1.5 rounded hover:bg-slate-200 text-slate-600 transition-colors"
-    >
-      {children}
-    </button>
+    >{children}</button>
   )
 
   return (
     <div className="border-2 border-slate-200 rounded-2xl overflow-hidden focus-within:border-brand-400 transition-colors">
+      {/* Toolbar */}
       <div className="flex flex-wrap gap-0.5 p-2 bg-slate-100 border-b border-slate-200">
         <ToolBtn onClick={() => exec('bold')} title="Negrita (Ctrl+B)"><Bold size={14} /></ToolBtn>
         <ToolBtn onClick={() => exec('italic')} title="Cursiva (Ctrl+I)"><Italic size={14} /></ToolBtn>
@@ -194,10 +214,11 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
         <ToolBtn
           onClick={() => {
             ref.current?.focus()
-            document.execCommand('insertHTML', false, '<hr class="page-break" style="border-top:2px dashed #aaa;margin:12px 0;" data-label="— Salto de página —" /><p><br></p>')
+            document.execCommand('insertHTML', false,
+              '<hr class="page-break" style="height:0;border:none;border-top:2px dashed #ccc;margin:8px 0;" /><p><br></p>')
             onChange(ref.current?.innerHTML || '')
           }}
-          title="Insertar salto de página"
+          title="Insertar salto de página manual"
         >
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="4 2"/>
@@ -206,15 +227,43 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
           </svg>
         </ToolBtn>
       </div>
-      <div
-        ref={ref}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={() => onChange(ref.current?.innerHTML || '')}
-        onPaste={handlePaste}
-        className="min-h-[280px] p-4 outline-none text-sm leading-relaxed text-slate-800 bg-white"
-        style={{ fontFamily: 'Georgia, serif' }}
-      />
+
+      {/* Editor area — relative so page break indicators can be absolutely positioned */}
+      <div className="relative bg-white">
+
+        {/* ── Page break indicators (visual only, not in PDF) ── */}
+        {pageBreaks.map((y, i) => (
+          <div
+            key={i}
+            className="absolute inset-x-0 pointer-events-none z-10 flex items-center select-none"
+            style={{ top: y }}
+          >
+            <div className="flex-1 border-t-2 border-dashed border-brand-300 opacity-50" />
+            <div className="mx-3 flex items-center gap-1.5 bg-brand-50 border border-brand-200 rounded-full px-3 py-0.5 shadow-sm">
+              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="text-brand-400">
+                <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="4 2"/>
+                <polyline points="8 8 3 12 8 16"/>
+                <polyline points="16 8 21 12 16 16"/>
+              </svg>
+              <span className="text-[10px] font-black text-brand-500 uppercase tracking-wider">
+                Página {i + 2}
+              </span>
+            </div>
+            <div className="flex-1 border-t-2 border-dashed border-brand-300 opacity-50" />
+          </div>
+        ))}
+
+        {/* Contenteditable */}
+        <div
+          ref={ref}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={() => { onChange(ref.current?.innerHTML || ''); recalcBreaks() }}
+          onPaste={handlePaste}
+          className="min-h-[280px] p-4 outline-none text-sm leading-relaxed text-slate-800"
+          style={{ fontFamily: 'Georgia, serif' }}
+        />
+      </div>
     </div>
   )
 }
