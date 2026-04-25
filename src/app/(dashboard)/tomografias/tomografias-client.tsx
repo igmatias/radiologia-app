@@ -537,37 +537,42 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       // Natural content height — determines how many pages we need
       const naturalH = Math.max(iDoc.body.scrollHeight, 1)
 
-      const html2canvas = (await import('html2canvas')).default
-      const textCanvas = await html2canvas(iDoc.body, {
-        scale:           SCALE,
-        backgroundColor: null,     // transparent — background comes from template
-        useCORS:         false,
-        allowTaint:      false,
-        width:           W,
-        height:          naturalH, // capture FULL content, not just one page
-        windowWidth:     W,
-        windowHeight:    naturalH,
-      })
-      document.body.removeChild(iframe)
-
       // 4. Build page boundaries
       //    Priority: explicit <hr class="page-break"> positions, then auto every PAGE_CONTENT_H
-      const pageBoundaries: number[] = [0]   // start of each page (in logical px of textCanvas)
+      const pageBoundaries: number[] = [0]   // start of each page (logical px in the iframe doc)
       if (explicitBreakYs.length > 0) {
-        // Use explicit breaks as page starts
         explicitBreakYs.forEach(y => pageBoundaries.push(y))
       } else {
-        // Auto-paginate at fixed intervals
         let cursor = PAGE_CONTENT_H
         while (cursor < naturalH) { pageBoundaries.push(cursor); cursor += PAGE_CONTENT_H }
       }
       const numPages = pageBoundaries.length
 
+      const html2canvas = (await import('html2canvas')).default
       const { jsPDF } = await import('jspdf')
       const pdf = new jsPDF('p', 'mm', 'a4')
 
       for (let page = 0; page < numPages; page++) {
         if (page > 0) pdf.addPage()
+
+        const pageStart = pageBoundaries[page]
+        const pageEnd   = page + 1 < numPages ? pageBoundaries[page + 1] : naturalH
+        const captureH  = Math.min(pageEnd - pageStart, PAGE_CONTENT_H)
+
+        // Capture exactly this page's content — html2canvas scrolls internally to pageStart
+        // so the resulting canvas always starts at y=0 with the actual content (no empty-space slice)
+        const textCanvas = await html2canvas(iDoc.body, {
+          scale:           SCALE,
+          backgroundColor: null,
+          useCORS:         false,
+          allowTaint:      false,
+          x:               0,
+          y:               pageStart,
+          width:           W,
+          height:          captureH,
+          windowWidth:     W,
+          windowHeight:    naturalH,
+        })
 
         const pageCanvas = document.createElement('canvas')
         pageCanvas.width  = WP
@@ -579,27 +584,13 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         pCtx.fillRect(0, 0, WP, HP)
         if (bgImgEl) pCtx.drawImage(bgImgEl, 0, 0, WP, HP)
 
-        // Slice of text for this page in logical pixels
-        const srcYLogical  = pageBoundaries[page]
-        const srcEndLogical = page + 1 < numPages
-          ? pageBoundaries[page + 1]
-          : naturalH
-        const srcHLogical = Math.min(srcEndLogical - srcYLogical, PAGE_CONTENT_H)
-
-        // Convert to physical pixels for drawImage
-        const srcYP  = srcYLogical  * SCALE
-        const srcHP  = Math.min(srcHLogical * SCALE, textCanvas.height - srcYP)
-
-        if (srcHP > 0) {
-          pCtx.drawImage(
-            textCanvas,
-            0, srcYP, WP, srcHP,      // source rect (physical px of textCanvas)
-            0, MT * SCALE, WP, srcHP  // dest rect — offset by top margin
-          )
-        }
+        // textCanvas y=0 corresponds to pageStart in the document → place at top margin
+        pCtx.drawImage(textCanvas, 0, MT * SCALE)
 
         pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297)
       }
+
+      document.body.removeChild(iframe)
 
       // 5. Upload to R2
       const pdfBlob = pdf.output('blob')
