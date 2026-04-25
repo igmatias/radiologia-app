@@ -90,7 +90,7 @@ export default function TomografiaTemplatePage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
       <div className="flex items-center gap-3">
-        <div className="bg-indigo-600 p-2 rounded-xl"><ScanLine size={20} className="text-white" /></div>
+        <div className="bg-brand-600 p-2 rounded-xl"><ScanLine size={20} className="text-white" /></div>
         <div>
           <h1 className="text-2xl font-black uppercase tracking-tight">Template de Informes TC3D</h1>
           <p className="text-sm text-slate-500">Gestión del template de fondo para generar PDFs de informes</p>
@@ -114,11 +114,11 @@ export default function TomografiaTemplatePage() {
             <Label className="text-xs font-black uppercase text-slate-500 mb-2 block">
               Imagen de Fondo A4 (JPG/PNG — tamaño A4: 794×1123 px aprox.)
             </Label>
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-indigo-400 rounded-2xl p-6 cursor-pointer transition-colors group">
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-brand-400 rounded-2xl p-6 cursor-pointer transition-colors group">
               {form.preview ? (
                 <img src={form.preview} alt="preview" className="max-h-48 object-contain rounded-xl mb-2" />
               ) : (
-                <UploadCloud size={32} className="text-slate-300 group-hover:text-indigo-400 mb-2 transition-colors" />
+                <UploadCloud size={32} className="text-slate-300 group-hover:text-brand-400 mb-2 transition-colors" />
               )}
               <span className="text-xs font-bold text-slate-500">
                 {form.preview ? 'Cambiar imagen' : 'Clic para subir imagen de fondo A4'}
@@ -152,7 +152,7 @@ export default function TomografiaTemplatePage() {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button type="submit" disabled={saving} className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black h-11 px-6">
+            <Button type="submit" disabled={saving} className="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black h-11 px-6">
               {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               {editingId ? 'Actualizar Template' : 'Crear Template'}
             </Button>
@@ -176,7 +176,7 @@ export default function TomografiaTemplatePage() {
           </div>
         ) : (
           templates.map(t => (
-            <div key={t.id} className={`bg-white rounded-2xl border-2 p-5 flex items-center gap-4 ${t.isActive ? 'border-indigo-300 bg-indigo-50/30' : 'border-slate-200'}`}>
+            <div key={t.id} className={`bg-white rounded-2xl border-2 p-5 flex items-center gap-4 ${t.isActive ? 'border-brand-300 bg-brand-50/30' : 'border-slate-200'}`}>
               {t.backgroundImageUrl ? (
                 <img src={t.backgroundImageUrl} alt="" className="w-16 h-20 object-cover rounded-xl border border-slate-200 shrink-0" />
               ) : (
@@ -187,7 +187,7 @@ export default function TomografiaTemplatePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-black text-slate-800">{t.name}</p>
-                  {t.isActive && <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-black uppercase">Activo</span>}
+                  {t.isActive && <span className="text-[10px] bg-brand-600 text-white px-2 py-0.5 rounded-full font-black uppercase">Activo</span>}
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
                   Márgenes: top {t.marginTop}px · left {t.marginLeft}px · right {t.marginRight}px · bottom {t.marginBottom}px
@@ -201,7 +201,7 @@ export default function TomografiaTemplatePage() {
                   </a>
                 )}
                 {!t.isActive && (
-                  <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                  <Button size="sm" variant="outline" className="rounded-xl h-8 text-xs border-brand-300 text-brand-700 hover:bg-brand-50"
                     onClick={() => handleActivate(t.id)}>
                     <Star size={12} className="mr-1" /> Activar
                   </Button>

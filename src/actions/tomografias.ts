@@ -24,7 +24,11 @@ export async function getTomografias(filters: {
   branchId?: string
   startDate?: string
   endDate?: string
+  deliveryStartDate?: string
+  deliveryEndDate?: string
   search?: string
+  sortBy?: 'createdAt' | 'deliveryDate'
+  sortDir?: 'asc' | 'desc'
 }) {
   const session = await getCurrentSession()
   if (!session) return { success: false, orders: [] }
@@ -48,6 +52,11 @@ export async function getTomografias(filters: {
       if (filters.startDate) where.createdAt.gte = startOfDateAR(filters.startDate)
       if (filters.endDate) where.createdAt.lte = endOfDateAR(filters.endDate)
     }
+    if (filters.deliveryStartDate || filters.deliveryEndDate) {
+      where.tomografiaData = { deliveryDate: {} }
+      if (filters.deliveryStartDate) where.tomografiaData.deliveryDate.gte = startOfDateAR(filters.deliveryStartDate)
+      if (filters.deliveryEndDate) where.tomografiaData.deliveryDate.lte = endOfDateAR(filters.deliveryEndDate)
+    }
     if (filters.search?.trim()) {
       const s = filters.search.trim()
       where.OR = [
@@ -57,6 +66,13 @@ export async function getTomografias(filters: {
         { code: { contains: s, mode: 'insensitive' } },
       ]
     }
+
+    const sortBy = filters.sortBy ?? 'createdAt'
+    const sortDir = filters.sortDir ?? 'desc'
+    const orderBy: any = sortBy === 'deliveryDate'
+      ? { tomografiaData: { deliveryDate: sortDir } }
+      : { createdAt: sortDir }
+
     const orders = await prisma.order.findMany({
       where,
       include: {
@@ -67,7 +83,7 @@ export async function getTomografias(filters: {
         payments: true,
         tomografiaData: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       take: 300,
     })
     return { success: true, orders }
@@ -83,6 +99,7 @@ export async function uploadTomoFile(formData: FormData) {
   const file = formData.get('file') as File | null
   const orderId = formData.get('orderId') as string
   const tipo = (formData.get('tipo') as string) || 'study' // 'study' | 'derivacion'
+  const customName = (formData.get('customName') as string | null)?.trim() || ''
   if (!file || !orderId) return { success: false, error: "Datos inválidos" }
   if (file.size > 50 * 1024 * 1024) return { success: false, error: "El archivo supera 50 MB" }
   const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
@@ -90,7 +107,12 @@ export async function uploadTomoFile(formData: FormData) {
   try {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    // Use custom name (if provided) as the display name while preserving extension
+    const ext = file.name.match(/\.[^.]+$/)?.[0] || ''
+    const displayName = customName
+      ? customName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ._-]/g, '_').trim() + (ext && !customName.toLowerCase().endsWith(ext.toLowerCase()) ? ext : '')
+      : file.name
+    const cleanName = displayName.replace(/[^a-zA-Z0-9._-]/g, '_')
     const key = `tomografias/${orderId}/${crypto.randomUUID()}-${cleanName}`
     await s3.send(new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
@@ -112,7 +134,7 @@ export async function uploadTomoFile(formData: FormData) {
         : { studyFiles: { push: publicUrl } },
     })
     revalidatePath('/tomografias')
-    return { success: true, url: publicUrl, fileName: file.name, fileType: file.type }
+    return { success: true, url: publicUrl, fileName: displayName, fileType: file.type }
   } catch (error) {
     console.error('uploadTomoFile error:', error)
     return { success: false, error: "Error al subir archivo" }
@@ -229,6 +251,23 @@ export async function saveReportPdf(orderId: string, formData: FormData) {
   } catch (error) {
     console.error('saveReportPdf error:', error)
     return { success: false, error: "Error al guardar PDF" }
+  }
+}
+
+export async function updateDeliveryDate(orderId: string, deliveryDate: string | null) {
+  const session = await getCurrentSession()
+  if (!session) return { success: false, error: "No autenticado" }
+  try {
+    const date = deliveryDate ? new Date(deliveryDate) : null
+    await prisma.tomografiaData.upsert({
+      where: { orderId },
+      create: { orderId, deliveryDate: date },
+      update: { deliveryDate: date },
+    })
+    revalidatePath('/tomografias')
+    return { success: true }
+  } catch {
+    return { success: false, error: "Error al guardar fecha" }
   }
 }
 

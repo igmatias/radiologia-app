@@ -486,6 +486,7 @@ model TomografiaData {
   reportHtml          String?
   reportPdfUrl        String?
   reportGeneratedAt   DateTime?
+  deliveryDate        DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 }

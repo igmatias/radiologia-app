@@ -9,7 +9,8 @@ import QRCode from "react-qr-code"
 import {
   getTomografias, uploadTomoFile, removeTomoFile,
   addTomoLink, removeTomoLink, saveReportHtml, deleteReport,
-  saveReportPdf, markAsDelivered, markAsDelayed, updateOrderStatusAction
+  saveReportPdf, markAsDelivered, markAsDelayed, updateOrderStatusAction,
+  updateDeliveryDate
 } from "@/actions/tomografias"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -17,7 +18,8 @@ import {
   Printer, QrCode, Copy, Mail, Smartphone, UserCheck, PauseCircle,
   ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, X,
   Loader2, FileImage, Download, Eye, Plus, ScanLine,
-  CheckCircle2, Clock, Package, Send, RefreshCw, Underline, Heading2
+  CheckCircle2, Clock, Package, Send, RefreshCw, Underline, Heading2,
+  CalendarDays, ArrowUpDown
 } from "lucide-react"
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -31,18 +33,57 @@ function isImage(url: string) { return /\.(jpe?g|png|webp|gif)$/i.test(url) }
 function isPdf(url: string) { return /\.pdf$/i.test(url) }
 function shortFileName(url: string) {
   const parts = url.split('/'); const name = parts[parts.length - 1] || url
-  return name.replace(/^[a-f0-9-]{36}-/, '')
+  return decodeURIComponent(name.replace(/^[a-f0-9-]{36}-/, ''))
 }
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   CREADA:            { label: 'Creada',          cls: 'bg-slate-100 text-slate-600' },
   EN_ESPERA:         { label: 'En espera',        cls: 'bg-yellow-100 text-yellow-700' },
   EN_ATENCION:       { label: 'En atención',      cls: 'bg-blue-100 text-blue-700' },
-  PROCESANDO:        { label: 'Procesando',       cls: 'bg-indigo-100 text-indigo-700' },
+  PROCESANDO:        { label: 'Procesando',       cls: 'bg-brand-100 text-brand-700' },
   LISTO_PARA_ENTREGA:{ label: 'Lista ✓',          cls: 'bg-emerald-100 text-emerald-700' },
   ENVIADA_DIGITAL:   { label: 'Enviada digital',  cls: 'bg-teal-100 text-teal-700' },
   ENTREGADA:         { label: 'Entregada ✓',      cls: 'bg-green-100 text-green-700' },
   DEMORADA:          { label: 'Demorada',         cls: 'bg-orange-100 text-orange-700' },
+}
+
+// ─── Word-paste cleaner ───────────────────────────────────────────────────────
+function cleanWordHtml(html: string): string {
+  // Strip Word/Office-specific XML and style cruft while keeping semantic tags
+  let clean = html
+    // Remove Word conditional comments
+    .replace(/<!--\[if[\s\S]*?endif\]-->/gi, '')
+    // Remove <o:p> tags
+    .replace(/<\/?o:p[^>]*>/gi, '')
+    // Remove <w: and <m: tags
+    .replace(/<\/?[wm]:[^>]*>/gi, '')
+    // Remove style attributes (Word adds massive inline styles)
+    .replace(/\s*style="[^"]*"/gi, '')
+    // Remove class attributes
+    .replace(/\s*class="[^"]*"/gi, '')
+    // Remove lang attributes
+    .replace(/\s*lang="[^"]*"/gi, '')
+    // Remove span tags but keep content
+    .replace(/<span[^>]*>([\s\S]*?)<\/span>/gi, '$1')
+    // Remove font tags but keep content
+    .replace(/<font[^>]*>([\s\S]*?)<\/font>/gi, '$1')
+    // Remove empty paragraphs
+    .replace(/<p[^>]*>\s*<\/p>/gi, '')
+    // Normalize <b> and <strong>
+    .replace(/<b>|<strong>/gi, '<b>')
+    .replace(/<\/b>|<\/strong>/gi, '</b>')
+    // Normalize <i> and <em>
+    .replace(/<i>|<em>/gi, '<i>')
+    .replace(/<\/i>|<\/em>/gi, '</i>')
+    // Remove unwanted block-level wrappers keeping content
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/div>/gi, '<br>')
+    // Clean up multiple consecutive <br>
+    .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+    // Remove any remaining XML-ish tags
+    .replace(/<[^>]+:[^>]*>/gi, '')
+    .replace(/<\/[^>]+:[^>]*>/gi, '')
+  return clean
 }
 
 // ─── Rich Text Editor ─────────────────────────────────────────────────────────
@@ -63,6 +104,25 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
     onChange(ref.current?.innerHTML || '')
   }
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const html = e.clipboardData.getData('text/html')
+    const text = e.clipboardData.getData('text/plain')
+    if (html) {
+      const cleaned = cleanWordHtml(html)
+      document.execCommand('insertHTML', false, cleaned)
+    } else {
+      // Plain text: preserve line breaks
+      const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>')
+      document.execCommand('insertHTML', false, escaped)
+    }
+    onChange(ref.current?.innerHTML || '')
+  }
+
   const ToolBtn = ({ onClick, title, children }: { onClick: () => void; title: string; children: React.ReactNode }) => (
     <button
       type="button"
@@ -75,11 +135,21 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
   )
 
   return (
-    <div className="border-2 border-slate-200 rounded-2xl overflow-hidden focus-within:border-indigo-400 transition-colors">
+    <div className="border-2 border-slate-200 rounded-2xl overflow-hidden focus-within:border-brand-400 transition-colors">
       <div className="flex flex-wrap gap-0.5 p-2 bg-slate-100 border-b border-slate-200">
         <ToolBtn onClick={() => exec('bold')} title="Negrita (Ctrl+B)"><Bold size={14} /></ToolBtn>
         <ToolBtn onClick={() => exec('italic')} title="Cursiva (Ctrl+I)"><Italic size={14} /></ToolBtn>
         <ToolBtn onClick={() => exec('underline')} title="Subrayado (Ctrl+U)"><Underline size={14} /></ToolBtn>
+        <div className="w-px bg-slate-300 mx-1 self-stretch" />
+        <ToolBtn onClick={() => exec('justifyLeft')} title="Alinear izquierda">
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+        </ToolBtn>
+        <ToolBtn onClick={() => exec('justifyCenter')} title="Centrar">
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </ToolBtn>
+        <ToolBtn onClick={() => exec('justifyRight')} title="Alinear derecha">
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+        </ToolBtn>
         <div className="w-px bg-slate-300 mx-1 self-stretch" />
         <ToolBtn onClick={() => exec('insertUnorderedList')} title="Lista con viñetas"><List size={14} /></ToolBtn>
         <ToolBtn onClick={() => exec('insertOrderedList')} title="Lista numerada"><ListOrdered size={14} /></ToolBtn>
@@ -94,6 +164,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
         contentEditable
         suppressContentEditableWarning
         onInput={() => onChange(ref.current?.innerHTML || '')}
+        onPaste={handlePaste}
         className="min-h-[280px] p-4 outline-none text-sm leading-relaxed text-slate-800 bg-white"
         style={{ fontFamily: 'Georgia, serif' }}
       />
@@ -101,10 +172,55 @@ function RichEditor({ value, onChange }: { value: string; onChange: (h: string) 
   )
 }
 
+// ─── File Name Dialog ──────────────────────────────────────────────────────────
+function FileNameDialog({
+  open, fileName, onConfirm, onCancel
+}: {
+  open: boolean
+  fileName: string
+  onConfirm: (name: string) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState('')
+  useEffect(() => { if (open) setName(fileName.replace(/\.[^.]+$/, '')) }, [open, fileName])
+  return (
+    <Dialog open={open} onOpenChange={v => !v && onCancel()}>
+      <DialogContent className="sm:max-w-sm bg-white rounded-3xl p-8 border-none shadow-2xl outline-none">
+        <DialogTitle className="text-lg font-black uppercase">Nombre del archivo</DialogTitle>
+        <div className="space-y-4 mt-3">
+          <p className="text-xs text-slate-500">Escribí un nombre descriptivo para identificar este archivo:</p>
+          <Input
+            autoFocus
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && name.trim() && onConfirm(name.trim())}
+            placeholder="Ej: Derivación Dr. García, Estudio CBCT..."
+            className="h-11 rounded-2xl border-2 font-medium"
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={() => name.trim() && onConfirm(name.trim())}
+              disabled={!name.trim()}
+              className="flex-1 h-11 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl"
+            >
+              Confirmar
+            </Button>
+            <Button variant="ghost" onClick={onCancel} className="rounded-2xl h-11">Cancelar</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function TomografiasClient({ branches, activeTemplate }: { branches: any[]; activeTemplate: any }) {
   // Filtros
-  const [filters, setFilters] = useState({ branchId: 'ALL', startDate: '', endDate: '', search: '' })
+  const [filters, setFilters] = useState({
+    branchId: 'ALL', startDate: '', endDate: '',
+    deliveryStartDate: '', deliveryEndDate: '',
+    search: '', sortBy: 'createdAt' as 'createdAt' | 'deliveryDate', sortDir: 'desc' as 'asc' | 'desc'
+  })
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
@@ -120,11 +236,21 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
   const fileStudyRef = useRef<HTMLInputElement>(null)
   const fileDerivRef = useRef<HTMLInputElement>(null)
 
+  // File name dialog
+  const [fileNameDialog, setFileNameDialog] = useState<{
+    open: boolean; file: File | null; tipo: 'study' | 'derivacion'; queue: File[]
+  }>({ open: false, file: null, tipo: 'study', queue: [] })
+
   // Informe
   const [reportHtml, setReportHtml] = useState('')
   const [savingReport, setSavingReport] = useState(false)
   const [generatingPdf, setGeneratingPdf] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+
+  // Delivery date
+  const [editingDeliveryDate, setEditingDeliveryDate] = useState(false)
+  const [deliveryDateValue, setDeliveryDateValue] = useState('')
+  const [savingDeliveryDate, setSavingDeliveryDate] = useState(false)
 
   // Acciones
   const [showQr, setShowQr] = useState(false)
@@ -151,6 +277,9 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
     setActiveTab('archivos')
     setReportHtml(order.tomografiaData?.reportHtml || '')
     setConfirmDelete(false)
+    setEditingDeliveryDate(false)
+    const dd = order.tomografiaData?.deliveryDate
+    setDeliveryDateValue(dd ? new Date(dd).toISOString().split('T')[0] : '')
   }
 
   // ── Refrescar orden seleccionada en la lista ────────────────────────────────
@@ -160,25 +289,46 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       setOrders(res.orders as any[])
       if (selected) {
         const updated = (res.orders as any[]).find((o: any) => o.id === selected.id)
-        if (updated) setSelected(updated)
+        if (updated) { setSelected(updated); const dd = updated.tomografiaData?.deliveryDate; setDeliveryDateValue(dd ? new Date(dd).toISOString().split('T')[0] : '') }
       }
     }
   }
 
-  // ── Upload study files ──────────────────────────────────────────────────────
-  const handleFileUpload = async (files: FileList | null, tipo: 'study' | 'derivacion') => {
-    if (!files || !selected) return
+  // ── Upload file with custom name ────────────────────────────────────────────
+  const openFileNameDialog = (files: FileList | null, tipo: 'study' | 'derivacion') => {
+    if (!files || !files.length || !selected) return
+    const arr = Array.from(files)
+    setFileNameDialog({ open: true, file: arr[0], tipo, queue: arr.slice(1) })
+    // Reset input so same file can be re-selected
+    if (tipo === 'study' && fileStudyRef.current) fileStudyRef.current.value = ''
+    if (tipo === 'derivacion' && fileDerivRef.current) fileDerivRef.current.value = ''
+  }
+
+  const handleFileNameConfirm = async (customName: string) => {
+    const { file, tipo, queue } = fileNameDialog
+    if (!file || !selected) return
+    setFileNameDialog(d => ({ ...d, open: false }))
     if (tipo === 'study') setUploadingStudy(true)
     else setUploadingDeriv(true)
 
-    for (const file of Array.from(files)) {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('orderId', selected.id)
-      fd.append('tipo', tipo)
-      const res = await uploadTomoFile(fd)
-      if (!res.success) toast.error(res.error || 'Error al subir archivo')
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('orderId', selected.id)
+    fd.append('tipo', tipo)
+    fd.append('customName', customName)
+    const res = await uploadTomoFile(fd)
+    if (!res.success) toast.error(res.error || 'Error al subir archivo')
+
+    // Process remaining files in queue (they get default names)
+    for (const f of queue) {
+      const fd2 = new FormData()
+      fd2.append('file', f)
+      fd2.append('orderId', selected.id)
+      fd2.append('tipo', tipo)
+      const r = await uploadTomoFile(fd2)
+      if (!r.success) toast.error(r.error || 'Error al subir archivo')
     }
+
     await refreshSelected()
     if (tipo === 'study') setUploadingStudy(false)
     else setUploadingDeriv(false)
@@ -191,6 +341,16 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
     const res = await addTomoLink(selected.id, newLink)
     if (res.success) { setNewLink(''); await refreshSelected(); toast.success('Link agregado ✓') }
     else toast.error(res.error)
+  }
+
+  // ── Save delivery date ──────────────────────────────────────────────────────
+  const handleSaveDeliveryDate = async () => {
+    if (!selected) return
+    setSavingDeliveryDate(true)
+    const res = await updateDeliveryDate(selected.id, deliveryDateValue || null)
+    if (res.success) { await refreshSelected(); setEditingDeliveryDate(false); toast.success('Fecha de entrega guardada ✓') }
+    else toast.error(res.error)
+    setSavingDeliveryDate(false)
   }
 
   // ── Save report ─────────────────────────────────────────────────────────────
@@ -211,46 +371,66 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       // 1. Save latest HTML first
       await saveReportHtml(selected.id, reportHtml)
 
-      // 2. Build hidden A4 element
       const MT = activeTemplate?.marginTop ?? 113
       const ML = activeTemplate?.marginLeft ?? 95
       const MR = activeTemplate?.marginRight ?? 95
 
+      // 2. Fetch background as base64 to avoid CORS issues
+      let bgDataUrl = ''
+      if (activeTemplate?.backgroundImageUrl) {
+        try {
+          const response = await fetch(activeTemplate.backgroundImageUrl)
+          const blob = await response.blob()
+          bgDataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(blob)
+          })
+        } catch (e) {
+          console.warn('Could not load background image:', e)
+        }
+      }
+
+      // 3. Build hidden A4 element positioned off-screen (left, not top, for better html2canvas compat)
       const wrapper = document.createElement('div')
       wrapper.style.cssText = `
-        width:794px;min-height:1123px;position:fixed;top:-99999px;left:-99999px;
+        width:794px;height:1123px;position:absolute;top:0;left:-9999px;
         background:white;overflow:hidden;font-family:Georgia,serif;font-size:11pt;line-height:1.6;
       `
-      if (activeTemplate?.backgroundImageUrl) {
-        const img = document.createElement('img')
-        img.src = activeTemplate.backgroundImageUrl
-        img.crossOrigin = 'anonymous'
-        img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;'
-        wrapper.appendChild(img)
-        // Wait for image to load
-        await new Promise<void>(resolve => {
-          img.onload = () => resolve()
-          img.onerror = () => resolve()
-          setTimeout(resolve, 3000)
-        })
+      if (bgDataUrl) {
+        const bgImg = document.createElement('img')
+        bgImg.src = bgDataUrl
+        bgImg.style.cssText = 'position:absolute;top:0;left:0;width:794px;height:1123px;display:block;'
+        wrapper.appendChild(bgImg)
       }
       const content = document.createElement('div')
-      content.style.cssText = `position:absolute;top:${MT}px;left:${ML}px;right:${MR}px;`
+      content.style.cssText = `position:absolute;top:${MT}px;left:${ML}px;right:${MR}px;bottom:${activeTemplate?.marginBottom ?? 113}px;overflow:hidden;`
       content.innerHTML = reportHtml
       wrapper.appendChild(content)
       document.body.appendChild(wrapper)
 
-      // 3. html2canvas → jsPDF
+      // 4. html2canvas → jsPDF
       const html2canvas = (await import('html2canvas')).default
       const { jsPDF } = await import('jspdf')
-      const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' })
+
+      const canvas = await html2canvas(wrapper, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: 794,
+        height: 1123,
+        windowWidth: 794,
+        windowHeight: 1123,
+      })
       document.body.removeChild(wrapper)
 
       const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgData = canvas.toDataURL('image/jpeg', 0.95)
+      const imgData = canvas.toDataURL('image/jpeg', 0.92)
       pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297)
 
-      // 4. Upload to R2
+      // 5. Upload to R2
       const pdfBlob = pdf.output('blob')
       const fd = new FormData()
       fd.append('pdf', pdfBlob, `informe-${selected.code || selected.id}.pdf`)
@@ -263,7 +443,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
       }
     } catch (err) {
       console.error('PDF generation error:', err)
-      toast.error('Error al generar el PDF')
+      toast.error('Error al generar el PDF: ' + (err instanceof Error ? err.message : String(err)))
     }
     setGeneratingPdf(false)
   }
@@ -305,12 +485,12 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
     <div className="flex flex-col h-full bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-3 shrink-0">
-        <div className="bg-indigo-600 p-2 rounded-xl">
+        <div className="bg-brand-600 p-2 rounded-xl">
           <ScanLine size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Tomografías</h1>
-          <p className="text-xs text-slate-500 font-medium">Gestión de estudios TC3D</p>
+          <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">Tomografías TC3D</h1>
+          <p className="text-xs text-slate-500 font-medium">Gestión de estudios tomográficos</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => load()} disabled={loading} className="rounded-xl">
@@ -340,16 +520,49 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
             {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="date" value={filters.startDate} onChange={e => setFilters(f => ({ ...f, startDate: e.target.value }))}
-          className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
-        <span className="self-center text-slate-400 text-sm">→</span>
-        <Input type="date" value={filters.endDate} onChange={e => setFilters(f => ({ ...f, endDate: e.target.value }))}
-          className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
-        <Button onClick={() => load({ ...filters })} size="sm" className="h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4">
+
+        {/* Fecha creación */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase">Creación</span>
+          <Input type="date" value={filters.startDate} onChange={e => setFilters(f => ({ ...f, startDate: e.target.value }))}
+            className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+          <span className="text-slate-400 text-sm">→</span>
+          <Input type="date" value={filters.endDate} onChange={e => setFilters(f => ({ ...f, endDate: e.target.value }))}
+            className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+        </div>
+
+        {/* Fecha entrega */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase">Entrega</span>
+          <Input type="date" value={filters.deliveryStartDate} onChange={e => setFilters(f => ({ ...f, deliveryStartDate: e.target.value }))}
+            className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+          <span className="text-slate-400 text-sm">→</span>
+          <Input type="date" value={filters.deliveryEndDate} onChange={e => setFilters(f => ({ ...f, deliveryEndDate: e.target.value }))}
+            className="h-9 w-36 rounded-xl border-slate-200 text-sm" />
+        </div>
+
+        {/* Sort */}
+        <Select value={`${filters.sortBy}-${filters.sortDir}`} onValueChange={v => {
+          const [sb, sd] = v.split('-') as ['createdAt' | 'deliveryDate', 'asc' | 'desc']
+          setFilters(f => ({ ...f, sortBy: sb, sortDir: sd }))
+        }}>
+          <SelectTrigger className="h-9 w-52 rounded-xl border-slate-200 text-sm">
+            <ArrowUpDown size={13} className="mr-1.5 text-slate-400" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="createdAt-desc">Creación: más nuevos</SelectItem>
+            <SelectItem value="createdAt-asc">Creación: más antiguos</SelectItem>
+            <SelectItem value="deliveryDate-asc">Entrega: más próximos</SelectItem>
+            <SelectItem value="deliveryDate-desc">Entrega: más lejanos</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Button onClick={() => load({ ...filters })} size="sm" className="h-9 rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-4">
           <Search size={14} className="mr-1.5" /> Buscar
         </Button>
         <Button variant="ghost" size="sm" className="h-9 rounded-xl text-slate-500" onClick={() => {
-          const reset = { branchId: 'ALL', startDate: '', endDate: '', search: '' }
+          const reset = { branchId: 'ALL', startDate: '', endDate: '', deliveryStartDate: '', deliveryEndDate: '', search: '', sortBy: 'createdAt' as const, sortDir: 'desc' as const }
           setFilters(reset); load(reset)
         }}>Limpiar</Button>
       </div>
@@ -377,11 +590,12 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                 const hasReport = !!order.tomografiaData?.reportHtml
                 const hasPdf = !!order.tomografiaData?.reportPdfUrl
                 const fileCount = (order.tomografiaData?.studyFiles?.length || 0) + (order.tomografiaData?.derivacionFiles?.length || 0)
+                const dd = order.tomografiaData?.deliveryDate
                 return (
                   <div
                     key={order.id}
                     onClick={() => selectOrder(order)}
-                    className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${selected?.id === order.id ? 'bg-indigo-50 border-l-2 border-indigo-500' : ''}`}
+                    className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${selected?.id === order.id ? 'bg-brand-50 border-l-2 border-brand-500' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -392,9 +606,14 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                         <p className="text-xs text-slate-400 mt-0.5">
                           {new Date(order.createdAt).toLocaleDateString('es-AR')} · {order.code}
                         </p>
+                        {dd && (
+                          <p className="text-xs text-brand-600 mt-0.5 flex items-center gap-1 font-semibold">
+                            <CalendarDays size={11} /> Entrega: {new Date(dd).toLocaleDateString('es-AR')}
+                          </p>
+                        )}
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {tomoProcs.slice(0, 2).map((i: any) => (
-                            <span key={i.id} className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                            <span key={i.id} className="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-semibold">
                               {i.procedure.name}
                             </span>
                           ))}
@@ -435,10 +654,34 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                 {selected.dentist && (
                   <p className="text-xs text-slate-400 mt-0.5">Dr./a {selected.dentist.lastName}, {selected.dentist.firstName}</p>
                 )}
+
+                {/* Delivery date inline editor */}
+                <div className="flex items-center gap-2 mt-2">
+                  <CalendarDays size={13} className="text-brand-500" />
+                  {editingDeliveryDate ? (
+                    <div className="flex items-center gap-1.5">
+                      <Input type="date" value={deliveryDateValue} onChange={e => setDeliveryDateValue(e.target.value)}
+                        className="h-7 text-xs rounded-xl border-brand-300 w-36 px-2" />
+                      <button onClick={handleSaveDeliveryDate} disabled={savingDeliveryDate}
+                        className="text-[10px] font-black bg-brand-600 text-white px-2 py-1 rounded-lg hover:bg-brand-700">
+                        {savingDeliveryDate ? <Loader2 size={10} className="animate-spin" /> : 'OK'}
+                      </button>
+                      <button onClick={() => setEditingDeliveryDate(false)} className="text-[10px] text-slate-400 hover:text-slate-600 px-1">✕</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setEditingDeliveryDate(true)} className="text-xs text-slate-500 hover:text-brand-600 font-medium flex items-center gap-1">
+                      {tomoData?.deliveryDate
+                        ? <span className="text-brand-600 font-bold">Entrega: {new Date(tomoData.deliveryDate).toLocaleDateString('es-AR')}</span>
+                        : <span className="text-slate-400">+ Agregar fecha de entrega</span>
+                      }
+                    </button>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-1 mt-2">
                   {selected.items.filter((i: any) => i.procedure.code?.startsWith('09.03') || i.procedure.name?.startsWith('TC3D'))
                     .map((i: any) => (
-                      <span key={i.id} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">{i.procedure.name}</span>
+                      <span key={i.id} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-semibold">{i.procedure.name}</span>
                     ))
                   }
                 </div>
@@ -454,7 +697,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-5 py-3 text-xs font-black uppercase tracking-wider transition-colors ${activeTab === tab ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`px-5 py-3 text-xs font-black uppercase tracking-wider transition-colors ${activeTab === tab ? 'border-b-2 border-brand-500 text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   {tab === 'archivos' ? '📁 Archivos' : tab === 'informe' ? '📝 Informe' : '✉️ Acciones'}
                 </button>
@@ -475,7 +718,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                         {uploadingDeriv ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
                         {uploadingDeriv ? 'Subiendo...' : 'Subir'}
                         <input ref={fileDerivRef} type="file" accept=".pdf,image/*" multiple className="hidden"
-                          onChange={e => handleFileUpload(e.target.files, 'derivacion')} disabled={uploadingDeriv} />
+                          onChange={e => openFileNameDialog(e.target.files, 'derivacion')} disabled={uploadingDeriv} />
                       </label>
                     </div>
                     {tomoData?.derivacionFiles?.length > 0 ? (
@@ -495,11 +738,11 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                   <section>
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider">Archivos del Estudio</h3>
-                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${uploadingStudy ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}>
+                      <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${uploadingStudy ? 'bg-slate-100 text-slate-400' : 'bg-brand-600 hover:bg-brand-700 text-white'}`}>
                         {uploadingStudy ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
                         {uploadingStudy ? 'Subiendo...' : 'Agregar archivos'}
                         <input ref={fileStudyRef} type="file" accept=".pdf,image/*" multiple className="hidden"
-                          onChange={e => handleFileUpload(e.target.files, 'study')} disabled={uploadingStudy} />
+                          onChange={e => openFileNameDialog(e.target.files, 'study')} disabled={uploadingStudy} />
                       </label>
                     </div>
                     {tomoData?.studyFiles?.length > 0 ? (
@@ -512,6 +755,9 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                                 <a href={url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white rounded-lg"><Eye size={14} className="text-slate-700" /></a>
                                 <a href={url} download className="p-1.5 bg-white rounded-lg"><Download size={14} className="text-slate-700" /></a>
                                 <button onClick={() => removeTomoFile(selected.id, url, 'study').then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} className="p-1.5 bg-red-500 rounded-lg"><Trash2 size={14} className="text-white" /></button>
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
+                                <p className="text-[10px] text-white truncate">{shortFileName(url)}</p>
                               </div>
                             </div>
                           ) : (
@@ -536,7 +782,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                           onKeyDown={e => e.key === 'Enter' && handleAddLink()}
                           className="h-9 rounded-xl border-slate-200 text-sm flex-1"
                         />
-                        <Button size="sm" className="h-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleAddLink}>
+                        <Button size="sm" className="h-9 rounded-xl bg-brand-600 hover:bg-brand-700 text-white" onClick={handleAddLink}>
                           <Plus size={14} />
                         </Button>
                       </div>
@@ -544,8 +790,8 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                         <div className="mt-2 space-y-1.5">
                           {tomoData.studyLinks.map((link: string) => (
                             <div key={link} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
-                              <LinkIcon size={13} className="text-indigo-500 shrink-0" />
-                              <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline truncate flex-1">{link}</a>
+                              <LinkIcon size={13} className="text-brand-500 shrink-0" />
+                              <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-600 hover:underline truncate flex-1">{link}</a>
                               <button onClick={() => removeTomoLink(selected.id, link).then(r => { if(r.success) refreshSelected(); else toast.error(r.error) })} className="p-1 hover:bg-red-100 rounded-lg text-red-500 shrink-0">
                                 <Trash2 size={12} />
                               </button>
@@ -601,7 +847,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                       {savingReport ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
                       Guardar borrador
                     </Button>
-                    <Button onClick={handleGeneratePdf} disabled={generatingPdf || !reportHtml.trim()} className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-9">
+                    <Button onClick={handleGeneratePdf} disabled={generatingPdf || !reportHtml.trim()} className="rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs h-9">
                       {generatingPdf ? <Loader2 size={14} className="animate-spin mr-1" /> : <FileText size={14} className="mr-1" />}
                       {generatingPdf ? 'Generando PDF...' : 'Generar PDF y subir'}
                     </Button>
@@ -642,7 +888,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                         onClick={() => setShowDelayModal(true)} disabled={actionLoading}>
                         <PauseCircle size={15} className="mr-1.5" /> Demorar
                       </Button>
-                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                      <Button variant="outline" className="rounded-xl h-11 text-xs font-bold border-brand-300 text-brand-700 hover:bg-brand-50"
                         onClick={() => updateOrderStatusAction(selected.id, 'ENVIADA_DIGITAL').then(r => { if(r.success) { toast.success('Marcado como enviado digital'); refreshSelected() } })}
                         disabled={actionLoading}>
                         <Send size={15} className="mr-1.5" /> Enviada digital
@@ -684,7 +930,7 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
                   {/* Portal link */}
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                     <p className="text-xs text-slate-500 mb-1 font-semibold">Link del portal</p>
-                    <p className="text-xs text-indigo-600 font-mono break-all">{portalUrl}</p>
+                    <p className="text-xs text-brand-600 font-mono break-all">{portalUrl}</p>
                   </div>
                 </section>
               )}
@@ -697,6 +943,14 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
           </div>
         )}
       </div>
+
+      {/* ── File Name Dialog ─────────────────────────────────────────────── */}
+      <FileNameDialog
+        open={fileNameDialog.open}
+        fileName={fileNameDialog.file?.name ?? ''}
+        onConfirm={handleFileNameConfirm}
+        onCancel={() => setFileNameDialog(d => ({ ...d, open: false }))}
+      />
 
       {/* ── Modales ─────────────────────────────────────────────────────── */}
       <Dialog open={showQr} onOpenChange={setShowQr}>
