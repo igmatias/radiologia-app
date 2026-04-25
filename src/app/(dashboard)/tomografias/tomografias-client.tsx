@@ -48,42 +48,74 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 }
 
 // ─── Word-paste cleaner ───────────────────────────────────────────────────────
+// Uses DOMParser to properly parse HTML and extract formatting from inline styles
 function cleanWordHtml(html: string): string {
-  // Strip Word/Office-specific XML and style cruft while keeping semantic tags
-  let clean = html
-    // Remove Word conditional comments
-    .replace(/<!--\[if[\s\S]*?endif\]-->/gi, '')
-    // Remove <o:p> tags
-    .replace(/<\/?o:p[^>]*>/gi, '')
-    // Remove <w: and <m: tags
-    .replace(/<\/?[wm]:[^>]*>/gi, '')
-    // Remove style attributes (Word adds massive inline styles)
-    .replace(/\s*style="[^"]*"/gi, '')
-    // Remove class attributes
-    .replace(/\s*class="[^"]*"/gi, '')
-    // Remove lang attributes
-    .replace(/\s*lang="[^"]*"/gi, '')
-    // Remove span tags but keep content
-    .replace(/<span[^>]*>([\s\S]*?)<\/span>/gi, '$1')
-    // Remove font tags but keep content
-    .replace(/<font[^>]*>([\s\S]*?)<\/font>/gi, '$1')
-    // Remove empty paragraphs
-    .replace(/<p[^>]*>\s*<\/p>/gi, '')
-    // Normalize <b> and <strong>
-    .replace(/<b>|<strong>/gi, '<b>')
-    .replace(/<\/b>|<\/strong>/gi, '</b>')
-    // Normalize <i> and <em>
-    .replace(/<i>|<em>/gi, '<i>')
-    .replace(/<\/i>|<\/em>/gi, '</i>')
-    // Remove unwanted block-level wrappers keeping content
-    .replace(/<div[^>]*>/gi, '')
-    .replace(/<\/div>/gi, '<br>')
-    // Clean up multiple consecutive <br>
-    .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
-    // Remove any remaining XML-ish tags
-    .replace(/<[^>]+:[^>]*>/gi, '')
-    .replace(/<\/[^>]+:[^>]*>/gi, '')
-  return clean
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+
+    function processNode(node: Node): string {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const t = node.textContent || ''
+        return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return ''
+
+      const el = node as HTMLElement
+      const tag = el.tagName.toLowerCase()
+
+      // Skip Word/Office XML tags and non-content elements
+      if (tag.includes(':') || ['style', 'script', 'head', 'meta', 'link'].includes(tag)) return ''
+
+      const style = el.getAttribute('style') || ''
+
+      // Extract relevant formatting from inline styles (how Word stores formatting)
+      const isBold = /font-weight\s*:\s*(bold|[6-9]\d{2})/i.test(style)
+      const isItalic = /font-style\s*:\s*italic/i.test(style)
+      const isUnderline = /text-decoration[^;]*:\s*[^;]*underline/i.test(style)
+      const alignMatch = style.match(/text-align\s*:\s*(left|center|right|justify)/i)
+      const textAlign = alignMatch ? alignMatch[1] : ''
+
+      // Recurse into children
+      let content = Array.from(el.childNodes).map(processNode).join('')
+
+      // Apply formatting detected from styles (in addition to semantic tags)
+      if (isUnderline) content = `<u>${content}</u>`
+      if (isItalic) content = `<i>${content}</i>`
+      if (isBold) content = `<b>${content}</b>`
+
+      // Map tag to clean output
+      const alignStyle = textAlign ? ` style="text-align:${textAlign}"` : ''
+
+      if (tag === 'p' || tag === 'div') {
+        if (!content.trim()) return ''
+        return `<p${alignStyle}>${content}</p>`
+      }
+      if (['h1','h2','h3','h4','h5','h6'].includes(tag)) return `<${tag}${alignStyle}>${content}</${tag}>`
+      if (tag === 'ul') return `<ul>${content}</ul>`
+      if (tag === 'ol') return `<ol>${content}</ol>`
+      if (tag === 'li') return `<li>${content}</li>`
+      if (tag === 'b' || tag === 'strong') return `<b>${content}</b>`
+      if (tag === 'i' || tag === 'em') return `<i>${content}</i>`
+      if (tag === 'u') return `<u>${content}</u>`
+      if (tag === 'br') return '<br>'
+      if (tag === 'table') return `<p>${content}</p>`
+      if (tag === 'tr') return `${content}<br>`
+      if (tag === 'td' || tag === 'th') return `${content} `
+      if (['body','html','span','font','a'].includes(tag)) return content
+
+      return content
+    }
+
+    return Array.from(doc.body.childNodes).map(processNode).join('')
+  } catch {
+    // Fallback: basic regex strip if DOMParser fails
+    return html
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<\/?[a-z]+:[^>]*>/gi, '')
+      .replace(/\s*(class|lang|xml:[a-z]+)="[^"]*"/gi, '')
+  }
 }
 
 // ─── Rich Text Editor ─────────────────────────────────────────────────────────
@@ -392,12 +424,16 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         }
       }
 
-      // 3. Build hidden A4 element positioned off-screen (left, not top, for better html2canvas compat)
+      // 3. Build hidden A4 element positioned off-screen
       const wrapper = document.createElement('div')
-      wrapper.style.cssText = `
-        width:794px;height:1123px;position:absolute;top:0;left:-9999px;
-        background:white;overflow:hidden;font-family:Georgia,serif;font-size:11pt;line-height:1.6;
-      `
+      wrapper.style.cssText = [
+        'width:794px', 'height:1123px', 'position:absolute', 'top:0', 'left:-9999px',
+        'background:#ffffff', 'overflow:hidden',
+        'font-family:Georgia,serif', 'font-size:11pt', 'line-height:1.6',
+        'color:#000000',            // explicit color — avoids lab() in computed styles
+        'color-scheme:light',       // prevents dark-mode lab() values
+      ].join(';')
+
       if (bgDataUrl) {
         const bgImg = document.createElement('img')
         bgImg.src = bgDataUrl
@@ -405,7 +441,11 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         wrapper.appendChild(bgImg)
       }
       const content = document.createElement('div')
-      content.style.cssText = `position:absolute;top:${MT}px;left:${ML}px;right:${MR}px;bottom:${activeTemplate?.marginBottom ?? 113}px;overflow:hidden;`
+      content.style.cssText = [
+        `position:absolute`, `top:${MT}px`, `left:${ML}px`, `right:${MR}px`,
+        `bottom:${activeTemplate?.marginBottom ?? 113}px`,
+        'overflow:hidden', 'color:#000000',
+      ].join(';')
       content.innerHTML = reportHtml
       wrapper.appendChild(content)
       document.body.appendChild(wrapper)
@@ -423,6 +463,17 @@ export default function TomografiasClient({ branches, activeTemplate }: { branch
         height: 1123,
         windowWidth: 794,
         windowHeight: 1123,
+        // Neutralise any lab()/oklch() computed colours before html2canvas reads them
+        onclone: (_clonedDoc, clonedEl) => {
+          const all = clonedEl.querySelectorAll<HTMLElement>('*')
+          all.forEach(el => {
+            const cs = window.getComputedStyle(el)
+            const unsafePattern = /\b(lab|oklch|lch|oklab|color)\s*\(/i
+            if (unsafePattern.test(cs.color)) el.style.color = '#000000'
+            if (unsafePattern.test(cs.backgroundColor)) el.style.backgroundColor = 'transparent'
+            if (unsafePattern.test(cs.borderColor || '')) el.style.borderColor = 'transparent'
+          })
+        },
       })
       document.body.removeChild(wrapper)
 
