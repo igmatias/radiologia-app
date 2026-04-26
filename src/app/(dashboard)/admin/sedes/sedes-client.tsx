@@ -280,20 +280,22 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
             </div>
             
             {eqData.type === 'PC' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase text-slate-400">Anydesk</Label>
-                  <Input value={eqData.anydeskId} onChange={e => setEqData({...eqData, anydeskId: e.target.value})} placeholder="Ej: 123 456 789" className="h-12 font-mono font-bold tracking-widest border-2 bg-slate-50" />
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase text-slate-400">Anydesk</Label>
+                    <Input value={eqData.anydeskId} onChange={e => setEqData({...eqData, anydeskId: e.target.value})} placeholder="Ej: 123 456 789" className="h-12 font-mono font-bold tracking-widest border-2 bg-slate-50" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase text-slate-400">IP Local</Label>
+                    <Input value={eqData.ipAddress} onChange={e => setEqData({...eqData, ipAddress: e.target.value})} placeholder="192.168.1.50" className="h-12 font-mono font-bold border-2 bg-slate-50" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase text-slate-400">IP Local</Label>
-                  <Input value={eqData.ipAddress} onChange={e => setEqData({...eqData, ipAddress: e.target.value})} placeholder="192.168.1.50" className="h-12 font-mono font-bold border-2 bg-slate-50" />
+                  <Label className="text-xs font-black uppercase text-slate-400">IP Tailscale</Label>
+                  <Input value={eqData.tailscaleIp} onChange={e => setEqData({...eqData, tailscaleIp: e.target.value})} placeholder="100.x.x.x" className="h-12 font-mono font-bold border-2 bg-slate-50" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase text-slate-400">IP Tailscale</Label>
-                <Input value={eqData.tailscaleIp} onChange={e => setEqData({...eqData, tailscaleIp: e.target.value})} placeholder="100.x.x.x" className="h-12 font-mono font-bold border-2 bg-slate-50" />
-              </div>
+              </>
             )}
 
             <Button onClick={handleSaveEquipment} disabled={isEqLoading} className={`w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 ${eqData.type === 'PC' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-brand-700 hover:bg-brand-800'}`}>
