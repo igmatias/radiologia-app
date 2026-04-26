@@ -48,11 +48,11 @@ export async function upsertEquipment(data: any) {
           type: data.type,
           room: data.room,
           anydeskId: data.anydeskId,
-          ipAddress: data.ipAddress, // <-- Agregamos la IP
+          ipAddress: data.ipAddress,
+          tailscaleIp: data.tailscaleIp || null,
         }
       });
     } else {
-      // Si no tiene ID, lo creamos de cero
       equipment = await prisma.equipment.create({
         data: {
           branchId: data.branchId,
@@ -60,7 +60,8 @@ export async function upsertEquipment(data: any) {
           type: data.type,
           room: data.room,
           anydeskId: data.anydeskId,
-          ipAddress: data.ipAddress, // <-- Agregamos la IP
+          ipAddress: data.ipAddress,
+          tailscaleIp: data.tailscaleIp || null,
         }
       });
     }

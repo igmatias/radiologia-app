@@ -156,6 +156,7 @@ model Equipment {
   room         String?
   anydeskId    String?
   ipAddress    String?
+  tailscaleIp  String?
   dicomAeTitle String?
 
   branchId   String

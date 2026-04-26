@@ -22,7 +22,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
   // Estados para modal de Equipos / PCs
   const [isEqModalOpen, setIsEqModalOpen] = useState(false)
   // Agregamos ipAddress al estado inicial
-  const [eqData, setEqData] = useState({ id: "", name: "", type: "RAYOS", room: "", anydeskId: "", ipAddress: "" })
+  const [eqData, setEqData] = useState({ id: "", name: "", type: "RAYOS", room: "", anydeskId: "", ipAddress: "", tailscaleIp: "" })
 
   const handleSaveBranch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,9 +52,9 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
 
   const openEqModal = (type: string, eq: any = null) => {
     if (eq) {
-      setEqData({ ...eq, ipAddress: eq.ipAddress || "" }) // Cargamos la IP si existe
+      setEqData({ ...eq, ipAddress: eq.ipAddress || "", tailscaleIp: eq.tailscaleIp || "" })
     } else {
-      setEqData({ id: "", name: "", type, room: "", anydeskId: "", ipAddress: "" })
+      setEqData({ id: "", name: "", type, room: "", anydeskId: "", ipAddress: "", tailscaleIp: "" })
     }
     setIsEqModalOpen(true)
   }
@@ -286,9 +286,13 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                   <Input value={eqData.anydeskId} onChange={e => setEqData({...eqData, anydeskId: e.target.value})} placeholder="Ej: 123 456 789" className="h-12 font-mono font-bold tracking-widest border-2 bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase text-slate-400">Dirección IP</Label>
-                  <Input value={eqData.ipAddress} onChange={e => setEqData({...eqData, ipAddress: e.target.value})} placeholder="Ej: 192.168.1.50" className="h-12 font-mono font-bold border-2 bg-slate-50" />
+                  <Label className="text-xs font-black uppercase text-slate-400">IP Local</Label>
+                  <Input value={eqData.ipAddress} onChange={e => setEqData({...eqData, ipAddress: e.target.value})} placeholder="192.168.1.50" className="h-12 font-mono font-bold border-2 bg-slate-50" />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase text-slate-400">IP Tailscale</Label>
+                <Input value={eqData.tailscaleIp} onChange={e => setEqData({...eqData, tailscaleIp: e.target.value})} placeholder="100.x.x.x" className="h-12 font-mono font-bold border-2 bg-slate-50" />
               </div>
             )}
 
