@@ -24,7 +24,6 @@ function PCCard({ eq }: { eq: Equipment }) {
   const handleConnect = () => {
     if (!eq.tailscaleIp) return
     setConnecting(true)
-    // Abre el VNC viewer — requiere TightVNC instalado y el protocolo vnc:// registrado
     window.open(`vnc://${eq.tailscaleIp}`, '_blank')
     setTimeout(() => setConnecting(false), 2000)
   }
@@ -34,12 +33,12 @@ function PCCard({ eq }: { eq: Equipment }) {
   return (
     <div className={`
       group relative bg-white rounded-2xl border-2 p-4 flex flex-col gap-3 transition-all shadow-sm
-      ${hasVnc ? 'border-slate-200 hover:border-blue-400 hover:shadow-md' : 'border-slate-100 opacity-60'}
+      ${hasVnc ? 'border-slate-200 hover:border-brand-400 hover:shadow-md' : 'border-slate-100 opacity-60'}
     `}>
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className={`p-2 rounded-xl ${hasVnc ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+          <div className={`p-2 rounded-xl ${hasVnc ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-400'}`}>
             <Monitor size={18} />
           </div>
           <div>
@@ -60,17 +59,17 @@ function PCCard({ eq }: { eq: Equipment }) {
 
       {/* IPs */}
       {eq.tailscaleIp && (
-        <div className="flex items-center gap-2 bg-blue-50 rounded-xl px-3 py-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-          <span className="font-mono text-xs font-bold text-blue-700">{eq.tailscaleIp}</span>
-          <span className="text-[10px] text-blue-400 font-bold">TAILSCALE</span>
+        <div className="flex items-center gap-2 bg-neutral-900 rounded-xl px-3 py-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
+          <span className="font-mono text-xs font-bold text-white">{eq.tailscaleIp}</span>
+          <span className="text-[10px] text-slate-400 font-bold ml-auto">TAILSCALE</span>
         </div>
       )}
       {eq.ipAddress && (
         <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2">
           <div className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
           <span className="font-mono text-xs font-bold text-slate-600">{eq.ipAddress}</span>
-          <span className="text-[10px] text-slate-400 font-bold">LOCAL</span>
+          <span className="text-[10px] text-slate-400 font-bold ml-auto">LOCAL</span>
         </div>
       )}
 
@@ -81,7 +80,7 @@ function PCCard({ eq }: { eq: Equipment }) {
         className={`
           w-full flex items-center justify-center gap-2 h-10 rounded-xl font-black uppercase text-xs tracking-wider transition-all
           ${hasVnc
-            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg active:scale-95'
+            ? 'bg-brand-700 hover:bg-brand-800 text-white shadow-md hover:shadow-lg active:scale-95'
             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
           }
         `}
@@ -103,15 +102,15 @@ export default function EscritoriosClient({ branches }: { branches: Branch[] }) 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black italic uppercase text-slate-900 flex items-center gap-3">
-            <Monitor className="text-blue-600" size={32} />
+            <Monitor className="text-brand-700" size={32} />
             Escritorios Remotos
           </h1>
           <p className="text-sm font-bold text-slate-400 mt-1">
             {configured} de {totalPCs} PCs configuradas con VNC
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider">
-          <Wifi size={14} />
+        <div className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-md">
+          <Wifi size={14} className="text-brand-400" />
           Tailscale + TightVNC
         </div>
       </div>
@@ -122,7 +121,7 @@ export default function EscritoriosClient({ branches }: { branches: Branch[] }) 
           {/* Nombre de sede */}
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-200" />
-            <h2 className="font-black italic uppercase text-slate-600 text-sm tracking-widest px-3 py-1 bg-slate-100 rounded-full">
+            <h2 className="font-black italic uppercase text-slate-700 text-sm tracking-widest px-3 py-1 bg-slate-900 text-white rounded-full">
               {branch.name}
             </h2>
             <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
@@ -147,9 +146,9 @@ export default function EscritoriosClient({ branches }: { branches: Branch[] }) 
       ))}
 
       {/* Instrucciones */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-500 font-bold space-y-1">
-        <p>⚠️ Para conectar necesitás tener <span className="text-slate-700">TightVNC Viewer</span> instalado y <span className="text-slate-700">Tailscale activo</span> en esta PC.</p>
-        <p>💡 Configurá las IPs Tailscale de cada PC desde <span className="text-slate-700">Admin → Sedes → Computadoras (IT)</span>.</p>
+      <div className="bg-neutral-900 rounded-2xl p-4 text-xs text-slate-400 font-bold space-y-1">
+        <p>⚠️ Para conectar necesitás tener <span className="text-white">TightVNC Viewer</span> instalado y <span className="text-white">Tailscale activo</span> en esta PC.</p>
+        <p>💡 Configurá las IPs Tailscale de cada PC desde <span className="text-brand-400">Admin → Sedes → Computadoras (IT)</span>.</p>
       </div>
     </div>
   )

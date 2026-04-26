@@ -194,12 +194,12 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
               </Card>
 
               {/* CENTRO IT */}
-              <Card className="border-none shadow-lg rounded-2xl overflow-hidden border-t-4 border-blue-600 flex flex-col h-[500px]">
+              <Card className="border-none shadow-lg rounded-2xl overflow-hidden border-t-4 border-brand-700 flex flex-col h-[500px]">
                 <div className="bg-slate-50 p-4 border-b flex justify-between items-center shrink-0">
                   <h3 className="font-black uppercase italic text-slate-800 flex items-center gap-2">
-                    <Network size={18} className="text-blue-600" /> Computadoras (IT)
+                    <Network size={18} className="text-brand-700" /> Computadoras (IT)
                   </h3>
-                  <Button size="sm" onClick={() => openEqModal('PC')} className="h-8 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-xs">+ Agregar PC</Button>
+                  <Button size="sm" onClick={() => openEqModal('PC')} className="h-8 bg-brand-100 text-brand-700 hover:bg-brand-200 font-bold text-xs">+ Agregar PC</Button>
                 </div>
                 <CardContent className="p-0 overflow-y-auto flex-1">
                   <div className="divide-y divide-slate-100">
@@ -209,7 +209,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                       selectedBranch.equipments?.filter((e: any) => e.type === 'PC').map((eq: any) => (
                         <div key={eq.id} className="p-4 flex justify-between items-start hover:bg-slate-50 transition-colors group">
                           <div className="flex-1">
-                            <span className="text-[10px] font-black uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded tracking-widest border border-blue-200">{eq.room || 'S/D'}</span>
+                            <span className="text-[10px] font-black uppercase bg-brand-100 text-brand-700 px-2 py-0.5 rounded tracking-widest border border-brand-200">{eq.room || 'S/D'}</span>
                             <p className="font-black text-slate-800 uppercase mt-1.5">{eq.name}</p>
                             
                             {/* ANYDESK BUTTON */}
@@ -240,7 +240,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
                           </div>
                           
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 shrink-0 ml-2">
-                            <Button variant="ghost" size="sm" onClick={() => openEqModal('PC', eq)} className="text-blue-600 hover:bg-blue-50 h-8 w-8 p-0 border shadow-sm"><MonitorSmartphone size={14}/></Button>
+                            <Button variant="ghost" size="sm" onClick={() => openEqModal('PC', eq)} className="text-brand-600 hover:bg-brand-50 h-8 w-8 p-0 border shadow-sm"><MonitorSmartphone size={14}/></Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteEquipment(eq.id)} className="text-brand-600 hover:bg-brand-50 h-8 w-8 p-0 border shadow-sm"><Trash2 size={14}/></Button>
                           </div>
                         </div>
@@ -263,7 +263,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
 
       {/* MODAL UNIVERSAL PARA EQUIPOS Y PCS */}
       <Dialog open={isEqModalOpen} onOpenChange={setIsEqModalOpen}>
-        <DialogContent className={`sm:max-w-[425px] bg-white rounded-3xl border-t-8 outline-none ${eqData.type === 'PC' ? 'border-blue-600' : 'border-brand-700'}`}>
+        <DialogContent className="sm:max-w-[425px] bg-white rounded-3xl border-t-8 border-brand-700 outline-none">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black italic uppercase">
               {eqData.id ? 'Editar' : 'Nuevo'} {eqData.type === 'PC' ? 'Computadora' : 'Equipo Clínico'}
@@ -298,7 +298,7 @@ export default function SedesClient({ initialBranches }: { initialBranches: any[
               </>
             )}
 
-            <Button onClick={handleSaveEquipment} disabled={isEqLoading} className={`w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 ${eqData.type === 'PC' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-brand-700 hover:bg-brand-800'}`}>
+            <Button onClick={handleSaveEquipment} disabled={isEqLoading} className="w-full h-14 text-lg text-white font-black uppercase italic rounded-2xl shadow-xl mt-4 bg-brand-700 hover:bg-brand-800">
               {isEqLoading ? "GUARDANDO..." : "GUARDAR ✓"}
             </Button>
           </div>
